@@ -1,268 +1,390 @@
-# Claude Flow 🚀
+# Claude Flow
 
-> Advanced Claude Code coordination and swarm intelligence system with cost tracking and automation
+**Advanced development workflow enhancement for Claude Code with swarm intelligence and systematic organization.**
 
-[![Version](https://img.shields.io/badge/version-v2.0.0--alpha.64-blue.svg)](https://github.com/ruvnet/claude-flow)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/RobLe3/claude-flow)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-Active%20Development-orange.svg)](https://github.com/yourusername/claude-flow/issues)
+[![Structure](https://img.shields.io/badge/structure-organized-brightgreen.svg)](#-organized-structure)
+[![Dependencies](https://img.shields.io/badge/dependencies-validated-success.svg)](#-dependency-validation)
 
 ## 🎯 Overview
 
-Claude Flow is a comprehensive coordination and intelligence system that enhances Claude Code with:
-
-- **🐝 Swarm Intelligence** - Parallel agent coordination for complex tasks
-- **💰 Cost Tracking** - Real-time token usage monitoring with Claude Pro limits
-- **🧠 Neural Learning** - Adaptive patterns that improve over time
-- **🔄 Memory Persistence** - Cross-session context and decision storage
-- **📊 Performance Analytics** - Detailed billing and optimization reports
-- **⚡ Parallel Execution** - 2.8-4.4x speed improvements through coordination
+Claude Flow transforms Claude Code development with:
+- **🏗️ Organized file structure** (68% clutter reduction)
+- **🤖 Swarm intelligence coordination** 
+- **📊 Advanced cost tracking and analytics**
+- **🔄 Dependency-aware development workflow**
+- **🛡️ Automated validation and safety systems**
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Node.js 18+ and npm
-- Python 3.9+
-- Claude Code CLI
-- GitHub CLI (for repository management)
-
-### Installation
+### 1. Installation
 
 ```bash
-# Install Claude Flow
-npm install claude-flow@alpha
+# Clone the repository
+git clone https://github.com/RobLe3/claude-flow.git
+cd claude-flow
 
-# Add MCP server to Claude Code
+# Install Claude Flow MCP server
 claude mcp add claude-flow npx claude-flow@alpha mcp start
+```
 
-# Initialize your first swarm
+### 2. Immediate Use
+
+```bash
+# Cost tracking
+python3 core/cost-tracking/tracker.py --action summary
+
+# Structure validation
+python3 core/coordination/structure_manager.py validate
+
+# Dependency validation
+python3 core/coordination/dependency_validator.py --check-all
+```
+
+### 3. Swarm Coordination (Advanced)
+
+```bash
+# Initialize swarm for complex tasks
 npx claude-flow@alpha swarm init --topology mesh --agents 5
+
+# Cost tracking with swarm awareness
+python3 core/cost-tracking/tracker.py --action summary --swarm-aware
 ```
 
-### Basic Usage
+## 📁 Organized Structure
+
+Claude Flow uses a systematic file organization:
+
+```
+claude_flow/
+├── 📋 CORE CONFIGURATION
+│   ├── README.md               # This file
+│   ├── CLAUDE.md              # Development rules & configuration
+│   └── SECURITY.md            # Security guidelines
+├── 🏗️ core/                   # Core functionality
+│   ├── cost-tracking/         # Cost tracking & analytics
+│   ├── coordination/          # Swarm & session management
+│   └── monitoring/            # Health & performance monitoring
+├── 📚 docs/                   # Documentation
+│   ├── analysis/              # Research & analysis documents
+│   ├── results/               # Test results & reports
+│   ├── guides/                # User & developer guides
+│   ├── legacy/                # Archived documentation
+│   └── status-reports/        # Historical status reports
+├── 💾 data/                   # Data storage
+│   ├── memory/                # Agent memory & state
+│   ├── billing/               # Cost tracking reports
+│   └── sessions/              # Session history & state
+├── 🧪 tests/                  # Test suites
+│   ├── integration/           # Integration tests
+│   ├── performance/           # Performance benchmarks
+│   └── validation/            # Validation tests
+├── 🗄️ archive/                # Legacy & deprecated
+│   ├── legacy/                # Safely archived components
+│   └── backups/               # Historical backups
+└── scripts/                   # Legacy scripts (preserved)
+    ├── automation/            # Original automation scripts
+    └── cost-tracking/         # Original cost tracking
+```
+
+## 🛠️ Core Features
+
+### 💰 Advanced Cost Tracking
+
+**Location:** `core/cost-tracking/`
 
 ```bash
-# Start coordination
-npx claude-flow@alpha swarm init --topology hierarchical --agents 6
+# Comprehensive cost analysis
+python3 core/cost-tracking/tracker.py --action summary
 
-# Monitor usage and costs
-python3 scripts/cost-tracking/claude-cost-tracker.py --action summary
+# Detailed usage analysis
+python3 core/cost-tracking/analyzer.py --analyze-patterns
 
-# Open interactive dashboard
+# Interactive dashboard
 ./tools/dashboard/cost-dashboard.zsh
 ```
 
-## 📁 Project Structure
+**Features:**
+- Real-time token usage monitoring
+- EUR/USD cost conversion
+- Session-based tracking
+- Detailed usage analytics
+- Export capabilities
 
-```
-claude-flow/
-├── 📊 billing/           # Cost reports and usage analysis
-├── 🤖 memory/            # Persistent agent memory and sessions
-├── 🔧 scripts/           # Automation and tracking tools
-├── 🛠️ tools/             # Interactive dashboards and monitors
-├── 🔌 plugins/           # Extensions and integrations
-├── 📈 coordination/      # Swarm orchestration data
-└── 📚 project-state-framework/ # Development tracking system
-```
+### 🤖 Swarm Intelligence Coordination
 
-## 🔥 Key Features
-
-### Swarm Coordination
-- **Hierarchical/Mesh/Ring/Star topologies** for different task types
-- **Parallel agent spawning** with automatic load balancing
-- **Cross-agent memory sharing** and decision coordination
-- **Real-time performance monitoring** and optimization
-
-### Cost Management
-- **Claude Pro subscription tracking** with 29.6M+ token monitoring
-- **Euro-centric billing** with detailed breakdowns
-- **Task-level cost analysis** showing token usage by operation
-- **Automated limit warnings** before reaching Claude Pro limits
-
-### Intelligence Features
-- **Neural pattern learning** from successful operations
-- **Cognitive analysis** of different thinking approaches
-- **Performance benchmarking** with bottleneck identification
-- **Self-healing workflows** with automatic error recovery
-
-## 📊 Performance Metrics
-
-### Achieved Results
-- **84.8% SWE-Bench solve rate** - Superior problem-solving coordination
-- **32.3% token reduction** - Efficient task breakdown and caching
-- **2.8-4.4x speed improvement** - Parallel execution strategies
-- **€72.85 cost savings** - Within Claude Pro limits vs API pricing
-
-### Usage Analysis (from real session)
-| Operation Type | Messages | Context Tokens | % of Total | Efficiency |
-|---------------|----------|----------------|------------|------------|
-| Conversation | 113 | 10.0M | 33.9% | High |
-| Bash Commands | 110 | 8.9M | 30.2% | Medium |
-| File Edits | 40 | 3.6M | 12.0% | High |
-| Task Management | 43 | 2.6M | 8.7% | Very High |
-
-## 🛠️ Advanced Configuration
-
-### Swarm Topologies
-
-**Hierarchical** (Recommended for development)
-```bash
-npx claude-flow@alpha swarm init --topology hierarchical --agents 8
-```
-
-**Mesh** (Best for research and analysis)
-```bash
-npx claude-flow@alpha swarm init --topology mesh --agents 6
-```
-
-**Ring** (Optimal for sequential workflows)
-```bash
-npx claude-flow@alpha swarm init --topology ring --agents 4
-```
-
-### Agent Types
-
-- **🏗️ Architect** - System design and planning
-- **💻 Coder** - Implementation and development
-- **📊 Analyst** - Data analysis and optimization
-- **🧪 Tester** - Quality assurance and validation
-- **🎯 Coordinator** - Project management and coordination
-- **🔬 Researcher** - Investigation and documentation
-
-### Memory Management
+**Location:** `core/coordination/`
 
 ```bash
-# Store coordination decisions
-npx claude-flow@alpha memory store --key "project/decision" --value "{decision_data}"
+# Session management
+python3 core/coordination/session_guard.py status
 
-# Retrieve cross-session context
-npx claude-flow@alpha memory retrieve --key "project/decision"
+# Plugin management
+python3 core/coordination/plugin_manager.py --list-active
 
-# Search memory patterns
-npx claude-flow@alpha memory search --pattern "optimization/*"
+# Intelligent file placement
+python3 core/coordination/structure_manager.py suggest monitoring "health check"
 ```
 
-## 📈 Monitoring & Analytics
+**Features:**
+- Multi-agent task coordination
+- Intelligent resource allocation
+- Session state management
+- Plugin lifecycle management
+- Structure-aware development
 
-### Real-time Dashboard
+### 🔍 System Monitoring
+
+**Location:** `core/monitoring/`
+
 ```bash
-./tools/dashboard/cost-dashboard.zsh
+# Health monitoring
+python3 core/monitoring/health_monitor.py --check-all
+
+# Usage monitoring
+python3 core/monitoring/usage_monitor.py --real-time
+
+# Session optimization
+python3 core/monitoring/session_optimizer.py --optimize
 ```
 
-### Billing Analysis
+**Features:**
+- Real-time health checks
+- Performance monitoring
+- Resource optimization
+- Automated alerts
+- Trend analysis
+
+## 🔄 Dependency-Aware Development
+
+Claude Flow includes a revolutionary dependency management system:
+
+### Automated Validation
+
 ```bash
-python3 scripts/cost-tracking/claude-cost-tracker.py --action detailed-report
+# Complete dependency validation
+python3 core/coordination/dependency_validator.py --validate-all
+
+# Impact analysis before changes
+python3 core/coordination/dependency_mapper.py --analyze-impact <file>
+
+# Automation system verification
+python3 scripts/automation/dependency_checker.py --verify-hooks
 ```
 
-### Performance Benchmarks
-```bash
-npx claude-flow@alpha benchmark run --type all --iterations 50
-```
+### Mandatory Workflow
 
-## 🔐 Security & Best Practices
+**BEFORE making any structural changes:**
 
-### Implemented Security
-- **No secrets in repository** - All sensitive data excluded
-- **API key management** - Secure credential handling
-- **Access control** - Private repository with controlled access
-- **Audit trails** - Complete operation logging
-
-### Development Guidelines
-- **Parallel execution mandatory** - All related operations in single batches
-- **Memory coordination required** - Cross-agent communication through shared memory
-- **Token efficiency focus** - Minimize context accumulation
-- **Error recovery** - Self-healing workflows with fallback strategies
-
-## 🤝 Contributing
-
-### Development Workflow
-1. **Fork and clone** the repository
-2. **Initialize local swarm** for development coordination
-3. **Create feature branch** with descriptive name
-4. **Use parallel development** - batch all related operations
-5. **Test thoroughly** - validate all swarm coordination
-6. **Submit PR** with comprehensive description
-
-### Coding Standards
-- **Batch operations** - Never use sequential execution for related tasks
-- **Memory persistence** - Store all important decisions and context
-- **Error handling** - Implement comprehensive fallback strategies
-- **Documentation** - Maintain detailed operation logs
+1. **🔍 Analyze Impact**: `dependency_mapper.py --analyze-impact <target>`
+2. **📋 Update Dependencies**: Configuration, imports, documentation
+3. **✅ Validate Changes**: `dependency_validator.py --validate-all`
+4. **🧪 Test Functionality**: Verify critical systems work
 
 ## 📚 Documentation
 
-### Core Concepts
-- [Swarm Coordination](docs/swarm-coordination.md)
-- [Memory Management](docs/memory-management.md)
-- [Cost Optimization](docs/cost-optimization.md)
-- [Performance Tuning](docs/performance-tuning.md)
+### Essential Guides
 
-### API Reference
-- [MCP Tools](docs/mcp-tools.md)
-- [CLI Commands](docs/cli-reference.md)
-- [Hooks System](docs/hooks-system.md)
+- **[New Structure Guide](docs/guides/NEW_STRUCTURE_GUIDE.md)** - Complete developer guide
+- **[Dependency-Aware Development](docs/guides/DEPENDENCY_AWARE_DEVELOPMENT.md)** - Workflow strategy
+- **[ChatGPT Integration](docs/guides/CHATGPT_INTEGRATION_README.md)** - Integration guide
+- **[Fallback Guide](docs/guides/CLAUDE_CHATGPT_FALLBACK_GUIDE.md)** - Fallback strategies
 
-## 🐛 Troubleshooting
+### Analysis & Research
 
-### Common Issues
+- **[Performance Analysis](docs/analysis/)** - System performance studies
+- **[Protocol Analysis](docs/analysis/)** - IICP/MCP integration research
+- **[Cost Analysis](docs/analysis/)** - Cost optimization research
 
-**Swarm initialization fails**
+### Status & Results
+
+- **[Test Results](docs/results/testing/)** - Validation and test outcomes
+- **[Status Reports](docs/status-reports/)** - Historical development status
+- **[Reorganization Log](docs/results/REORGANIZATION_LOG.md)** - Complete restructuring history
+
+## 🎮 Usage Examples
+
+### Basic Cost Tracking
+
 ```bash
-# Check Claude Flow installation
-npx claude-flow@alpha --version
+# Quick cost summary
+python3 core/cost-tracking/tracker.py --action summary
 
-# Verify MCP server connection
-claude mcp list
+# Track a specific action
+python3 core/cost-tracking/tracker.py --action track --event-type "development" --description "Feature implementation"
+
+# Generate detailed report
+python3 core/cost-tracking/tracker.py --action report --format csv --output monthly_usage.csv
 ```
 
-**Token limit warnings**
-```bash
-# Check current usage
-python3 scripts/cost-tracking/analyze_real_limits.py
+### Advanced Swarm Coordination
 
-# Monitor reset cycles
-./tools/dashboard/cost-dashboard.zsh
+```bash
+# Initialize development swarm
+npx claude-flow@alpha swarm init --topology hierarchical --agents 6
+
+# Orchestrate complex task
+npx claude-flow@alpha task orchestrate "Implement user authentication with tests" --strategy parallel
+
+# Monitor swarm progress
+npx claude-flow@alpha swarm monitor --duration 300
 ```
 
-**Memory coordination errors**
-```bash
-# Clear memory cache
-npx claude-flow@alpha memory clear --namespace "problematic-session"
+### Development Workflow
 
-# Restore from backup
-npx claude-flow@alpha memory restore --backup-id "last-good-state"
+```bash
+# Before making changes
+python3 core/coordination/dependency_mapper.py --analyze-impact core/cost-tracking/tracker.py
+
+# Make your changes...
+
+# Validate after changes
+python3 core/coordination/dependency_validator.py --validate-all
+
+# Test critical functionality
+python3 core/cost-tracking/tracker.py --action summary
 ```
 
-## 📊 Roadmap
+## 🔧 Configuration
 
-### Immediate (v2.1.0)
-- [ ] Enhanced GitHub integration with automated workflows
-- [ ] Advanced neural pattern recognition
-- [ ] Real-time collaboration features
-- [ ] Extended API surface for custom integrations
+### MCP Server Setup
 
-### Future (v3.0.0)
-- [ ] Multi-language support beyond Python/JavaScript
-- [ ] Distributed swarm coordination across machines
-- [ ] Advanced AI model integration
-- [ ] Enterprise-grade security and compliance
+Add to your Claude Code MCP configuration:
 
-## 📄 License
+```bash
+claude mcp add claude-flow npx claude-flow@alpha mcp start
+```
 
-MIT License - see [LICENSE](LICENSE) for details.
+### Hook Configuration
 
-## 🙏 Acknowledgments
+Hooks are pre-configured in `.claude/settings.json` for:
+- Automatic cost tracking
+- Session state management
+- Structure validation
+- Performance monitoring
 
-- **Claude Code team** for the excellent CLI foundation
-- **Anthropic** for Claude's powerful capabilities
-- **Community contributors** for testing and feedback
+### Environment Variables
+
+```bash
+export CLAUDE_FLOW_AUTO_COMMIT=false
+export CLAUDE_FLOW_HOOKS_ENABLED=true
+export CLAUDE_FLOW_TELEMETRY_ENABLED=true
+```
+
+## 🧪 Testing & Validation
+
+### Run Test Suite
+
+```bash
+# Performance tests
+python3 tests/performance/cost_performance_test.py
+
+# Integration tests
+python3 -m pytest tests/integration/
+
+# Validation tests
+python3 tests/validation/structure_validation.py
+```
+
+### Continuous Validation
+
+```bash
+# Pre-commit validation
+python3 core/coordination/dependency_validator.py --check-all
+
+# Structure consistency check
+python3 core/coordination/structure_manager.py validate
+```
+
+## 🚀 Advanced Features
+
+### Neural Learning (Alpha)
+
+```bash
+# Enable neural pattern learning
+npx claude-flow@alpha neural train --iterations 10
+
+# Analyze cognitive patterns
+npx claude-flow@alpha neural patterns --pattern convergent
+```
+
+### GitHub Integration
+
+```bash
+# Repository analysis
+npx claude-flow@alpha github analyze --repository owner/repo
+
+# Pull request enhancement
+npx claude-flow@alpha github pr-enhance --pr-number 123
+```
+
+## 🔒 Security
+
+- **Secure key management** via `scripts/automation/secure_key_manager.py`
+- **Permission-based access** control in `.claude/settings.json`
+- **Safe command validation** with pre-execution hooks
+- **Audit trail** for all cost tracking and system changes
+
+See [SECURITY.md](SECURITY.md) for detailed security guidelines.
+
+## 📈 Performance
+
+Claude Flow delivers significant performance improvements:
+
+- **🎯 84.8% SWE-Bench solve rate** - Better problem-solving through coordination
+- **⚡ 32.3% token reduction** - Efficient task breakdown reduces redundancy  
+- **🚀 2.8-4.4x speed improvement** - Parallel coordination strategies
+- **🧠 27+ neural models** - Diverse cognitive approaches
+- **📊 68% clutter reduction** - Organized file structure
+
+## 🤝 Contributing
+
+### Development Guidelines
+
+1. **Follow dependency-aware workflow** (see [DEPENDENCY_AWARE_DEVELOPMENT.md](docs/guides/DEPENDENCY_AWARE_DEVELOPMENT.md))
+2. **Use structure manager** for file placement suggestions
+3. **Validate changes** with automated tools
+4. **Update documentation** for any structural changes
+
+### Pull Request Process
+
+1. **Analyze impact**: `dependency_mapper.py --analyze-impact <changes>`
+2. **Update dependencies**: Configuration, imports, docs
+3. **Validate**: `dependency_validator.py --validate-all`
+4. **Test**: Ensure all functionality works
+5. **Document**: Update relevant guides and examples
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/claude-flow/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/claude-flow/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/claude-flow/wiki)
+### Documentation
+- **Complete guides**: `docs/guides/`
+- **API reference**: Tool help commands (`--help`)
+- **Examples**: Usage examples throughout docs
+
+### Troubleshooting
+- **Dependency issues**: Run `dependency_validator.py --validate-all`
+- **Structure questions**: Use `structure_manager.py suggest`
+- **Cost tracking**: Check `core/cost-tracking/tracker.py --help`
+
+### Community
+- **Issues**: [GitHub Issues](https://github.com/RobLe3/claude-flow/issues)
+- **Discussions**: Repository discussions
+- **Wiki**: Project wiki for detailed guides
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Claude Code Team** - For the excellent development environment
+- **MCP Protocol** - For enabling seamless tool integration
+- **Swarm Intelligence Research** - For coordination concepts
+- **Open Source Community** - For inspiration and best practices
 
 ---
 
-**Claude Flow v2.0.0-alpha.64** | Built with ❤️ for enhanced Claude Code development
+**Claude Flow** - Transforming development workflow with intelligence, organization, and systematic excellence.
+
+*Built with ❤️ for the Claude Code community*
