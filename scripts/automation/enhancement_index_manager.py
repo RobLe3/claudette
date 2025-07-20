@@ -20,6 +20,13 @@ class EnhancementIndexManager:
     def __init__(self):
         self.claude_dir = Path.home() / '.claude'
         self.project_dir = Path('/Users/roble/Documents/Python/claude_flow')
+        
+        # New organized structure paths
+        self.core_dir = self.project_dir / 'core'
+        self.docs_dir = self.project_dir / 'docs'
+        self.data_dir = self.project_dir / 'data'
+        self.tests_dir = self.project_dir / 'tests'
+        self.archive_dir = self.project_dir / 'archive'
         self.index_db = self.claude_dir / 'enhancement_index.db'
         self.registry_file = self.claude_dir / 'enhancement_registry.json'
         

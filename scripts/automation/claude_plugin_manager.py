@@ -21,7 +21,10 @@ class ClaudePluginManager:
         self.project_claude_dir = Path(".claude")
         self.settings_file = self.claude_dir / "settings.json"
         self.project_settings_file = self.project_claude_dir / "settings.json"
+        # Support both old and new plugin locations
         self.plugins_dir = Path("plugins")
+        self.new_plugins_dir = Path("core") / "plugins"  # Future plugin location
+        self.legacy_plugins_dir = Path("archive") / "legacy" / "plugins"
         self.backup_dir = self.claude_dir / "backups"
         
         # Ensure directories exist

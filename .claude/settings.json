@@ -25,7 +25,8 @@
       "Bash(which *)",
       "Bash(pwd)",
       "Bash(ls *)",
-      "Bash(python3 /Users/roble/Documents/Python/claude_flow/scripts/cost-tracking/claude-cost-tracker.py *)"
+      "Bash(python3 /Users/roble/Documents/Python/claude_flow/core/cost-tracking/tracker.py *)",
+      "Bash(python3 /Users/roble/Documents/Python/claude_flow/claude-cost-tracker.py *)"
     ],
     "deny": [
       "Bash(rm -rf /)",
@@ -65,7 +66,7 @@
           },
           {
             "type": "command",
-            "command": "cat | jq -r '.tool_input.command // \"\"' | xargs -I {} python3 /Users/roble/Documents/Python/claude_flow/scripts/cost-tracking/claude-cost-tracker.py --action track --event-type bash --command \"{}\""
+            "command": "cat | jq -r '.tool_input.command // \"\"' | xargs -I {} python3 /Users/roble/Documents/Python/claude_flow/core/cost-tracking/tracker.py --action track --event-type bash --command \"{}\""
           }
         ]
       },
@@ -78,7 +79,7 @@
           },
           {
             "type": "command",
-            "command": "cat | jq -r '.tool_input.file_path // .tool_input.path // \"\"' | xargs -I {} python3 /Users/roble/Documents/Python/claude_flow/scripts/cost-tracking/claude-cost-tracker.py --action track --event-type edit --file \"{}\""
+            "command": "cat | jq -r '.tool_input.file_path // .tool_input.path // \"\"' | xargs -I {} python3 /Users/roble/Documents/Python/claude_flow/core/cost-tracking/tracker.py --action track --event-type edit --file \"{}\""
           }
         ]
       }
@@ -92,7 +93,7 @@
           },
           {
             "type": "command",
-            "command": "python3 /Users/roble/Documents/Python/claude_flow/scripts/cost-tracking/claude-cost-tracker.py --action end"
+            "command": "python3 /Users/roble/Documents/Python/claude_flow/core/cost-tracking/tracker.py --action end"
           }
         ]
       }
