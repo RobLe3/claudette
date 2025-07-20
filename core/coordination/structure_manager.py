@@ -226,6 +226,22 @@ if __name__ == "__main__":
     elif command == "cost-tracker":
         print(str(sm.get_cost_tracker_path()))
     
+    elif command == "validate-deps":
+        print("🔍 Validating structure dependencies...")
+        from .dependency_validator import DependencyValidator
+        validator = DependencyValidator()
+        results = validator.validate_all()
+        
+        # Exit with error code if there are errors
+        total_errors = sum(len(r.get('errors', [])) for r in results.values())
+        sys.exit(1 if total_errors > 0 else 0)
+    
     else:
         print(f"Unknown command: {command}")
+        print("\nAvailable commands:")
+        print("  validate       - Check directory structure")
+        print("  suggest        - Suggest file placement")
+        print("  export         - Export structure config")
+        print("  cost-tracker   - Get cost tracker path")
+        print("  validate-deps  - Validate all dependencies")
         sys.exit(1)

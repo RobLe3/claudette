@@ -503,6 +503,107 @@ See `.claude/commands/` for detailed documentation on all features.
 6. **Enable Hooks**: Use the pre-configured hooks for automation
 7. **GitHub First**: Use GitHub tools for repository management
 
+## 🚨 CRITICAL: DEPENDENCY UPDATE STRATEGY
+
+### **MANDATORY RULE: ALL CHANGES MUST UPDATE ASSOCIATED DEPENDENCIES**
+
+**When refactoring, adapting, or cleaning up ANY development:**
+
+1. **🔍 IDENTIFY ALL DEPENDENCIES** before making changes:
+   - Configuration files (.claude/settings.json, CLAUDE.md)
+   - Import statements and path references
+   - Automation scripts and hooks
+   - Documentation and guides
+   - Test files and validation scripts
+   - Git hooks and CI/CD configurations
+
+2. **📋 DEPENDENCY CHECKLIST** - ALWAYS verify these are updated:
+   ```
+   ✅ .claude/settings.json paths
+   ✅ CLAUDE.md configuration references
+   ✅ Import statements in Python files
+   ✅ Bash script path references
+   ✅ Documentation file paths
+   ✅ Test file imports and paths
+   ✅ Hook command paths
+   ✅ Symlink targets
+   ✅ Plugin manager configurations
+   ✅ Enhancement index references
+   ```
+
+3. **🤖 AUTOMATED VALIDATION** - Use dependency checking tools:
+   ```bash
+   # Validate structure dependencies
+   python3 core/coordination/dependency_validator.py --check-all
+   
+   # Check configuration consistency
+   python3 core/coordination/structure_manager.py validate-deps
+   
+   # Verify all hooks and automation paths
+   python3 scripts/automation/dependency_checker.py --verify-hooks
+   ```
+
+4. **🔄 IMPACT ANALYSIS** - Before ANY structural change:
+   ```bash
+   # Analyze what will be affected by changes
+   python3 core/coordination/impact_analyzer.py --analyze <file_or_directory>
+   
+   # Get list of all files that reference the target
+   python3 core/coordination/dependency_mapper.py --find-references <target>
+   ```
+
+### **⚠️ CONSEQUENCES OF IGNORING DEPENDENCY UPDATES:**
+
+- ❌ **Broken automation hooks** (cost tracking, session management)
+- ❌ **Configuration inconsistencies** (.claude/settings.json out of sync)
+- ❌ **Import failures** in Python modules
+- ❌ **Documentation becomes outdated** and misleading
+- ❌ **Testing failures** due to incorrect paths
+- ❌ **Development workflow disruption**
+
+### **✅ BEST PRACTICES FOR DEPENDENCY-AWARE DEVELOPMENT:**
+
+1. **Pre-Change Analysis**:
+   ```bash
+   # Always run before making structural changes
+   python3 core/coordination/dependency_mapper.py --analyze-impact <target>
+   ```
+
+2. **Systematic Updates**:
+   - Update configuration files FIRST
+   - Update automation scripts SECOND
+   - Update documentation THIRD
+   - Update tests LAST
+
+3. **Validation After Changes**:
+   ```bash
+   # Validate all dependencies are correctly updated
+   python3 core/coordination/dependency_validator.py --validate-all
+   
+   # Test critical paths still work
+   python3 core/cost-tracking/tracker.py --action summary
+   python3 scripts/automation/claude_session_guard.py status
+   ```
+
+4. **Documentation Updates**:
+   - Update migration guides immediately
+   - Add new paths to developer documentation
+   - Update troubleshooting guides with new locations
+
+### **🎯 DEPENDENCY UPDATE WORKFLOW:**
+
+```
+1. 🔍 ANALYZE: What files/systems depend on what I'm changing?
+2. 📋 LIST: Create comprehensive list of all dependencies
+3. 🔄 UPDATE: Systematically update all identified dependencies  
+4. ✅ VALIDATE: Use automated tools to verify updates
+5. 🧪 TEST: Verify critical functionality still works
+6. 📚 DOCUMENT: Update guides and documentation
+7. 🤖 COMMIT: Include dependency updates in same commit
+```
+
+**REMEMBER: A change without dependency updates is an incomplete change.**
+
 ## 🧠 SWARM ORCHESTRATION PATTERN
 
 ### You are the SWARM ORCHESTRATOR. **IMMEDIATELY SPAWN AGENTS IN PARALLEL** to execute tasks
