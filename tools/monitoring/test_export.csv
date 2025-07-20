@@ -1,0 +1,4 @@
+Timestamp,Event Type,Input Tokens,Output Tokens,Cost,Model,Command,File Path,Session ID
+2025-07-18 21:36:02.182639,bash,0,0,0.0,claude-sonnet-4-20250514,python3 claude-cost-tracker.py --action summary --show-historical,,session_20250718_213115
+2025-07-18 21:35:52.508406,bash,0,0,0.0,claude-sonnet-4-20250514,python3 claude-cost-tracker.py --action history --days 7,,session_20250718_213115
+2025-07-18 21:31:25.294690,test,3,8,0.000129,claude-3-5-sonnet-20241022,,,session_20250718_213115
