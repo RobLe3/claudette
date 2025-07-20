@@ -1,0 +1,1 @@
+"""Core coordination functionality for Claude Flow"""

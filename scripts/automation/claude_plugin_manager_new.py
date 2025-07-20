@@ -1,0 +1,1 @@
+../../core/coordination/plugin_manager.py
