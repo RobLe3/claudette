@@ -1,1 +1,0 @@
-claude_status_integration_wrapper.py
