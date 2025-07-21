@@ -1,0 +1,305 @@
+{
+  "total_tests": 26,
+  "correct_classifications": 26,
+  "category_accuracy": {
+    "trivial": {
+      "correct": 5,
+      "total": 5,
+      "accuracy": 1.0
+    },
+    "simple": {
+      "correct": 5,
+      "total": 5,
+      "accuracy": 1.0
+    },
+    "moderate": {
+      "correct": 5,
+      "total": 5,
+      "accuracy": 1.0
+    },
+    "complex": {
+      "correct": 5,
+      "total": 5,
+      "accuracy": 1.0
+    },
+    "critical": {
+      "correct": 6,
+      "total": 6,
+      "accuracy": 1.0
+    }
+  },
+  "detailed_results": [
+    {
+      "task": "write a hello world function",
+      "expected": "TRIVIAL",
+      "actual": "TRIVIAL",
+      "category": "trivial",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "print hello world",
+      "expected": "TRIVIAL",
+      "actual": "TRIVIAL",
+      "category": "trivial",
+      "correct": true,
+      "confidence": 0.9025000000000001,
+      "score": 1.55
+    },
+    {
+      "task": "simple print statement",
+      "expected": "TRIVIAL",
+      "actual": "TRIVIAL",
+      "category": "trivial",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "basic variable assignment",
+      "expected": "TRIVIAL",
+      "actual": "TRIVIAL",
+      "category": "trivial",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "convert string to uppercase",
+      "expected": "TRIVIAL",
+      "actual": "TRIVIAL",
+      "category": "trivial",
+      "correct": true,
+      "confidence": 0.3,
+      "score": 0.6
+    },
+    {
+      "task": "write a simple function to calculate sum",
+      "expected": "SIMPLE",
+      "actual": "SIMPLE",
+      "category": "simple",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "create a basic class for user data",
+      "expected": "SIMPLE",
+      "actual": "SIMPLE",
+      "category": "simple",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "implement simple sorting algorithm",
+      "expected": "SIMPLE",
+      "actual": "SIMPLE",
+      "category": "simple",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "write documentation for this function",
+      "expected": "SIMPLE",
+      "actual": "SIMPLE",
+      "category": "simple",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "create a README file",
+      "expected": "SIMPLE",
+      "actual": "SIMPLE",
+      "category": "simple",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "create a REST API endpoint",
+      "expected": "MODERATE",
+      "actual": "MODERATE",
+      "category": "moderate",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "build a web application feature",
+      "expected": "MODERATE",
+      "actual": "MODERATE",
+      "category": "moderate",
+      "correct": true,
+      "confidence": 0.2,
+      "score": 0.4
+    },
+    {
+      "task": "implement authentication system",
+      "expected": "MODERATE",
+      "actual": "MODERATE",
+      "category": "moderate",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "analyze code for performance issues",
+      "expected": "MODERATE",
+      "actual": "MODERATE",
+      "category": "moderate",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "optimize database queries",
+      "expected": "MODERATE",
+      "actual": "MODERATE",
+      "category": "moderate",
+      "correct": true,
+      "confidence": 0.2,
+      "score": 0.4
+    },
+    {
+      "task": "design microservices architecture",
+      "expected": "COMPLEX",
+      "actual": "COMPLEX",
+      "category": "complex",
+      "correct": true,
+      "confidence": 0.6000000000000001,
+      "score": 1.2000000000000002
+    },
+    {
+      "task": "architect a distributed system",
+      "expected": "COMPLEX",
+      "actual": "COMPLEX",
+      "category": "complex",
+      "correct": true,
+      "confidence": 0.2,
+      "score": 0.4
+    },
+    {
+      "task": "research machine learning approaches",
+      "expected": "COMPLEX",
+      "actual": "COMPLEX",
+      "category": "complex",
+      "correct": true,
+      "confidence": 0.3,
+      "score": 0.6
+    },
+    {
+      "task": "create scalable framework",
+      "expected": "COMPLEX",
+      "actual": "COMPLEX",
+      "category": "complex",
+      "correct": true,
+      "confidence": 0.3,
+      "score": 0.6
+    },
+    {
+      "task": "technical analysis of emerging technologies",
+      "expected": "COMPLEX",
+      "actual": "COMPLEX",
+      "category": "complex",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "security analysis of financial system",
+      "expected": "CRITICAL",
+      "actual": "CRITICAL",
+      "category": "critical",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "vulnerability assessment of web application",
+      "expected": "CRITICAL",
+      "actual": "CRITICAL",
+      "category": "critical",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "penetration testing of network",
+      "expected": "CRITICAL",
+      "actual": "CRITICAL",
+      "category": "critical",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    },
+    {
+      "task": "implement cryptographic security",
+      "expected": "CRITICAL",
+      "actual": "CRITICAL",
+      "category": "critical",
+      "correct": true,
+      "confidence": 0.3,
+      "score": 0.6
+    },
+    {
+      "task": "design mission critical system",
+      "expected": "CRITICAL",
+      "actual": "CRITICAL",
+      "category": "critical",
+      "correct": true,
+      "confidence": 0.2,
+      "score": 0.4
+    },
+    {
+      "task": "fault tolerant system design",
+      "expected": "CRITICAL",
+      "actual": "CRITICAL",
+      "category": "critical",
+      "correct": true,
+      "confidence": 0.425,
+      "score": 0.85
+    }
+  ],
+  "confusion_matrix": {
+    "trivial": {
+      "trivial": 5,
+      "simple": 0,
+      "moderate": 0,
+      "complex": 0,
+      "critical": 0
+    },
+    "simple": {
+      "trivial": 0,
+      "simple": 5,
+      "moderate": 0,
+      "complex": 0,
+      "critical": 0
+    },
+    "moderate": {
+      "trivial": 0,
+      "simple": 0,
+      "moderate": 5,
+      "complex": 0,
+      "critical": 0
+    },
+    "complex": {
+      "trivial": 0,
+      "simple": 0,
+      "moderate": 0,
+      "complex": 5,
+      "critical": 0
+    },
+    "critical": {
+      "trivial": 0,
+      "simple": 0,
+      "moderate": 0,
+      "complex": 0,
+      "critical": 6
+    }
+  },
+  "overall_accuracy": 1.0
+}

@@ -1,0 +1,82 @@
+{
+  "timestamp": "2025-07-20T22:57:31.905019",
+  "summary": {
+    "total_tests": 6,
+    "avg_cost_savings_percent": -7873.0,
+    "avg_quality_difference": 0.55,
+    "claude_avg_quality": 8.9,
+    "offload_avg_quality": 9.5,
+    "total_claude_cost_usd": 0.0443,
+    "total_offload_cost_usd": 1.1624,
+    "quality_wins": 4,
+    "quality_losses": 1,
+    "quality_ties": 1
+  },
+  "recommendations": {
+    "use_offload": 3,
+    "equivalent": 2,
+    "use_claude": 1
+  },
+  "detailed_results": [
+    {
+      "test_id": "simple_function",
+      "cost_savings_percent": 92.4,
+      "quality_difference": 0.7,
+      "claude_quality": 8.5,
+      "offload_quality": 9.200000000000001,
+      "recommendation": "use_offload",
+      "claude_cost": 0.0035,
+      "offload_cost": 0.0003
+    },
+    {
+      "test_id": "api_endpoint",
+      "cost_savings_percent": 93.1,
+      "quality_difference": 0.7,
+      "claude_quality": 8.5,
+      "offload_quality": 9.200000000000001,
+      "recommendation": "use_offload",
+      "claude_cost": 0.0083,
+      "offload_cost": 0.0006
+    },
+    {
+      "test_id": "data_processing",
+      "cost_savings_percent": 97.4,
+      "quality_difference": 1.0,
+      "claude_quality": 9.0,
+      "offload_quality": 10.0,
+      "recommendation": "use_offload",
+      "claude_cost": 0.0253,
+      "offload_cost": 0.0007
+    },
+    {
+      "test_id": "authentication_system",
+      "cost_savings_percent": -16070.1,
+      "quality_difference": 1.0,
+      "claude_quality": 9.0,
+      "offload_quality": 10.0,
+      "recommendation": "equivalent",
+      "claude_cost": 0.0022,
+      "offload_cost": 0.3536
+    },
+    {
+      "test_id": "microservices_design",
+      "cost_savings_percent": -17723.4,
+      "quality_difference": -0.6,
+      "claude_quality": 9.0,
+      "offload_quality": 8.4,
+      "recommendation": "equivalent",
+      "claude_cost": 0.0025,
+      "offload_cost": 0.4533
+    },
+    {
+      "test_id": "ml_system",
+      "cost_savings_percent": -13727.2,
+      "quality_difference": 0.5,
+      "claude_quality": 9.5,
+      "offload_quality": 10.0,
+      "recommendation": "use_claude",
+      "claude_cost": 0.0026,
+      "offload_cost": 0.3539
+    }
+  ]
+}

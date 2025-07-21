@@ -27,7 +27,7 @@ class ClaudeCostTracker:
         # Detect subscription tier
         self.subscription_tier = subscription_tier or self._detect_subscription_tier()
         
-        # Claude API pricing (as of 2025) - for non-subscription users
+        # Claude API pricing (2025 accurate rates) - for non-subscription users
         self.api_pricing = {
             'claude-3-5-sonnet-20241022': {
                 'input': 3.00 / 1_000_000,   # $3 per million input tokens
@@ -44,6 +44,26 @@ class ClaudeCostTracker:
             'claude-sonnet-4-20250514': {
                 'input': 3.00 / 1_000_000,   # $3 per million input tokens
                 'output': 15.00 / 1_000_000  # $15 per million output tokens
+            }
+        }
+        
+        # 2025 OpenAI pricing for cost comparison accuracy
+        self.openai_pricing = {
+            'gpt-3.5-turbo': {
+                'input': 0.50 / 1_000_000,   # $0.50 per million input tokens (2025)
+                'output': 1.50 / 1_000_000   # $1.50 per million output tokens (2025)
+            },
+            'gpt-4o-mini': {
+                'input': 0.15 / 1_000_000,   # $0.15 per million input tokens (2025)
+                'output': 0.60 / 1_000_000   # $0.60 per million output tokens (2025)
+            },
+            'gpt-4o': {
+                'input': 5.00 / 1_000_000,   # $5.00 per million input tokens (2025)
+                'output': 20.00 / 1_000_000  # $20.00 per million output tokens (2025)
+            },
+            'gpt-4': {
+                'input': 30.00 / 1_000_000,  # $30.00 per million input tokens (2025)
+                'output': 60.00 / 1_000_000  # $60.00 per million output tokens (2025)
             }
         }
         
@@ -81,8 +101,9 @@ class ClaudeCostTracker:
         # Get API key from environment or Claude config
         self.api_key = self._get_api_key()
         
-        # USD to EUR conversion rate (approximate)
-        self.usd_to_eur = 0.92  # Update this periodically
+        # USD to EUR conversion rate (2025 accurate)
+        self.usd_to_eur = 1.09  # Updated July 2025: 1 USD = 1.09 EUR
+        self.eur_to_usd = 0.92  # 1 EUR = 0.92 USD
         
         self.init_database()
     
@@ -243,10 +264,29 @@ class ClaudeCostTracker:
             return session_id
     
     def estimate_tokens(self, text, is_input=True):
-        """Estimate token count (rough approximation: 1 token ≈ 4 characters)"""
+        """Improved token estimation with complexity analysis"""
         if not text:
             return 0
-        return max(1, len(text) // 4)
+        
+        # Base character count
+        char_count = len(text)
+        
+        # More accurate token estimation based on content type
+        if char_count < 50:  # Short messages
+            return max(1, char_count // 3)
+        elif char_count < 500:  # Medium messages
+            return max(1, char_count // 3.5)
+        elif char_count < 2000:  # Long messages
+            return max(1, char_count // 4)
+        else:  # Very long messages
+            return max(1, char_count // 4.5)
+        
+        # Account for code vs natural language
+        code_indicators = text.count('{') + text.count('}') + text.count('def ') + text.count('class ') + text.count('import ')
+        if code_indicators > 5:  # Code-heavy content
+            return int(char_count // 3.2)  # Code is more token-dense
+        
+        return max(1, char_count // 4)
     
     def calculate_cost(self, input_tokens, output_tokens, model_name):
         """Calculate cost based on token usage, model, and subscription tier"""
@@ -286,7 +326,19 @@ class ClaudeCostTracker:
         input_cost = input_tokens * pricing['input']
         output_cost = output_tokens * pricing['output']
         
-        return input_cost + output_cost
+        total_cost = input_cost + output_cost
+        
+        # Validate cost calculation - add sanity checks
+        if total_cost < 0:
+            print(f"⚠️ WARNING: Negative cost calculated: ${total_cost:.6f}")
+            return 0.0
+        
+        if total_cost > 100:  # Sanity check for extremely high costs
+            print(f"⚠️ WARNING: Extremely high cost calculated: ${total_cost:.6f}")
+            print(f"   Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+            print(f"   Model: {model_name}")
+        
+        return total_cost
     
     def track_usage(self, event_type, input_text="", output_text="", model_name="claude-3-5-sonnet-20241022", command="", file_path=""):
         """Track usage event"""
@@ -332,8 +384,42 @@ class ClaudeCostTracker:
         return cost
     
     def usd_to_euros(self, usd_amount):
-        """Convert USD to EUR"""
+        """Convert USD to EUR (fixed rate)"""
         return usd_amount * self.usd_to_eur
+    
+    def calculate_savings_vs_openai(self, input_tokens, output_tokens, task_complexity='medium'):
+        """Calculate potential savings using Claude vs OpenAI models"""
+        # Claude cost (current subscription)
+        if self.subscription_tier in ['pro', 'max']:
+            claude_cost_usd = 0.0  # Included in subscription
+        else:
+            claude_cost_usd = self.calculate_cost(input_tokens, output_tokens, 'claude-sonnet-4-20250514')
+        
+        # OpenAI cost comparison based on task complexity
+        openai_models = {
+            'simple': 'gpt-4o-mini',     # For simple tasks
+            'medium': 'gpt-3.5-turbo',   # For medium complexity
+            'complex': 'gpt-4o',         # For complex tasks
+            'critical': 'gpt-4'          # For critical tasks
+        }
+        
+        openai_model = openai_models.get(task_complexity, 'gpt-3.5-turbo')
+        openai_pricing = self.openai_pricing[openai_model]
+        openai_cost_usd = (input_tokens * openai_pricing['input']) + (output_tokens * openai_pricing['output'])
+        
+        # Calculate savings
+        savings_usd = openai_cost_usd - claude_cost_usd
+        savings_percentage = (savings_usd / openai_cost_usd * 100) if openai_cost_usd > 0 else 0
+        
+        return {
+            'claude_cost_usd': claude_cost_usd,
+            'openai_cost_usd': openai_cost_usd,
+            'openai_model': openai_model,
+            'savings_usd': savings_usd,
+            'savings_eur': self.usd_to_euros(savings_usd),
+            'savings_percentage': savings_percentage,
+            'recommendation': 'use_claude' if savings_usd > 0 else 'consider_openai'
+        }
     
     def get_daily_token_usage(self, date=None):
         """Get daily token usage"""

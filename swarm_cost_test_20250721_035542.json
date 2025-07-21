@@ -1,0 +1,174 @@
+{
+  "swarm_results": {
+    "timestamp": "2025-07-21T03:55:42.533791",
+    "swarm_id": "swarm_1753062784583_cxsb781un",
+    "scenarios": [
+      {
+        "id": "swarm_research",
+        "agent_type": "researcher",
+        "task": "research best practices for implementing user authentication in Node.js applications",
+        "complexity": "moderate",
+        "expected_route": "chatgpt",
+        "actual_route": "chatgpt",
+        "model_used": "gpt-4o-mini",
+        "estimated_cost": 0.00035999999999999997,
+        "routing_correct": true,
+        "savings_vs_claude": 97.75,
+        "execution_time": 0.0009021759033203125
+      },
+      {
+        "id": "swarm_analysis",
+        "agent_type": "analyst",
+        "task": "analyze code performance bottlenecks in a React application",
+        "complexity": "moderate",
+        "expected_route": "chatgpt",
+        "actual_route": "chatgpt",
+        "model_used": "gpt-4o-mini",
+        "estimated_cost": 0.00035999999999999997,
+        "routing_correct": true,
+        "savings_vs_claude": 97.75,
+        "execution_time": 0.0012569427490234375
+      },
+      {
+        "id": "swarm_coding",
+        "agent_type": "coder",
+        "task": "implement a caching layer for database queries using Redis",
+        "complexity": "moderate",
+        "expected_route": "chatgpt",
+        "actual_route": "chatgpt",
+        "model_used": "gpt-4o-mini",
+        "estimated_cost": 0.00035999999999999997,
+        "routing_correct": true,
+        "savings_vs_claude": 97.75,
+        "execution_time": 0.000286102294921875
+      },
+      {
+        "id": "swarm_testing",
+        "agent_type": "tester",
+        "task": "write comprehensive unit tests for authentication middleware",
+        "complexity": "simple",
+        "expected_route": "chatgpt",
+        "actual_route": "chatgpt",
+        "model_used": "gpt-4o-mini",
+        "estimated_cost": 0.00035999999999999997,
+        "routing_correct": true,
+        "savings_vs_claude": 97.75,
+        "execution_time": 5.0067901611328125e-05
+      },
+      {
+        "id": "swarm_architecture",
+        "agent_type": "architect",
+        "task": "design microservices architecture for scalable e-commerce platform",
+        "complexity": "complex",
+        "expected_route": "chatgpt",
+        "actual_route": "chatgpt",
+        "model_used": "gpt-4o",
+        "estimated_cost": 0.012,
+        "routing_correct": true,
+        "savings_vs_claude": 25.0,
+        "execution_time": 8.702278137207031e-05
+      },
+      {
+        "id": "swarm_security",
+        "agent_type": "specialist",
+        "task": "security audit of financial trading system authentication mechanisms",
+        "complexity": "critical",
+        "expected_route": "claude",
+        "actual_route": "claude",
+        "model_used": "claude",
+        "estimated_cost": 0.016,
+        "routing_correct": true,
+        "savings_vs_claude": 0.0,
+        "execution_time": 9.799003601074219e-05
+      },
+      {
+        "id": "swarm_coordination",
+        "agent_type": "coordinator",
+        "task": "spawn coordinated agents for parallel code review across multiple repositories",
+        "complexity": "moderate",
+        "expected_route": "claude",
+        "actual_route": "chatgpt",
+        "model_used": "gpt-4o-mini",
+        "estimated_cost": 0.00035999999999999997,
+        "routing_correct": false,
+        "savings_vs_claude": 97.75,
+        "execution_time": 0.0001819133758544922
+      },
+      {
+        "id": "swarm_optimization",
+        "agent_type": "optimizer",
+        "task": "optimize API response times through caching and query improvements",
+        "complexity": "moderate",
+        "expected_route": "chatgpt",
+        "actual_route": "chatgpt",
+        "model_used": "gpt-4o-mini",
+        "estimated_cost": 0.00035999999999999997,
+        "routing_correct": true,
+        "savings_vs_claude": 97.75,
+        "execution_time": 0.00011587142944335938
+      }
+    ],
+    "summary": {
+      "total_scenarios": 8,
+      "claude_tasks": 1,
+      "chatgpt_tasks": 7,
+      "total_cost": 0.03016,
+      "correct_routing": 7,
+      "cost_savings_vs_all_claude": 0.0,
+      "claude_usage_percent": 12.5,
+      "chatgpt_usage_percent": 87.5,
+      "routing_accuracy": 87.5,
+      "total_savings": 0.09784000000000001,
+      "savings_percent": 76.4375,
+      "avg_cost_per_task": 0.00377
+    }
+  },
+  "coordination_results": [
+    {
+      "task": "initialize swarm topology for parallel development",
+      "route": "chatgpt",
+      "model": "gpt-4o-mini",
+      "cost": 0.00035999999999999997,
+      "expected_claude": true,
+      "correct_routing": false
+    },
+    {
+      "task": "spawn multiple agents for coordinated code review",
+      "route": "chatgpt",
+      "model": "gpt-4o-mini",
+      "cost": 0.00035999999999999997,
+      "expected_claude": true,
+      "correct_routing": false
+    },
+    {
+      "task": "orchestrate parallel testing across microservices",
+      "route": "chatgpt",
+      "model": "gpt-4o",
+      "cost": 0.012,
+      "expected_claude": true,
+      "correct_routing": false
+    },
+    {
+      "task": "coordinate distributed debugging session",
+      "route": "chatgpt",
+      "model": "gpt-4o",
+      "cost": 0.012,
+      "expected_claude": true,
+      "correct_routing": false
+    },
+    {
+      "task": "manage multi-agent API development workflow",
+      "route": "chatgpt",
+      "model": "gpt-4o-mini",
+      "cost": 0.00035999999999999997,
+      "expected_claude": true,
+      "correct_routing": false
+    }
+  ],
+  "test_summary": {
+    "total_tests": 13,
+    "swarm_accuracy": 87.5,
+    "coordination_accuracy": 0.0,
+    "overall_cost_savings": 76.4375
+  }
+}

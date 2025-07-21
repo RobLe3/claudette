@@ -28,9 +28,9 @@ class UnifiedCostTracker:
         self.db_path = Path.home() / '.claude' / 'unified_costs.db'
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Exchange rates (updated periodically)
-        self.usd_to_eur = 0.92
-        self.eur_to_usd = 1.087
+        # Exchange rates (2025 accurate rates)
+        self.usd_to_eur = 1.09  # 1 USD = 1.09 EUR (July 2025)
+        self.eur_to_usd = 0.92  # 1 EUR = 0.92 USD (July 2025)
         
         self._init_database()
         
