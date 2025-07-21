@@ -88,16 +88,19 @@ class ClaudeStartupHook:
         
         try:
             if check_status['full_verification']:
-                verification_result = self._run_full_verification()
+                verification_result.update(self._run_full_verification())
                 verification_result['verification_type'] = 'full'
                 
             elif check_status['quick_check']:
-                verification_result = self._run_quick_check()
+                verification_result.update(self._run_quick_check())
                 verification_result['verification_type'] = 'quick'
                 
             elif check_status['first_run']:
-                verification_result = self._run_first_run_setup()
+                verification_result.update(self._run_first_run_setup())
                 verification_result['verification_type'] = 'first_run'
+            
+            # Calculate duration before logging
+            verification_result['duration_ms'] = (datetime.now() - start_time).total_seconds() * 1000
             
             # Update last check record
             self._update_last_check_record(verification_result['verification_type'])
@@ -106,10 +109,18 @@ class ClaudeStartupHook:
             self._log_startup_verification(verification_result)
             
         except Exception as e:
+            # Calculate duration even for errors
+            verification_result['duration_ms'] = (datetime.now() - start_time).total_seconds() * 1000
             verification_result['status'] = 'error'
             verification_result['issues'].append(f"Startup verification failed: {str(e)}")
-        
-        verification_result['duration_ms'] = (datetime.now() - start_time).total_seconds() * 1000
+            
+            # Log the error result
+            try:
+                self._log_startup_verification(verification_result)
+            except Exception as log_error:
+                # Fallback logging if even logging fails
+                print(f"Startup verification failed: {str(e)}")
+                print(f"Logging also failed: {str(log_error)}")
         
         return verification_result
     
@@ -265,22 +276,31 @@ class ClaudeStartupHook:
     
     def _log_startup_verification(self, result: Dict[str, Any]):
         """Log startup verification result"""
-        log_entry = {
-            'timestamp': result['timestamp'],
-            'type': result['verification_type'],
-            'status': result['status'],
-            'duration_ms': result['duration_ms'],
-            'enhancement_count': result['enhancement_count'],
-            'health_score': result['health_score'],
-            'issues_count': len(result['issues'])
-        }
-        
-        # Append to log file
-        with open(self.startup_log, 'a') as f:
-            f.write(json.dumps(log_entry) + '\n')
-        
-        # Keep log file manageable (last 100 entries)
-        self._trim_log_file()
+        try:
+            log_entry = {
+                'timestamp': result.get('timestamp', datetime.now().isoformat()),
+                'type': result.get('verification_type', 'unknown'),
+                'status': result.get('status', 'unknown'),
+                'duration_ms': result.get('duration_ms', 0),
+                'enhancement_count': result.get('enhancement_count', 0),
+                'health_score': result.get('health_score', 0.0),
+                'issues_count': len(result.get('issues', []))
+            }
+            
+            # Ensure log directory exists
+            self.startup_log.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Append to log file
+            with open(self.startup_log, 'a') as f:
+                f.write(json.dumps(log_entry) + '\n')
+            
+            # Keep log file manageable (last 100 entries)
+            self._trim_log_file()
+            
+        except Exception as e:
+            # If logging fails, at least print to console
+            print(f"Warning: Failed to log startup verification: {e}")
+            print(f"Verification result: {result.get('status', 'unknown')} - {result.get('verification_type', 'unknown')}")
     
     def _trim_log_file(self):
         """Keep startup log file manageable"""
@@ -300,7 +320,19 @@ class ClaudeStartupHook:
     
     def generate_startup_summary(self) -> str:
         """Generate concise startup summary"""
-        result = self.run_startup_verification()
+        try:
+            result = self.run_startup_verification()
+        except Exception as e:
+            # Fallback if verification completely fails
+            result = {
+                'status': 'error',
+                'verification_type': 'failed',
+                'duration_ms': 0,
+                'enhancement_count': 0,
+                'health_score': 0.0,
+                'issues': [f"Verification failed: {str(e)}"],
+                'recommendations': ['Check system logs and run manual verification']
+            }
         
         status_emoji = {
             'success': '✅',
@@ -308,31 +340,38 @@ class ClaudeStartupHook:
             'error': '❌'
         }
         
-        emoji = status_emoji.get(result['status'], '❓')
+        emoji = status_emoji.get(result.get('status', 'unknown'), '❓')
+        verification_type = result.get('verification_type', 'unknown').upper()
+        duration_ms = result.get('duration_ms', 0)
+        enhancement_count = result.get('enhancement_count', 0)
+        health_score = result.get('health_score', 0.0)
         
         summary = f"""
 ╭─────────────────────────────────────────────────────────╮
 │            {emoji} CLAUDE STARTUP VERIFICATION                │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  🚀 Verification: {result['verification_type'].upper():<15} Duration: {result['duration_ms']:>6.0f}ms  │
-│  📊 Enhancements: {result['enhancement_count']:>3} checked                        │
-│  💯 Health Score: {result['health_score']:>6.1%}                          │
+│  🚀 Verification: {verification_type:<15} Duration: {duration_ms:>6.0f}ms  │
+│  📊 Enhancements: {enhancement_count:>3} checked                        │
+│  💯 Health Score: {health_score:>6.1%}                          │
 │                                                         │
 """
         
-        if result['issues']:
+        issues = result.get('issues', [])
+        recommendations = result.get('recommendations', [])
+        
+        if issues:
             summary += "│  ⚠️  ISSUES DETECTED                                    │\n"
-            for issue in result['issues'][:2]:
+            for issue in issues[:2]:
                 issue_short = issue[:47] + '...' if len(issue) > 47 else issue
                 summary += f"│     • {issue_short:<47}    │\n"
-            if len(result['issues']) > 2:
-                summary += f"│     ... and {len(result['issues']) - 2} more issues                        │\n"
+            if len(issues) > 2:
+                summary += f"│     ... and {len(issues) - 2} more issues                        │\n"
             summary += "│                                                         │\n"
         
-        if result['recommendations']:
+        if recommendations:
             summary += "│  💡 RECOMMENDATIONS                                    │\n"
-            for rec in result['recommendations'][:2]:
+            for rec in recommendations[:2]:
                 rec_short = rec[:47] + '...' if len(rec) > 47 else rec
                 summary += f"│     • {rec_short:<47}    │\n"
             summary += "│                                                         │\n"
