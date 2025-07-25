@@ -1,76 +1,55 @@
-# Claude Flow Documentation
+# Claude Flow Private Development Documentation
 
-**Comprehensive documentation for Claude Flow development workflow enhancement.**
+**Internal documentation for Claude Flow advanced development and extensions.**
+
+This documentation covers the private development repository containing advanced extensions, experimental features, and internal tooling that complements the public [Claudette](https://github.com/RobLe3/claudette) CLI tool.
+
+## 🎯 Repository Purpose
+
+This private repository focuses on:
+- **Advanced AI coordination systems** and swarm architectures
+- **Experimental cost optimization** algorithms and research
+- **Development automation** and workflow extensions
+- **Research prototypes** and proof-of-concepts
+- **Internal tooling** and custom integrations
 
 ## 📚 Documentation Structure
 
-### 🎯 Essential Guides
-Start here for core concepts and workflows:
+### 🔧 Core Systems
+Essential documentation for core development systems:
 
-- **[NEW_STRUCTURE_GUIDE.md](guides/NEW_STRUCTURE_GUIDE.md)** - Complete guide to the organized file structure
-- **[DEPENDENCY_AWARE_DEVELOPMENT.md](guides/DEPENDENCY_AWARE_DEVELOPMENT.md)** - Mandatory workflow for all development
+- **[COST_CONSERVATION_GUIDE.md](guides/COST_CONSERVATION_GUIDE.md)** - Cost optimization strategies
+- **[CLAUDE_CODE_UPDATE_PROTECTION.md](guides/CLAUDE_CODE_UPDATE_PROTECTION.md)** - Update protection system
 
-### 🔧 Integration Guides
-Advanced features and integrations:
+### 🤖 AI Integration
+Advanced AI integration and coordination:
 
-- **[CHATGPT_INTEGRATION_README.md](guides/CHATGPT_INTEGRATION_README.md)** - ChatGPT integration and fallback
-- **[CLAUDE_CHATGPT_FALLBACK_GUIDE.md](guides/CLAUDE_CHATGPT_FALLBACK_GUIDE.md)** - Fallback strategies
-- **[CLAUDE_MENU_GUIDE.md](guides/CLAUDE_MENU_GUIDE.md)** - Menu system usage
+- **[CHATGPT_INTEGRATION_README.md](guides/CHATGPT_INTEGRATION_README.md)** - ChatGPT backend integration
+- **[CLAUDE_CHATGPT_FALLBACK_GUIDE.md](guides/CLAUDE_CHATGPT_FALLBACK_GUIDE.md)** - Intelligent fallback strategies
 
-## 📊 Analysis & Research
+### 🛠️ Development Tools
+Internal development and automation tools:
 
-### Current Analysis
-- **[IICP_PROTOCOL_ANALYSIS.md](analysis/IICP_PROTOCOL_ANALYSIS.md)** - IICP/SYNAPSE protocol analysis
-- **[IICP_MCP_PERFORMANCE_ANALYSIS.md](analysis/IICP_MCP_PERFORMANCE_ANALYSIS.md)** - Performance impact analysis
-- **[MCP_MIGRATION_ANALYSIS.md](analysis/MCP_MIGRATION_ANALYSIS.md)** - MCP migration strategies
-- **[PLUGIN_INTEGRATION_ANALYSIS.md](analysis/PLUGIN_INTEGRATION_ANALYSIS.md)** - Plugin integration research
-- **[PERFORMANCE_OPTIMIZATION_ANALYSIS.md](analysis/PERFORMANCE_OPTIMIZATION_ANALYSIS.md)** - Performance optimization study
-- **[COST_TRACKING_ENHANCEMENTS.md](analysis/COST_TRACKING_ENHANCEMENTS.md)** - Cost tracking improvements
-- **[CONSOLIDATION_STRATEGY.md](analysis/CONSOLIDATION_STRATEGY.md)** - Structure consolidation strategy
-- **[LOCAL_VS_EXTERNAL_INVENTORY.md](analysis/LOCAL_VS_EXTERNAL_INVENTORY.md)** - Component inventory analysis
-- **[STRUCTURE_CONSOLIDATION_ANALYSIS.md](analysis/STRUCTURE_CONSOLIDATION_ANALYSIS.md)** - Complete consolidation analysis
-
-## 📈 Results & Reports
-
-### Testing Results
-- **[test_results.md](results/testing/test_results.md)** - Comprehensive test results
-- **[CONSERVATIVE_RETEST_RESULTS.md](results/testing/CONSERVATIVE_RETEST_RESULTS.md)** - Conservative testing results
-- **[AUTO_INVENTORY_TEST_RESULTS.md](results/testing/AUTO_INVENTORY_TEST_RESULTS.md)** - Inventory system tests
-
-### Project Results
-- **[REORGANIZATION_LOG.md](results/REORGANIZATION_LOG.md)** - Complete structure reorganization log
-- **[ENHANCED_SYSTEM_STATUS.md](results/ENHANCED_SYSTEM_STATUS.md)** - System status overview
-
-### Status Reports
-- **[CLAUDE_CODE_INTEGRATION_COMPLETE.md](status-reports/CLAUDE_CODE_INTEGRATION_COMPLETE.md)** - Integration completion
-- **[CLAUDE_CODE_STATUS_REPORT.md](status-reports/CLAUDE_CODE_STATUS_REPORT.md)** - Status report
-- **[INTEGRATION_CONSOLIDATION_COMPLETE.md](status-reports/INTEGRATION_CONSOLIDATION_COMPLETE.md)** - Consolidation completion
-- **[BROKEN_COMPONENTS_CLEANUP.md](status-reports/BROKEN_COMPONENTS_CLEANUP.md)** - Cleanup report
-
-## 🗄️ Legacy Documentation
-
-### Archived Documentation
-- **[PROJECT_STRUCTURE.md](legacy/PROJECT_STRUCTURE.md)** - Original project structure
-- **[PROJECT_STATE_FRAMEWORK_SUMMARY.md](legacy/PROJECT_STATE_FRAMEWORK_SUMMARY.md)** - State framework
-- **[OPTIMIZATION_IMPLEMENTATION_PLAN.md](legacy/OPTIMIZATION_IMPLEMENTATION_PLAN.md)** - Optimization plan
-- **[ENHANCEMENT_INDEX_SYSTEM.md](legacy/ENHANCEMENT_INDEX_SYSTEM.md)** - Enhancement indexing
+- **[cache_usage.md](guides/cache_usage.md)** - Caching system documentation
+- **[cost_dashboard.md](guides/cost_dashboard.md)** - Cost monitoring dashboard
+- **[release_process.md](guides/release_process.md)** - Release management process
 
 ## 🔍 Quick Reference
 
-### For Developers
-1. **New to Claude Flow?** → Start with [NEW_STRUCTURE_GUIDE.md](guides/NEW_STRUCTURE_GUIDE.md)
-2. **Making changes?** → Follow [DEPENDENCY_AWARE_DEVELOPMENT.md](guides/DEPENDENCY_AWARE_DEVELOPMENT.md)
-3. **Need integration?** → Check [CHATGPT_INTEGRATION_README.md](guides/CHATGPT_INTEGRATION_README.md)
+### For Private Development
+1. **Cost optimization research** → [guides/COST_CONSERVATION_GUIDE.md](guides/COST_CONSERVATION_GUIDE.md)
+2. **ChatGPT backend integration** → [guides/CHATGPT_INTEGRATION_README.md](guides/CHATGPT_INTEGRATION_README.md)
+3. **Development automation** → [scripts/automation/](../scripts/automation/) directory
 
-### For Researchers
-1. **Performance data** → [analysis/](analysis/) directory
-2. **Test results** → [results/testing/](results/testing/) directory
-3. **Historical data** → [status-reports/](status-reports/) directory
+### For Production Use
+1. **Public Claudette CLI** → [https://github.com/RobLe3/claudette](https://github.com/RobLe3/claudette)
+2. **Installation and usage** → See public repository README
+3. **Bug reports and features** → Public repository issues
 
-### For Project Managers
-1. **Status overview** → [results/ENHANCED_SYSTEM_STATUS.md](results/ENHANCED_SYSTEM_STATUS.md)
-2. **Completion reports** → [status-reports/](status-reports/) directory
-3. **Reorganization history** → [results/REORGANIZATION_LOG.md](results/REORGANIZATION_LOG.md)
+### Core Components
+1. **Coordination systems** → [core/coordination/](../core/coordination/) directory
+2. **Cost tracking** → [core/cost-tracking/](../core/cost-tracking/) directory
+3. **Claude Code integration** → [.claude/](./.claude/) configuration
 
 ## 📝 Documentation Standards
 
@@ -118,6 +97,10 @@ All documentation follows this structure:
 
 ---
 
-**Documentation maintained as part of Claude Flow systematic organization.**
+**Private development documentation for Claude Flow advanced extensions.**
 
-*Last updated: 2025-07-20*
+*Repository focus: Advanced AI coordination, cost optimization research, and development automation.*
+
+*Related projects: [Claudette CLI](https://github.com/RobLe3/claudette) (public), [Claude Flow](https://github.com/ruvnet/claude-flow) (original)*
+
+*Last updated: 2025-07-25*
