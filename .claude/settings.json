@@ -119,5 +119,37 @@
       "clean_development_artifacts": "Remove reports, benchmarks, and temporary files",
       "maintain_core_infrastructure": "Keep essential development tools and automation"
     }
+  },
+  "local_directory_management": {
+    "cleanup_frequency": "after_each_major_session",
+    "auto_cleanup_enabled": true,
+    "cleanup_targets": {
+      "python_cache": "*.pyc,__pycache__,*.pyo",
+      "os_temp_files": ".DS_Store,Thumbs.db,*.tmp,*.swp,*.swo",
+      "backup_files": "*backup*,*_old*,*_2*,*.bak,*.orig",
+      "log_files": "*.log,debug_*.txt,trace_*.txt",
+      "empty_directories": "find_and_remove_empty_dirs"
+    },
+    "cleanup_commands": [
+      "find . -name '*.pyc' -o -name '__pycache__' -o -name '*.pyo' | xargs rm -rf 2>/dev/null || true",
+      "find . -name '.DS_Store' -o -name 'Thumbs.db' -o -name '*.tmp' -o -name '*.swp' -o -name '*.swo' | xargs rm -f 2>/dev/null || true",
+      "find . -name '*backup*' -o -name '*_old*' -o -name '*_2*' -o -name '*.bak' -o -name '*.orig' | xargs rm -f 2>/dev/null || true",  
+      "find . -type d -empty -delete 2>/dev/null || true"
+    ],
+    "preserve_patterns": [
+      "data/memory/claude-flow-data.json",
+      ".claude/settings.json",
+      "core/**/*.py",
+      "scripts/automation/**/*.py",
+      "tests/**/*",
+      "docs/**/*.md"
+    ],
+    "cleanup_principles": {
+      "never_remove_core_functionality": "Always preserve essential development infrastructure",
+      "clean_incrementally": "Remove categories systematically, not all at once",
+      "verify_before_delete": "Check file importance before bulk removal",
+      "maintain_git_cleanliness": "Keep repository free of development artifacts",
+      "document_cleanup_actions": "Log what was cleaned and why"
+    }
   }
 }
