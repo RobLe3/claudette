@@ -105,5 +105,19 @@
     "error_handling": "graceful_fallback",
     "performance_mode": "optimized",
     "debug_level": "info"
+  },
+  "repository_management": {
+    "separation_strategy": "public_private_split",
+    "public_repo_focus": "production_ready_cli",
+    "private_repo_focus": "development_research_extensions",
+    "cleanup_approach": "systematic_removal_duplicates_reports",
+    "documentation_strategy": "purpose_specific_readmes",
+    "lessons_learned": {
+      "always_separate_concerns": "Keep public CLI separate from private development",
+      "remove_duplicates_systematically": "Use find commands to locate and remove duplicate files",
+      "update_documentation_immediately": "Change READMEs to reflect repository purpose",
+      "clean_development_artifacts": "Remove reports, benchmarks, and temporary files",
+      "maintain_core_infrastructure": "Keep essential development tools and automation"
+    }
   }
 }
