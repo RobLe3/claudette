@@ -1,18 +1,109 @@
 {
-  "maxTurns": 100,
-  "defaultProjectName": "Claude Flow",
-  "features": {
-    "memory": true,
-    "mcp": true
+  "mcpServers": {
+    "claude-flow": {
+      "command": "npx",
+      "args": ["claude-flow@alpha", "mcp", "start"],
+      "env": {
+        "CLAUDE_FLOW_MODE": "mcp",
+        "CLAUDE_FLOW_DEBUG": "false"
+      }
+    }
   },
   "hooks": {
-    "PreToolUse": [],
-    "PostToolUse": [],
-    "PreCommit": [],
-    "Stop": []
+    "pre-task": "npx claude-flow@alpha hooks pre-task --description \"{description}\" --auto-spawn-agents false",
+    "post-edit": "npx claude-flow@alpha hooks post-edit --file \"{file}\" --memory-key \"swarm/{agent}/{step}\"",
+    "post-task": "npx claude-flow@alpha hooks post-task --task-id \"{task}\" --analyze-performance true",
+    "session-end": "npx claude-flow@alpha hooks session-end --export-metrics true --generate-summary true",
+    "pre-search": "npx claude-flow@alpha hooks pre-search --query \"{query}\" --cache-results true",
+    "notification": "npx claude-flow@alpha hooks notify --message \"{message}\" --level \"{level}\"",
+    "session-restore": "npx claude-flow@alpha hooks session-restore --session-id \"{session}\" --load-memory true"
   },
-  "includeCoAuthoredBy": true,
-  "enabledMcpjsonServers": [
-    "claude-flow"
-  ]
+  "claudette": {
+    "enabled": true,
+    "version": "2.0.0",
+    "public_repo": "https://github.com/RobLe3/claudette",
+    "cost_optimization": {
+      "enabled": true,
+      "claude_usage_reduction": 80,
+      "chatgpt_savings_vs_claude": 60,
+      "daily_budget_limit": 5.00,
+      "max_cost_per_task": 0.05
+    },
+    "backends": {
+      "claude": {
+        "enabled": true,
+        "for": ["critical", "security", "orchestration"]
+      },
+      "chatgpt": {
+        "enabled": true,
+        "models": {
+          "gpt-4o-mini": "simple,moderate",
+          "gpt-4o": "complex",
+          "gpt-3.5-turbo": "moderate"
+        }
+      },
+      "mistral": {
+        "enabled": false
+      },
+      "ollama": {
+        "enabled": false
+      }
+    }
+  },
+  "swarm": {
+    "enabled": true,
+    "default_topology": "hierarchical",
+    "max_agents": 8,
+    "coordination_mode": "parallel",
+    "memory_persistence": true,
+    "auto_spawn": false,
+    "agent_types": {
+      "coordinator": "Task orchestration and swarm management",
+      "researcher": "Information gathering and analysis", 
+      "coder": "Code implementation and development",
+      "analyst": "Data analysis and performance optimization",
+      "architect": "System design and architecture planning",
+      "tester": "Testing and quality assurance",
+      "reviewer": "Code review and documentation",
+      "specialist": "Domain-specific expertise"
+    }
+  },
+  "cost_tracking": {
+    "enabled": true,
+    "database_path": "~/.claude/cost_tracker.db",
+    "subscription_tier": "pro",
+    "currency": "EUR",
+    "reporting": {
+      "daily_summary": true,
+      "weekly_reports": true,
+      "monthly_analysis": true
+    }
+  },
+  "development": {
+    "repository": {
+      "private": "https://github.com/RobLe3/claude-flow",
+      "public": "https://github.com/RobLe3/claudette",
+      "purpose": "Private development extensions and customizations"
+    },
+    "automation": {
+      "enabled": true,
+      "session_management": true,
+      "performance_monitoring": true,
+      "cost_optimization": true
+    },
+    "features": {
+      "neural_training": true,
+      "pattern_recognition": true,
+      "memory_persistence": true,
+      "cross_session_learning": true
+    }
+  },
+  "preferences": {
+    "concurrency": "parallel",
+    "batch_operations": true,
+    "todo_management": "comprehensive",
+    "error_handling": "graceful_fallback",
+    "performance_mode": "optimized",
+    "debug_level": "info"
+  }
 }
