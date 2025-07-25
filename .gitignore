@@ -1,4 +1,3 @@
-
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json
@@ -23,3 +22,84 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+
+# Phase 10 Cleanup: Build artifacts and cache patterns
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+data/cache/
+dist/
+build/
+*.egg-info/
+*.csv
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.tox/
+.venv/
+venv/
+ENV/
+env/
+
+# Security: API keys, credentials, and sensitive data
+*.key
+*.pem
+*.p12
+*.cert
+*.crt
+.env
+.env.*
+*_api_key*
+*secret*
+*password*
+*token*
+*credentials*
+*auth*
+
+# Usage tracking and session data (may contain sensitive info)
+*usage*.json
+*tracking*.json
+*session*.json
+*cost*.json
+*metrics*.json
+openai_usage.json
+claude_usage.json
+automation_activity.log
+cost_tracker.db
+unified_costs.db
+
+# Temporary and log files
+*.log
+*.tmp
+*.temp
+*.cache
+*.bak
+*~
+*.orig
+*.swp
+*.swo
+
+# IDE and editor files
+.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Configuration files with potentially sensitive data
+config.local.yaml
+config.private.yaml
+settings.local.json
+claudette_config.yaml
+
+# Backup directories and archives
+backup/
+backups/
+*.tar.gz
+*.zip
+*.7z

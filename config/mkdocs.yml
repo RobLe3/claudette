@@ -1,0 +1,104 @@
+site_name: Claudette Documentation
+site_description: Claude Code compatible CLI with preprocessing, multi-backend plugins, and cost analytics
+site_author: Claude Flow Project
+site_url: https://ruvnet.github.io/claude-flow
+
+repo_name: ruvnet/claude-flow
+repo_url: https://github.com/ruvnet/claude-flow
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.annotate
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_if_no_docstring: true
+            inherited_members: true
+            members_order: source
+            separate_signature: true
+            unwrap_annotated: true
+            filters: ["!^_"]
+            merge_init_into_class: true
+            docstring_section_style: spacy
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage:
+    - Quick Start: usage.md
+    - Cost Dashboard: guides/cost_dashboard.md
+    - Cache Usage: guides/cache_usage.md
+    - Release Process: guides/release_process.md
+  - API Reference:
+    - Overview: api/index.md
+    - Core: api/claudette.md
+    - Stats: api/stats.md
+    - Dashboard: api/dashboard.md
+    - Backends: api/backends.md
+  - Development:
+    - Contributing: how_to_contribute.md
+    - Architecture: development/architecture.md
+  - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ruvnet/claude-flow
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/claudette/
+
+extra_css:
+  - stylesheets/extra.css
+
+copyright: Copyright &copy; 2025 Claude Flow Project

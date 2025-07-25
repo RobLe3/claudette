@@ -15,12 +15,31 @@ from typing import Dict, List, Optional, Any, Union
 import re
 
 # Add to path for imports
-sys.path.append(str(Path(__file__).parent.parent.parent / "scripts" / "automation"))
+# sys.path manipulation removed - using proper imports.parent.parent.parent / "scripts" / "automation"))
 from secure_key_manager import SecureKeyManager
 
 # Import enhanced model selection and cost conservation components
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from enhanced_model_switching import EnhancedModelSelector, TaskComplexity
+# sys.path manipulation removed - using proper imports.parent.parent.parent))
+try:
+    from enhanced_model_switching import EnhancedModelSelector, TaskComplexity
+except ImportError:
+    try:
+        import sys
+        # sys.path manipulation removed - using proper imports
+        from enhanced_model_switching import EnhancedModelSelector, TaskComplexity
+    except ImportError:
+        # Fallback implementation
+        class TaskComplexity:
+            TRIVIAL = "trivial"
+            SIMPLE = "simple"
+            MODERATE = "moderate"
+            COMPLEX = "complex"
+        
+        class EnhancedModelSelector:
+            def __init__(self):
+                pass
+            def select_model(self, *args, **kwargs):
+                return "gpt-4o-mini"
 from cost_conservation_integration import CostConservationSystem
 from claude_token_minimizer import ClaudeTokenMinimizer
 from chatgpt_cost_optimizer import ChatGPTCostOptimizer

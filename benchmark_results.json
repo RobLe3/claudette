@@ -1,0 +1,700 @@
+{
+  "statistics": {
+    "simple_code_generation": {
+      "claude_standalone": {
+        "duration": {
+          "mean": 7.62397620323476,
+          "stdev": 2.9116387985737204,
+          "min": 4.525733262364762,
+          "max": 10.303720733257585
+        },
+        "cost": {
+          "mean": 0.0029,
+          "stdev": 0.000367525509318741,
+          "min": 0.002535,
+          "max": 0.00327
+        },
+        "quality": {
+          "mean": 7.719268835246784,
+          "stdev": 0.3777505172749323,
+          "min": 7.283445515736528,
+          "max": 7.952639438360835
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "claude_flow_enhanced": {
+        "duration": {
+          "mean": 11.739350634888885,
+          "stdev": 0.3445510150656514,
+          "min": 11.474720011631508,
+          "max": 12.128946682113108
+        },
+        "cost": {
+          "mean": 0.00315,
+          "stdev": 0.00035082046690579496,
+          "min": 0.00294,
+          "max": 0.003555
+        },
+        "quality": {
+          "mean": 8.200940839277042,
+          "stdev": 0.6198132837121781,
+          "min": 7.729950720353804,
+          "max": 8.90312073626135
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "3_agent_swarm": {
+        "duration": {
+          "mean": 17.55832539826231,
+          "stdev": 1.3176025409665935,
+          "min": 16.443589725708023,
+          "max": 19.012409321833992
+        },
+        "cost": {
+          "mean": 0.00351,
+          "stdev": 0.00013747727084867514,
+          "min": 0.00336,
+          "max": 0.00363
+        },
+        "quality": {
+          "mean": 8.845416933685538,
+          "stdev": 0.2740588059610578,
+          "min": 8.610058750299952,
+          "max": 9.146298436006244
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "claudette_optimized": {
+        "duration": {
+          "mean": 5.377090262620278,
+          "stdev": 1.8715551823293897,
+          "min": 3.3095299491517185,
+          "max": 6.955493741597866
+        },
+        "cost": {
+          "mean": 0.000111,
+          "stdev": 2.18073382144635e-05,
+          "min": 8.7e-05,
+          "max": 0.0001296
+        },
+        "quality": {
+          "mean": 7.574652328955081,
+          "stdev": 0.4223268844606159,
+          "min": 7.328827376070112,
+          "max": 8.06230795713936
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      }
+    },
+    "data_analysis_task": {
+      "claude_standalone": {
+        "duration": {
+          "mean": 12.072094959816434,
+          "stdev": 0.3422180354776715,
+          "min": 11.779328479724802,
+          "max": 12.448323854394294
+        },
+        "cost": {
+          "mean": 0.010920000000000001,
+          "stdev": 0.0014189873149538727,
+          "min": 0.00954,
+          "max": 0.012375
+        },
+        "quality": {
+          "mean": 10,
+          "stdev": 0.0,
+          "min": 10,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "claude_flow_enhanced": {
+        "duration": {
+          "mean": 16.06496131618325,
+          "stdev": 2.035037565942071,
+          "min": 13.764674225280423,
+          "max": 17.630902131184126
+        },
+        "cost": {
+          "mean": 0.012490000000000001,
+          "stdev": 0.0008139256722821813,
+          "min": 0.011940000000000001,
+          "max": 0.013425000000000001
+        },
+        "quality": {
+          "mean": 10,
+          "stdev": 0.0,
+          "min": 10,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "3_agent_swarm": {
+        "duration": {
+          "mean": 23.29321837012997,
+          "stdev": 4.852829500037567,
+          "min": 18.16895519937728,
+          "max": 27.819121676986576
+        },
+        "cost": {
+          "mean": 0.013485,
+          "stdev": 0.002081111481876932,
+          "min": 0.01218,
+          "max": 0.015885
+        },
+        "quality": {
+          "mean": 10,
+          "stdev": 0.0,
+          "min": 10,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "claudette_optimized": {
+        "duration": {
+          "mean": 6.222881135048314,
+          "stdev": 0.5376319927691203,
+          "min": 5.7938522540093285,
+          "max": 6.825981247041579
+        },
+        "cost": {
+          "mean": 0.00040139999999999994,
+          "stdev": 3.481551378336963e-05,
+          "min": 0.00036179999999999996,
+          "max": 0.0004272
+        },
+        "quality": {
+          "mean": 9.585895479648476,
+          "stdev": 0.5048075242432152,
+          "min": 9.023570477483,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      }
+    },
+    "system_architecture": {
+      "claude_standalone": {
+        "duration": {
+          "mean": 17.288261526472514,
+          "stdev": 0.8514631327089734,
+          "min": 16.33912817651893,
+          "max": 17.98497427809032
+        },
+        "cost": {
+          "mean": 0.022585,
+          "stdev": 0.0002392174742781145,
+          "min": 0.022425,
+          "max": 0.022860000000000002
+        },
+        "quality": {
+          "mean": 10,
+          "stdev": 0.0,
+          "min": 10,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "claude_flow_enhanced": {
+        "duration": {
+          "mean": 22.14066720458112,
+          "stdev": 2.0396808525638406,
+          "min": 20.39492680157344,
+          "max": 24.38269437820156
+        },
+        "cost": {
+          "mean": 0.022225,
+          "stdev": 0.0021716525965264325,
+          "min": 0.01998,
+          "max": 0.024315
+        },
+        "quality": {
+          "mean": 10,
+          "stdev": 0.0,
+          "min": 10,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "3_agent_swarm": {
+        "duration": {
+          "mean": 32.98195399302185,
+          "stdev": 4.998784445585609,
+          "min": 27.27014841439783,
+          "max": 36.558484083668105
+        },
+        "cost": {
+          "mean": 0.03006,
+          "stdev": 0.003325672864248678,
+          "min": 0.02622,
+          "max": 0.032010000000000004
+        },
+        "quality": {
+          "mean": 10,
+          "stdev": 0.0,
+          "min": 10,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      },
+      "claudette_optimized": {
+        "duration": {
+          "mean": 9.196273043759112,
+          "stdev": 1.5873528551513039,
+          "min": 8.25007007138016,
+          "max": 11.028864889624934
+        },
+        "cost": {
+          "mean": 0.0008208,
+          "stdev": 9.780552131653919e-05,
+          "min": 0.0007356,
+          "max": 0.0009276
+        },
+        "quality": {
+          "mean": 10,
+          "stdev": 0.0,
+          "min": 10,
+          "max": 10
+        },
+        "error_rate": {
+          "mean": 0.0
+        },
+        "sample_size": 3
+      }
+    }
+  },
+  "raw_results": [
+    {
+      "simple_code_generation": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 4.525733262364762,
+          "output_length": 772,
+          "estimated_tokens": 193,
+          "cost_estimate": 0.002895,
+          "quality_score": 7.921721551642991,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 11.614385210922036,
+          "output_length": 948,
+          "estimated_tokens": 237,
+          "cost_estimate": 0.003555,
+          "quality_score": 7.729950720353804,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 19.012409321833992,
+          "output_length": 944,
+          "estimated_tokens": 236,
+          "cost_estimate": 0.00354,
+          "quality_score": 9.146298436006244,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 6.955493741597866,
+          "output_length": 776,
+          "estimated_tokens": 194,
+          "cost_estimate": 0.0001164,
+          "quality_score": 7.328827376070112,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      },
+      "data_analysis_task": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 11.779328479724802,
+          "output_length": 2892,
+          "estimated_tokens": 723,
+          "cost_estimate": 0.010845,
+          "quality_score": 10,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 16.7993075920852,
+          "output_length": 3184,
+          "estimated_tokens": 796,
+          "cost_estimate": 0.011940000000000001,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 18.16895519937728,
+          "output_length": 3248,
+          "estimated_tokens": 812,
+          "cost_estimate": 0.01218,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 6.048809904094034,
+          "output_length": 2768,
+          "estimated_tokens": 692,
+          "cost_estimate": 0.00041519999999999995,
+          "quality_score": 9.734115961462429,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      },
+      "system_architecture": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 17.98497427809032,
+          "output_length": 6096,
+          "estimated_tokens": 1524,
+          "cost_estimate": 0.022860000000000002,
+          "quality_score": 10,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 24.38269437820156,
+          "output_length": 6484,
+          "estimated_tokens": 1621,
+          "cost_estimate": 0.024315,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 27.27014841439783,
+          "output_length": 8520,
+          "estimated_tokens": 2130,
+          "cost_estimate": 0.03195,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 8.30988417027224,
+          "output_length": 5328,
+          "estimated_tokens": 1332,
+          "cost_estimate": 0.0007991999999999999,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      }
+    },
+    {
+      "simple_code_generation": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 8.042474614081936,
+          "output_length": 872,
+          "estimated_tokens": 218,
+          "cost_estimate": 0.00327,
+          "quality_score": 7.283445515736528,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 12.128946682113108,
+          "output_length": 788,
+          "estimated_tokens": 197,
+          "cost_estimate": 0.002955,
+          "quality_score": 7.969751061215972,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 16.443589725708023,
+          "output_length": 968,
+          "estimated_tokens": 242,
+          "cost_estimate": 0.00363,
+          "quality_score": 8.610058750299952,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 3.3095299491517185,
+          "output_length": 864,
+          "estimated_tokens": 216,
+          "cost_estimate": 0.0001296,
+          "quality_score": 7.332821653655772,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      },
+      "data_analysis_task": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 11.988632545330207,
+          "output_length": 3300,
+          "estimated_tokens": 825,
+          "cost_estimate": 0.012375,
+          "quality_score": 10,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 17.630902131184126,
+          "output_length": 3580,
+          "estimated_tokens": 895,
+          "cost_estimate": 0.013425000000000001,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 23.891578234026053,
+          "output_length": 3304,
+          "estimated_tokens": 826,
+          "cost_estimate": 0.01239,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 5.7938522540093285,
+          "output_length": 2848,
+          "estimated_tokens": 712,
+          "cost_estimate": 0.0004272,
+          "quality_score": 9.023570477483,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      },
+      "system_architecture": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 16.33912817651893,
+          "output_length": 5980,
+          "estimated_tokens": 1495,
+          "cost_estimate": 0.022425,
+          "quality_score": 10,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 21.644380433968365,
+          "output_length": 5328,
+          "estimated_tokens": 1332,
+          "cost_estimate": 0.01998,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 36.558484083668105,
+          "output_length": 8536,
+          "estimated_tokens": 2134,
+          "cost_estimate": 0.032010000000000004,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 11.028864889624934,
+          "output_length": 4904,
+          "estimated_tokens": 1226,
+          "cost_estimate": 0.0007356,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      }
+    },
+    {
+      "simple_code_generation": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 10.303720733257585,
+          "output_length": 676,
+          "estimated_tokens": 169,
+          "cost_estimate": 0.002535,
+          "quality_score": 7.952639438360835,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 11.474720011631508,
+          "output_length": 784,
+          "estimated_tokens": 196,
+          "cost_estimate": 0.00294,
+          "quality_score": 8.90312073626135,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 17.218977147244907,
+          "output_length": 896,
+          "estimated_tokens": 224,
+          "cost_estimate": 0.00336,
+          "quality_score": 8.779893614750419,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 5.866247097111249,
+          "output_length": 580,
+          "estimated_tokens": 145,
+          "cost_estimate": 8.7e-05,
+          "quality_score": 8.06230795713936,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      },
+      "data_analysis_task": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 12.448323854394294,
+          "output_length": 2544,
+          "estimated_tokens": 636,
+          "cost_estimate": 0.00954,
+          "quality_score": 10,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 13.764674225280423,
+          "output_length": 3228,
+          "estimated_tokens": 807,
+          "cost_estimate": 0.012105,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 27.819121676986576,
+          "output_length": 4236,
+          "estimated_tokens": 1059,
+          "cost_estimate": 0.015885,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 6.825981247041579,
+          "output_length": 2412,
+          "estimated_tokens": 603,
+          "cost_estimate": 0.00036179999999999996,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      },
+      "system_architecture": {
+        "claude_standalone": {
+          "status": "success",
+          "duration": 17.54068212480829,
+          "output_length": 5992,
+          "estimated_tokens": 1498,
+          "cost_estimate": 0.02247,
+          "quality_score": 10,
+          "error_rate": 0.0
+        },
+        "claude_flow_enhanced": {
+          "status": "success",
+          "duration": 20.39492680157344,
+          "output_length": 5968,
+          "estimated_tokens": 1492,
+          "cost_estimate": 0.02238,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "enhancement_factor": 1.15
+        },
+        "3_agent_swarm": {
+          "status": "success",
+          "duration": 35.11722948099961,
+          "output_length": 6992,
+          "estimated_tokens": 1748,
+          "cost_estimate": 0.02622,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "coordination_overhead": 0.3,
+          "quality_improvement": 1.25
+        },
+        "claudette_optimized": {
+          "status": "success",
+          "duration": 8.25007007138016,
+          "output_length": 6184,
+          "estimated_tokens": 1546,
+          "cost_estimate": 0.0009276,
+          "quality_score": 10,
+          "error_rate": 0.0,
+          "cost_savings": 0.96,
+          "backend": "chatgpt"
+        }
+      }
+    }
+  ],
+  "test_info": {
+    "iterations": 3,
+    "tasks": 3,
+    "systems": 4,
+    "timestamp": "2025-07-25T09:45:27.593354",
+    "note": "Results based on realistic simulation using measured system characteristics"
+  }
+}

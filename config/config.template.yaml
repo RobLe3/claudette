@@ -1,0 +1,57 @@
+# Claude Flow Configuration Template
+# Copy this to config.yaml and fill in your values
+# DO NOT commit config.yaml with real credentials
+
+# Cost Conservation Settings
+cost_conservation:
+  enabled: true
+  claude_usage_target: 8.3  # Target percentage of Claude usage
+  daily_budget_usd: 5.00
+  aggressive_mode: true
+
+# Model Selection Priority (Cost-Optimized)
+model_priority:
+  - gpt-4o-mini      # Primary: Most cost-effective
+  - gpt-3.5-turbo    # Fallback: Good balance
+  - gpt-4o           # Complex tasks only
+  - claude           # Reserved for orchestration
+
+# API Keys - USE ENVIRONMENT VARIABLES
+api_keys:
+  openai: "${OPENAI_API_KEY}"          # Set via: export OPENAI_API_KEY="your-key"
+  anthropic: "${ANTHROPIC_API_KEY}"    # Set via: export ANTHROPIC_API_KEY="your-key"
+  mistral: "${MISTRAL_API_KEY}"        # Optional: Set via: export MISTRAL_API_KEY="your-key"
+
+# Enhancement Tiers
+enhancement_tiers:
+  tier1:
+    name: "Default Claude Code"
+    command: "claude"
+    cost_target: 0
+  tier2:
+    name: "Enhanced with Cost Conservation"
+    cost_reduction: 96
+    chatgpt_routing: true
+  tier3:
+    name: "Super-Enhanced with Swarm"
+    swarm_coordination: true
+    topology: "mesh"
+    max_agents: 3
+
+# Budget Monitoring
+budget_alerts:
+  daily_threshold: 4.00
+  monthly_threshold: 100.00
+  alert_on_overage: true
+
+# Session Management
+session:
+  auto_save: true
+  backup_frequency: "hourly"
+  max_history: 1000
+
+# Security Settings
+security:
+  mask_api_keys: true
+  log_level: "INFO"  # Set to "DEBUG" only for troubleshooting
+  max_log_size_mb: 10

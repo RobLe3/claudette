@@ -1,0 +1,6 @@
+#!/bin/bash
+# Claudette launcher script - bypasses module issues and provides easy access
+
+cd /Users/roble/Documents/Python/claude_flow
+source venv/bin/activate 2>/dev/null || true
+python3 -m claudette "$@"

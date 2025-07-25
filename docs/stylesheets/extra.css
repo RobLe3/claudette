@@ -1,0 +1,40 @@
+/* Extra styles for Claudette documentation */
+
+/* Custom color palette */
+:root {
+  --md-primary-fg-color: #2196F3;
+  --md-accent-fg-color: #1976D2;
+}
+
+/* Code block styling */
+.highlight pre {
+  border-radius: 8px;
+}
+
+/* Custom badge styling */
+.md-typeset .admonition.example {
+  border-left-color: #4CAF50;
+}
+
+/* Navigation styling */
+.md-nav__title {
+  font-weight: 600;
+}
+
+/* Content spacing */
+.md-content {
+  max-width: 1200px;
+}
+
+/* Custom button styling */
+.md-button--primary {
+  background-color: var(--md-primary-fg-color);
+  border-color: var(--md-primary-fg-color);
+}
+
+/* API reference styling */
+.doc-heading {
+  border-bottom: 1px solid #e1e4e8;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}

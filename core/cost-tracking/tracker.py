@@ -11,10 +11,55 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 import argparse
-import requests
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union, Any
 import csv
 from io import StringIO
+
+# Handle optional dependencies gracefully
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
+    print("⚠️  Warning: 'requests' not available. API sync functionality disabled.")
+
+try:
+    import pydantic
+    from pydantic import BaseModel, Field, ConfigDict
+    
+    # Check Pydantic version for compatibility
+    PYDANTIC_VERSION = int(pydantic.__version__.split('.')[0])
+    if PYDANTIC_VERSION >= 2:
+        # Pydantic v2 syntax
+        from pydantic import field_validator, model_validator
+    else:
+        # Pydantic v1 syntax
+        from pydantic import validator, root_validator
+        field_validator = validator
+        model_validator = root_validator
+    
+    HAS_PYDANTIC = True
+except ImportError:
+    HAS_PYDANTIC = False
+    print("⚠️  Warning: 'pydantic' not available. Data validation disabled.")
+
+# Backwards compatibility imports
+try:
+    import tiktoken
+    HAS_TIKTOKEN = True
+except ImportError:
+    HAS_TIKTOKEN = False
+    
+try:
+    import rich
+    from rich.console import Console
+    from rich.table import Table
+    from rich.progress import Progress
+    HAS_RICH = True
+    console = Console()
+except ImportError:
+    HAS_RICH = False
+    console = None
 
 class ClaudeCostTracker:
     def __init__(self, db_path=None, subscription_tier=None):
@@ -171,6 +216,9 @@ class ClaudeCostTracker:
     def init_database(self):
         """Initialize the SQLite database for cost tracking"""
         conn = sqlite3.connect(self.db_path)
+        # Fix SQLite date adapter deprecation warning
+        sqlite3.register_adapter(datetime, lambda x: x.isoformat())
+        sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
         cursor = conn.cursor()
         
         cursor.execute('''
@@ -263,30 +311,47 @@ class ClaudeCostTracker:
             
             return session_id
     
-    def estimate_tokens(self, text, is_input=True):
-        """Improved token estimation with complexity analysis"""
+    def estimate_tokens(self, text: str, is_input: bool = True) -> int:
+        """Enhanced token estimation using tiktoken when available, with fallback estimation"""
         if not text:
             return 0
         
-        # Base character count
+        # Use tiktoken for accurate estimation if available
+        if HAS_TIKTOKEN:
+            try:
+                # Use appropriate encoding for Claude models
+                encoding = tiktoken.get_encoding("cl100k_base")  # GPT-4 compatible
+                return len(encoding.encode(text))
+            except Exception as e:
+                if console and HAS_RICH:
+                    console.print(f"[yellow]⚠️  tiktoken estimation failed: {e}[/yellow]")
+                # Fall back to character-based estimation
+        
+        # Fallback: Improved character-based estimation
         char_count = len(text)
         
-        # More accurate token estimation based on content type
-        if char_count < 50:  # Short messages
-            return max(1, char_count // 3)
-        elif char_count < 500:  # Medium messages
-            return max(1, char_count // 3.5)
-        elif char_count < 2000:  # Long messages
-            return max(1, char_count // 4)
-        else:  # Very long messages
-            return max(1, char_count // 4.5)
-        
-        # Account for code vs natural language
+        # Account for different content types
         code_indicators = text.count('{') + text.count('}') + text.count('def ') + text.count('class ') + text.count('import ')
-        if code_indicators > 5:  # Code-heavy content
-            return int(char_count // 3.2)  # Code is more token-dense
+        json_indicators = text.count('":') + text.count(',"') + text.count('[') + text.count(']')
         
-        return max(1, char_count // 4)
+        # Adjust estimation based on content complexity
+        if code_indicators > 5:  # Code-heavy content
+            multiplier = 3.2  # Code is more token-dense
+        elif json_indicators > 10:  # JSON/structured data
+            multiplier = 3.5  # Structured data has more tokens
+        elif char_count < 50:  # Short messages
+            multiplier = 3.0  # Short text has fewer efficiency gains
+        elif char_count < 500:  # Medium messages
+            multiplier = 3.5
+        elif char_count < 2000:  # Long messages
+            multiplier = 4.0
+        else:  # Very long messages
+            multiplier = 4.5  # Long text compresses better
+        
+        estimated_tokens = max(1, int(char_count / multiplier))
+        
+        # Validation: tokens shouldn't exceed character count
+        return min(estimated_tokens, char_count)
     
     def calculate_cost(self, input_tokens, output_tokens, model_name):
         """Calculate cost based on token usage, model, and subscription tier"""
@@ -642,95 +707,167 @@ class ClaudeCostTracker:
             return None
     
     def display_summary(self, show_historical: bool = False):
-        """Display current usage summary with Euro conversion"""
+        """Display current usage summary with Euro conversion and Rich formatting when available"""
         # Display status bar first
         self.display_status_bar()
         
         daily = self.get_daily_summary()
         session = self.get_session_summary()
         billing = self.get_billing_period_summary()
-        
-        print("🔍 Claude Code Cost Tracker")
-        print("=" * 50)
-        
-        # Show subscription information
         subscription_info = self.subscription_pricing[self.subscription_tier]
-        print(f"📋 Subscription Tier: {self.subscription_tier.upper()}")
-        if subscription_info['included_usage']:
-            monthly_cost_eur = self.usd_to_euros(subscription_info['monthly_cost'])
-            print(f"💳 Monthly Subscription: ${subscription_info['monthly_cost']:.2f} ({monthly_cost_eur:.2f}€)")
+        
+        if console and HAS_RICH:
+            # Rich formatted output
+            console.print("\n🔍 [bold blue]Claude Code Cost Tracker[/bold blue]")
+            console.print("=" * 50)
             
-            # Get current usage
-            daily_usage = self.get_daily_token_usage()
-            monthly_usage = self.get_monthly_token_usage()
+            # Create subscription info table
+            sub_table = Table(title="📋 Subscription Information", show_header=False)
+            sub_table.add_column("Field", style="cyan")
+            sub_table.add_column("Value", style="green")
             
-            # Calculate percentages
-            daily_limit = subscription_info['daily_token_estimate']
-            monthly_limit = subscription_info['monthly_token_estimate']
+            sub_table.add_row("Tier", f"{self.subscription_tier.upper()}")
             
-            daily_percentage = (daily_usage / daily_limit) * 100 if daily_limit else 0
-            monthly_percentage = (monthly_usage / monthly_limit) * 100 if monthly_limit else 0
+            if subscription_info['included_usage']:
+                monthly_cost_eur = self.usd_to_euros(subscription_info['monthly_cost'])
+                sub_table.add_row("Monthly Cost", f"${subscription_info['monthly_cost']:.2f} ({monthly_cost_eur:.2f}€)")
+                sub_table.add_row("Status", "✅ Included in subscription")
+                
+                # Get current usage
+                daily_usage = self.get_daily_token_usage()
+                monthly_usage = self.get_monthly_token_usage()
+                daily_limit = subscription_info['daily_token_estimate']
+                monthly_limit = subscription_info['monthly_token_estimate']
+                
+                daily_percentage = (daily_usage / daily_limit) * 100 if daily_limit else 0
+                monthly_percentage = (monthly_usage / monthly_limit) * 100 if monthly_limit else 0
+                
+                # Color code usage based on percentage
+                daily_color = "red" if daily_percentage > 90 else "yellow" if daily_percentage > 75 else "green"
+                monthly_color = "red" if monthly_percentage > 90 else "yellow" if monthly_percentage > 75 else "green"
+                
+                sub_table.add_row("Daily Usage", 
+                    f"[{daily_color}]{daily_usage:,} / {daily_limit:,} tokens ({daily_percentage:.1f}%)[/{daily_color}]")
+                sub_table.add_row("Monthly Usage", 
+                    f"[{monthly_color}]{monthly_usage:,} / {monthly_limit:,} tokens ({monthly_percentage:.1f}%)[/{monthly_color}]")
+                
+                # Show overage costs if any
+                daily_overage = max(0, daily_usage - daily_limit)
+                monthly_overage = max(0, monthly_usage - monthly_limit)
+                
+                if daily_overage > 0 or monthly_overage > 0:
+                    overage_tokens = max(daily_overage, monthly_overage)
+                    overage_cost = overage_tokens * subscription_info['overage_cost_per_token']
+                    overage_cost_eur = self.usd_to_euros(overage_cost)
+                    sub_table.add_row("💰 Overage Cost", f"${overage_cost:.4f} ({overage_cost_eur:.4f}€)")
+                    sub_table.add_row("📊 Overage Tokens", f"{overage_tokens:,}")
+            else:
+                sub_table.add_row("Type", "Pay-per-use API")
+                sub_table.add_row("Status", "💰 Billed per token")
             
-            print(f"✅ Usage Status: Included in subscription")
-            print(f"📊 Daily Usage: {daily_usage:,} / {daily_limit:,} tokens ({daily_percentage:.1f}%)")
-            print(f"📊 Monthly Usage: {monthly_usage:,} / {monthly_limit:,} tokens ({monthly_percentage:.1f}%)")
+            console.print(sub_table)
             
-            # Show warnings if approaching limits
-            if daily_percentage > 90:
-                print(f"⚠️  WARNING: Daily usage at {daily_percentage:.1f}% - approaching limit!")
-            elif daily_percentage > 75:
-                print(f"💡 INFO: Daily usage at {daily_percentage:.1f}% - monitor closely")
+            # Create usage summary table
+            usage_table = Table(title="📊 Usage Summary", show_header=True)
+            usage_table.add_column("Period", style="cyan")
+            usage_table.add_column("Cost USD", style="green") 
+            usage_table.add_column("Cost EUR", style="green")
+            usage_table.add_column("Input Tokens", style="blue")
+            usage_table.add_column("Output Tokens", style="blue")
+            usage_table.add_column("Sessions", style="yellow")
             
-            if monthly_percentage > 90:
-                print(f"⚠️  WARNING: Monthly usage at {monthly_percentage:.1f}% - approaching limit!")
-            elif monthly_percentage > 75:
-                print(f"💡 INFO: Monthly usage at {monthly_percentage:.1f}% - monitor closely")
+            # Add rows
+            usage_table.add_row(
+                f"📅 Today ({daily['date']})",
+                f"${daily['total_cost']:.4f}",
+                f"{self.usd_to_euros(daily['total_cost']):.4f}€",
+                f"{daily['total_input_tokens']:,}",
+                f"{daily['total_output_tokens']:,}",
+                f"{daily['session_count']}"
+            )
             
-            # Calculate overage costs if any
-            daily_overage = max(0, daily_usage - daily_limit)
-            monthly_overage = max(0, monthly_usage - monthly_limit)
+            if session:
+                usage_table.add_row(
+                    "🎯 Current Session",
+                    f"${session['total_cost']:.4f}",
+                    f"{self.usd_to_euros(session['total_cost']):.4f}€", 
+                    f"{session['total_input_tokens']:,}",
+                    f"{session['total_output_tokens']:,}",
+                    "1"
+                )
             
-            if daily_overage > 0 or monthly_overage > 0:
-                overage_tokens = max(daily_overage, monthly_overage)
-                overage_cost = overage_tokens * subscription_info['overage_cost_per_token']
-                overage_cost_eur = self.usd_to_euros(overage_cost)
-                print(f"💰 Overage Cost: ${overage_cost:.4f} ({overage_cost_eur:.4f}€)")
-                print(f"📊 Overage Tokens: {overage_tokens:,}")
+            usage_table.add_row(
+                f"📊 {billing['billing_period']}",
+                f"${billing['total_cost']:.4f}",
+                f"{self.usd_to_euros(billing['total_cost']):.2f}€",
+                f"{billing['total_input_tokens']:,}",
+                f"{billing['total_output_tokens']:,}",
+                "-"
+            )
+            
+            console.print(usage_table)
+            
+            # Monthly estimate and warnings
+            monthly_estimate = daily['total_cost'] * 30
+            console.print(f"\n📈 [bold]Monthly Estimate:[/bold] ${monthly_estimate:.2f} ({self.usd_to_euros(monthly_estimate):.2f}€)")
+            
+            daily_cost_eur = self.usd_to_euros(daily['total_cost'])
+            if daily_cost_eur > 11.04:
+                console.print("[red bold]⚠️  WARNING: Daily cost exceeds 11.04€ (90th percentile)[/red bold]")
+            elif daily_cost_eur > 5.52:
+                console.print("[yellow]💡 INFO: Daily cost above average (5.52€)[/yellow]")
+                
         else:
-            print(f"💳 Subscription: Pay-per-use API")
-            print(f"💰 Usage Status: Billed per token")
-        
-        print(f"\n📅 Today ({daily['date']}):")
-        print(f"   💰 Total Cost: ${daily['total_cost']:.4f} ({self.usd_to_euros(daily['total_cost']):.4f}€)")
-        print(f"   📊 Input Tokens: {daily['total_input_tokens']:,}")
-        print(f"   📊 Output Tokens: {daily['total_output_tokens']:,}")
-        print(f"   🎯 Sessions: {daily['session_count']}")
-        
-        if session:
-            print(f"\n🎯 Current Session:")
-            print(f"   💰 Session Cost: ${session['total_cost']:.4f} ({self.usd_to_euros(session['total_cost']):.4f}€)")
-            print(f"   📊 Input Tokens: {session['total_input_tokens']:,}")
-            print(f"   📊 Output Tokens: {session['total_output_tokens']:,}")
-        
-        # Billing period summary
-        print(f"\n📊 Billing Period ({billing['billing_period']}):")
-        print(f"   💰 Total Cost: ${billing['total_cost']:.4f} ({self.usd_to_euros(billing['total_cost']):.2f}€)")
-        print(f"   📊 Total Tokens: {billing['total_input_tokens'] + billing['total_output_tokens']:,}")
-        
-        # Estimate monthly cost
-        monthly_estimate = daily['total_cost'] * 30
-        print(f"\n📈 Monthly Estimate: ${monthly_estimate:.2f} ({self.usd_to_euros(monthly_estimate):.2f}€)")
-        
-        # Daily budget warnings (in EUR)
-        daily_cost_eur = self.usd_to_euros(daily['total_cost'])
-        if daily_cost_eur > 11.04:  # $12 in EUR
-            print(f"⚠️  WARNING: Daily cost exceeds 11.04€ (90th percentile)")
-        elif daily_cost_eur > 5.52:  # $6 in EUR
-            print(f"💡 INFO: Daily cost above average (5.52€)")
+            # Fallback to plain text output
+            print("🔍 Claude Code Cost Tracker")
+            print("=" * 50)
+            
+            print(f"📋 Subscription Tier: {self.subscription_tier.upper()}")
+            if subscription_info['included_usage']:
+                monthly_cost_eur = self.usd_to_euros(subscription_info['monthly_cost'])
+                print(f"💳 Monthly Subscription: ${subscription_info['monthly_cost']:.2f} ({monthly_cost_eur:.2f}€)")
+                print(f"✅ Usage Status: Included in subscription")
+                
+                # Get current usage and show basic info
+                daily_usage = self.get_daily_token_usage()
+                monthly_usage = self.get_monthly_token_usage()
+                daily_limit = subscription_info['daily_token_estimate']
+                monthly_limit = subscription_info['monthly_token_estimate']
+                
+                daily_percentage = (daily_usage / daily_limit) * 100 if daily_limit else 0
+                monthly_percentage = (monthly_usage / monthly_limit) * 100 if monthly_limit else 0
+                
+                print(f"📊 Daily Usage: {daily_usage:,} / {daily_limit:,} tokens ({daily_percentage:.1f}%)")
+                print(f"📊 Monthly Usage: {monthly_usage:,} / {monthly_limit:,} tokens ({monthly_percentage:.1f}%)")
+            else:
+                print(f"💳 Subscription: Pay-per-use API")
+                print(f"💰 Usage Status: Billed per token")
+            
+            print(f"\n📅 Today ({daily['date']}):")
+            print(f"   💰 Total Cost: ${daily['total_cost']:.4f} ({self.usd_to_euros(daily['total_cost']):.4f}€)")
+            print(f"   📊 Input Tokens: {daily['total_input_tokens']:,}")
+            print(f"   📊 Output Tokens: {daily['total_output_tokens']:,}")
+            print(f"   🎯 Sessions: {daily['session_count']}")
+            
+            if session:
+                print(f"\n🎯 Current Session:")
+                print(f"   💰 Session Cost: ${session['total_cost']:.4f} ({self.usd_to_euros(session['total_cost']):.4f}€)")
+                print(f"   📊 Input Tokens: {session['total_input_tokens']:,}")
+                print(f"   📊 Output Tokens: {session['total_output_tokens']:,}")
+            
+            print(f"\n📊 Billing Period ({billing['billing_period']}):")
+            print(f"   💰 Total Cost: ${billing['total_cost']:.4f} ({self.usd_to_euros(billing['total_cost']):.2f}€)")
+            print(f"   📊 Total Tokens: {billing['total_input_tokens'] + billing['total_output_tokens']:,}")
+            
+            monthly_estimate = daily['total_cost'] * 30
+            print(f"\n📈 Monthly Estimate: ${monthly_estimate:.2f} ({self.usd_to_euros(monthly_estimate):.2f}€)")
         
         # Show historical data if requested
         if show_historical:
-            print("\n" + "=" * 50)
+            if console and HAS_RICH:
+                console.print("\n" + "=" * 50)
+            else:
+                print("\n" + "=" * 50)
             self.display_historical_summary(7)
     
     def end_session(self):
@@ -872,9 +1009,13 @@ class ClaudeCostTracker:
     
     def sync_with_anthropic_api(self) -> bool:
         """Sync with Anthropic API to get actual usage data"""
+        if not HAS_REQUESTS:
+            self._print_message("❌ Error: 'requests' library not available. Cannot sync with Anthropic API.", "error")
+            return False
+            
         if not self.api_key:
-            print("⚠️  No API key found. Cannot sync with Anthropic API.")
-            print("   Set ANTHROPIC_API_KEY environment variable or add to Claude config.")
+            self._print_message("⚠️  No API key found. Cannot sync with Anthropic API.", "warning")
+            self._print_message("   Set ANTHROPIC_API_KEY environment variable or add to Claude config.")
             return False
         
         try:
@@ -882,9 +1023,9 @@ class ClaudeCostTracker:
             # This would require scraping the console or using unofficial methods
             # For now, we'll just mark that we attempted sync
             
-            print("📡 Attempting to sync with Anthropic API...")
-            print("⚠️  Direct API usage endpoints not available.")
-            print("   Please check your usage manually at: https://console.anthropic.com/")
+            self._print_message("📡 Attempting to sync with Anthropic API...", "info")
+            self._print_message("⚠️  Direct API usage endpoints not available.", "warning")
+            self._print_message("   Please check your usage manually at: https://console.anthropic.com/")
             
             # Update sync time
             conn = sqlite3.connect(self.db_path)
@@ -903,8 +1044,22 @@ class ClaudeCostTracker:
             return True
             
         except Exception as e:
-            print(f"❌ Error syncing with Anthropic API: {e}")
+            self._print_message(f"❌ Error syncing with Anthropic API: {e}", "error")
             return False
+    
+    def _print_message(self, message: str, level: str = "info") -> None:
+        """Print messages using Rich if available, otherwise fallback to print"""
+        if console and HAS_RICH:
+            color_map = {
+                "info": "blue",
+                "warning": "yellow", 
+                "error": "red",
+                "success": "green"
+            }
+            color = color_map.get(level, "white")
+            console.print(f"[{color}]{message}[/{color}]")
+        else:
+            print(message)
     
     def export_usage_data(self, output_file: str = None) -> str:
         """Export usage data to CSV"""

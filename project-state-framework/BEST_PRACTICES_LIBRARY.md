@@ -29,6 +29,9 @@
 - 📋 = Lists, inventories, catalogs
 - 💰 = Cost, financial, billing related
 - 🧠 = Learning, knowledge, memory
+- 📁 = File organization, structure, placement
+- 🔐 = Security, configuration, secrets
+- 🗄️ = Archive, historical, deprecated
 
 ### **Status Indicator System**
 - **✅ COMPLETED** - Task finished successfully
@@ -296,6 +299,112 @@ project_name/
 - **Knowledge retention** - comprehensive documentation
 - **Future-proofing** - templates and reusable patterns
 - **Cost consciousness** - token efficiency and optimization
+
+## 📁 **Project Organization Standards**
+
+### **The "Big 6" Issues Prevention**
+Based on comprehensive lessons learned analysis, these are the 6 issues that cause 90% of development problems:
+
+1. **📁 State File Chaos**: Files scattered in root directory
+2. **🔐 Configuration Exposure**: Real secrets committed to git
+3. **📄 Duplicate Accumulation**: Multiple file versions without cleanup
+4. **🗄️ Archive Disorganization**: Historical files dumped without structure
+5. **🔗 Import Path Breakage**: Moving files without updating imports
+6. **🔧 Dependency Neglect**: Structural changes without dependency updates
+
+### **File Organization Hierarchy**
+```
+project_root/                        # Keep minimal (< 20 files)
+├── 📊 data/sessions/YYYY-MM-DD/     # ALL state files by date
+├── 🔐 config/*.template.*           # Only templates in git
+├── 🗄️ archive/YYYY-MM-DD_desc/      # Dated archives with README
+├── 🔧 core/module_name/             # Structured code organization
+├── 📚 docs/category/                # Categorized documentation
+└── 🛠️ scripts/purpose/              # Purpose-driven tool organization
+```
+
+### **State File Management Rules**
+```bash
+# ✅ CORRECT: Date-organized state files
+data/sessions/2025-07-24/CURRENT_STATE.md
+data/sessions/2025-07-24/SESSION_SUMMARY.md
+data/sessions/2025-07-24/DECISIONS_LOG.md
+
+# ❌ WRONG: State files in root directory
+STATE_2025-07-24.md
+SESSION_SUMMARY.md
+CURRENT_WORK.md
+```
+
+### **Configuration Security Standards**
+```bash
+# ✅ SECURE: Template-based configuration
+config/config.template.yaml          # Committed to git
+config/local.config.yaml            # In .gitignore
+.env.template                       # Committed
+.env                                # In .gitignore
+
+# ❌ INSECURE: Real configuration in git
+config.yaml                         # Contains real API keys
+production.yaml                     # Production secrets exposed
+```
+
+### **Archive Organization Pattern**
+```bash
+# ✅ ORGANIZED: Dated archives with documentation
+archive/2025-07-24_api_refactor/README.md      # What and why
+archive/2025-07-24_api_refactor/migration_notes.md
+archive/2025-07-24_api_refactor/old_modules/
+
+# ❌ CHAOTIC: Unorganized historical dumps  
+archive/old_stuff/
+archive/backup_files/
+archive/random_things/
+```
+
+### **Duplicate Prevention Strategy**
+```bash
+# Weekly duplicate analysis (MANDATORY)
+python3 scripts/analysis/duplicate_detector.py --full-scan
+python3 scripts/analysis/duplicate_detector.py --cleanup --interactive
+
+# Naming conventions (NO duplicates)
+tracker.py                          # ✅ Current version
+experimental_tracker.py             # ✅ Experimental features
+tracker_v2.py                      # ✅ Major version upgrade
+
+# Forbidden naming patterns
+tracker_new.py                      # ❌ Unclear what's "new"
+tracker_duplicate.py               # ❌ Obviously a duplicate
+tracker_copy.py                    # ❌ Use git branches instead
+```
+
+### **Import Path Consistency Protocol**
+```bash
+# MANDATORY before moving ANY file
+python3 scripts/analysis/import_analyzer.py --analyze-file <target>
+grep -r "import.*<module>" . --include="*.py"
+
+# MANDATORY after structural changes
+python3 scripts/analysis/import_analyzer.py --test-all-imports
+python3 core/coordination/dependency_validator.py --validate-all
+```
+
+### **Dependency Management Workflow**
+```bash
+# STEP 1: Impact analysis (before changes)
+python3 core/coordination/dependency_mapper.py --analyze-impact <target>
+
+# STEP 2: Systematic updates (during changes)
+# - Configuration files FIRST
+# - Automation scripts SECOND  
+# - Documentation THIRD
+# - Tests LAST
+
+# STEP 3: Validation (after changes)
+python3 core/coordination/dependency_validator.py --validate-all
+python3 scripts/automation/dependency_checker.py --verify-hooks
+```
 
 ---
 

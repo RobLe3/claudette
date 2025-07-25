@@ -688,7 +688,7 @@ npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]" --load-mem
 npx claude-flow@alpha hooks post-edit --file "[filepath]" --memory-key "swarm/[agent]/[step]"
 
 # Store decisions and findings
-npx claude-flow@alpha hooks notification --message "[what was done]" --telemetry true
+npx claude-flow@alpha hooks notify --message "[what was done]" --level "info"
 
 # Check coordination with other agents
 npx claude-flow@alpha hooks pre-search --query "[what to check]" --cache-results true

@@ -104,16 +104,58 @@ project/
 - **Impact:** Enables smooth multi-day project development
 - **Rule:** Document everything needed for session resumption
 
+### **13. State File Chaos - ROOT DIRECTORY POLLUTION**
+**Anti-Pattern:** Leaving state files scattered in project root
+- **Wrong:** `STATE_2025-07-18.md`, `SESSION_STATE.md` in root directory
+- **Right:** Organized by date in `data/sessions/2025-07-18/` structure
+- **Impact:** Root directory becomes cluttered and unprofessional
+- **Rule:** ALWAYS organize state files by date immediately after creation
+
+### **14. Configuration Exposure - SECURITY RISK**
+**Anti-Pattern:** Committing real configuration files with secrets
+- **Wrong:** `config.yaml` with API keys pushed to git
+- **Right:** `config.template.yaml` with placeholders, real config in .gitignore
+- **Impact:** Security vulnerabilities, exposed API keys
+- **Rule:** Use templates for all configurations, never commit secrets
+
+### **15. Duplicate Accumulation - MAINTENANCE NIGHTMARE**
+**Anti-Pattern:** Allowing duplicate files to accumulate without cleanup
+- **Wrong:** `tracker.py`, `tracker_duplicate.py`, `tracker_new.py` all present
+- **Right:** Regular duplicate analysis and immediate cleanup
+- **Impact:** Confusion, maintenance overhead, development inefficiency
+- **Rule:** Run duplicate analysis weekly, clean up immediately
+
+### **16. Archive Chaos - LOST KNOWLEDGE**
+**Anti-Pattern:** Dumping old files without structure or documentation
+- **Wrong:** Random files scattered in `/archive/` without organization
+- **Right:** Date-organized archives with README files explaining contents
+- **Impact:** Historical knowledge becomes inaccessible
+- **Rule:** Historical files → dated directories with documentation immediately
+
+### **17. Import Path Breakage - DEVELOPMENT DISRUPTION**
+**Anti-Pattern:** Moving files without updating import statements
+- **Wrong:** Moving `core/tracker.py` but leaving `from core.tracker import`
+- **Right:** Use dependency analysis tools before ANY file moves
+- **Impact:** Broken imports, failed tests, non-functional systems
+- **Rule:** ALWAYS test imports after structural changes
+
+### **18. Dependency Neglect - SYSTEM FAILURE**
+**Anti-Pattern:** Changing structure without updating all dependencies
+- **Wrong:** Moving directories but not updating .claude/settings.json paths
+- **Right:** Systematic dependency updates using validation tools
+- **Impact:** Broken automation, failed hooks, configuration errors
+- **Rule:** Every structural change must update ALL associated dependencies
+
 ## 🔄 **Workflow Best Practices**
 
-### **13. Session Management Protocol**
+### **19. Session Management Protocol**
 **Effective Pattern:**
 1. **Start:** Load previous state, assess current limits
 2. **Work:** Monitor usage, batch operations, track progress
 3. **End:** Generate state summary, document lessons, plan next session
 4. **Continuation:** Clear handoff with actionable next steps
 
-### **14. Error Investigation Method**
+### **20. Error Investigation Method**
 **Successful Approach:** Systematic data validation
 1. **Question assumptions** (cache tokens don't count)
 2. **Gather actual data** (run usage analysis tools)
@@ -121,7 +163,7 @@ project/
 4. **Document findings** (capture in lessons learned)
 5. **Build safeguards** (prevent future similar errors)
 
-### **15. Multi-Currency Strategy**
+### **21. Multi-Currency Strategy**
 **Pattern:** Dual currency display for international context
 - **Primary:** Euro (user's context)
 - **Secondary:** USD (API reference)
@@ -130,14 +172,14 @@ project/
 
 ## 📊 **Success Metrics Learned**
 
-### **16. Project Success Indicators**
+### **22. Project Success Indicators**
 - **Token Efficiency:** Cost per feature implemented
 - **Time Efficiency:** Session duration vs value delivered
 - **Knowledge Retention:** Lessons applied to future sessions
 - **System Reliability:** All components functional across sessions
 - **Documentation Quality:** Enables smooth continuation
 
-### **17. Quality Assurance Patterns**
+### **23. Quality Assurance Patterns**
 - **Real-time Monitoring:** Status bars and dashboards
 - **Historical Analysis:** Trend tracking and pattern recognition
 - **Cross-validation:** Multiple calculation methods
