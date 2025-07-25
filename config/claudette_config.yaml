@@ -1,0 +1,63 @@
+# Claudette Local Configuration (Project-Level)
+# Enhanced Claude Code with 96% Cost Reduction System
+# Copy this to ~/.claudette/config.yaml with proper permissions
+
+# Cost Conservation Settings
+cost_conservation:
+  enabled: true
+  claude_usage_target: 8.3  # Target 8.3% Claude usage (vs 91.7% ChatGPT)
+  daily_budget_usd: 5.00
+  aggressive_mode: true
+
+# Model Selection Priority (Cost-Optimized)
+model_priority:
+  - gpt-4o-mini      # Primary: $0.15/$0.60 per 1M tokens
+  - gpt-3.5-turbo    # Fallback: $0.50/$1.50 per 1M tokens
+  - gpt-4o           # Complex: $5.00/$20.00 per 1M tokens
+  - claude           # Reserved: Orchestration only
+
+# Enhancement Tiers
+enhancement_tiers:
+  tier1:
+    name: "Default Claude Code"
+    command: "claude"
+    cost_target: 0
+  tier2:
+    name: "Enhanced with Cost Conservation"
+    cost_reduction: 96
+    chatgpt_routing: true
+  tier3:
+    name: "Super-Enhanced with Swarm"
+    swarm_coordination: true
+    topology: "mesh"
+    max_agents: 3
+
+# API Keys (use environment variables)
+api_keys:
+  openai: "${OPENAI_API_KEY}"
+  anthropic: "${ANTHROPIC_API_KEY}"
+
+# Offloading Patterns (Aggressive Claude Minimization)
+claude_only_patterns:
+  - "complex system architecture"
+  - "multi-file refactoring" 
+  - "advanced debugging"
+  - "swarm coordination"
+
+# Budget Monitoring
+budget_alerts:
+  daily_threshold: 4.00
+  monthly_threshold: 100.00
+  alert_on_overage: true
+
+# Session Management
+session:
+  auto_save: true
+  backup_frequency: "hourly"
+  max_history: 1000
+
+# Project Integration
+project:
+  base_path: "${PROJECT_BASE_PATH}"  # Set via: export PROJECT_BASE_PATH="/path/to/claude_flow"
+  venv_path: "${PROJECT_BASE_PATH}/venv"
+  cost_tracking_enabled: true

@@ -1,0 +1,91 @@
+{
+  "project": {
+    "name": "Claude Flow Enhanced",
+    "version": "2.0.0-alpha",
+    "description": "AI-powered development orchestration with cost tracking and monitoring"
+  },
+  "directories": {
+    "scripts": "scripts/",
+    "tools": "tools/",
+    "plugins": "plugins/",
+    "memory": "memory/",
+    "coordination": "coordination/",
+    "claude_config": ".claude/"
+  },
+  "organization": {
+    "enabled": true,
+    "auto_organize": true,
+    "structure": {
+      "scripts": {
+        "cost-tracking": "Cost tracking and monitoring scripts",
+        "startup-tools": "Startup and initialization scripts",
+        "third-party": "Third-party wrapper scripts"
+      },
+      "tools": {
+        "dashboard": "Interactive dashboards and monitoring tools",
+        "monitoring": "Data export and analysis tools"
+      },
+      "plugins": {
+        "claude-flow-extensions": "Custom Claude Flow extensions and plugins"
+      }
+    }
+  },
+  "hooks": {
+    "cost_tracking": {
+      "enabled": true,
+      "script_path": "scripts/cost-tracking/claude-cost-tracker.py",
+      "track_bash": true,
+      "track_edits": true,
+      "track_sessions": true
+    },
+    "organization": {
+      "enabled": true,
+      "auto_move_scripts": true,
+      "create_readme": true,
+      "maintain_structure": true
+    }
+  },
+  "paths": {
+    "cost_tracker": "scripts/cost-tracking/claude-cost-tracker.py",
+    "dashboard": "tools/dashboard/cost-dashboard.zsh",
+    "startup": "scripts/startup-tools/start-claude-flow.zsh",
+    "exports": "tools/monitoring/",
+    "plugins": "plugins/claude-flow-extensions/"
+  },
+  "features": {
+    "autoTopologySelection": true,
+    "parallelExecution": true,
+    "neuralTraining": true,
+    "bottleneckAnalysis": true,
+    "smartAutoSpawning": true,
+    "selfHealingWorkflows": true,
+    "crossSessionMemory": true,
+    "githubIntegration": true,
+    "cost_tracking": {
+      "enabled": true,
+      "real_time": true,
+      "historical": true,
+      "export": true,
+      "api_sync": true
+    },
+    "organization": {
+      "enabled": true,
+      "auto_cleanup": true,
+      "structure_maintenance": true
+    },
+    "monitoring": {
+      "enabled": true,
+      "live_dashboard": true,
+      "export_csv": true,
+      "external_tools": true
+    }
+  },
+  "performance": {
+    "maxAgents": 10,
+    "defaultTopology": "hierarchical",
+    "executionStrategy": "parallel",
+    "tokenOptimization": true,
+    "cacheEnabled": true,
+    "telemetryLevel": "detailed"
+  }
+}
