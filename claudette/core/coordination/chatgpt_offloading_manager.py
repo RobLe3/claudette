@@ -49,9 +49,23 @@ except ImportError:
                 pass
             def select_model(self, *args, **kwargs):
                 return "gpt-4o-mini"
-from cost_conservation_integration import CostConservationSystem
-from claude_token_minimizer import ClaudeTokenMinimizer
-from chatgpt_cost_optimizer import ChatGPTCostOptimizer
+try:
+    from scripts.automation.cost_conservation_integration import CostConservationSystem
+    from scripts.automation.claude_token_minimizer import ClaudeTokenMinimizer
+    from scripts.automation.chatgpt_cost_optimizer import ChatGPTCostOptimizer
+except ImportError:
+    # Fallback - create mock classes for missing dependencies
+    class CostConservationSystem:
+        def __init__(self): pass
+        def optimize_request(self, *args, **kwargs): return args, kwargs
+    
+    class ClaudeTokenMinimizer:
+        def __init__(self): pass
+        def minimize_tokens(self, text): return text
+    
+    class ChatGPTCostOptimizer:
+        def __init__(self): pass
+        def optimize_cost(self, *args, **kwargs): return args, kwargs
 
 # Mock coordinator for now
 class ClaudeIntegrationCoordinator:

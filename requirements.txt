@@ -37,3 +37,7 @@ mypy>=1.0.0
 # Additional AI/ML dependencies
 numpy>=1.24.0
 scipy>=1.10.0
+
+# Node.js bridge dependencies for claude-flow integration
+# subprocess32>=3.5.4; python_version < "3.0"  # Not needed for Python 3.x
+psutil>=5.8.0

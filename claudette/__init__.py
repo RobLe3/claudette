@@ -14,9 +14,10 @@ __email__ = "dev@claudette.ai"
 
 # Core imports with graceful fallback
 try:
-    from .main import main
+    from .main import main, cli
 except ImportError:
     main = None
+    cli = None
 
 try:
     from .cli_commands import CLICommands
@@ -40,6 +41,7 @@ except ImportError:
 
 __all__ = [
     'main',
+    'cli',
     'CLICommands', 
     'Config',
     'Cache',

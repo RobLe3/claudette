@@ -66,6 +66,12 @@ class Config:
         self.ollama_model = config_data.get('ollama_model') or os.getenv('OLLAMA_MODEL', 'llama2')
         self.ollama_url = config_data.get('ollama_url', 'http://localhost:11434')
         self.fallback_enabled = config_data.get('fallback_enabled', True)
+        
+        # Claude-flow integration settings
+        self.claude_flow_enabled = config_data.get('claude_flow_enabled', True)
+        self.claude_flow_auto_install = config_data.get('claude_flow_auto_install', False)
+        self.swarm_topology = config_data.get('swarm_topology', 'hierarchical')
+        self.max_agents = config_data.get('max_agents', 8)
     
     @classmethod
     def load(cls, config_path: Optional[Path] = None) -> 'Config':
@@ -116,7 +122,11 @@ class Config:
             'mistral_model': self.mistral_model,
             'ollama_model': self.ollama_model,
             'ollama_url': self.ollama_url,
-            'fallback_enabled': self.fallback_enabled
+            'fallback_enabled': self.fallback_enabled,
+            'claude_flow_enabled': self.claude_flow_enabled,
+            'claude_flow_auto_install': self.claude_flow_auto_install,
+            'swarm_topology': self.swarm_topology,
+            'max_agents': self.max_agents
         }
 
 
@@ -162,6 +172,11 @@ class ClaudetteConfig:
         self.cache_dir = self.base_path / "cache"
         self.logs_dir = self.base_path / "logs"
         
+        # Claude Flow Integration Settings
+        self.claude_flow_enabled = True
+        self.claude_flow_auto_install = True
+        self.claude_flow_check_interval = 300  # 5 minutes
+        
         # Ensure directories exist
         self.cache_dir.mkdir(exist_ok=True)
         self.logs_dir.mkdir(exist_ok=True)
@@ -180,6 +195,16 @@ class ClaudetteConfig:
         # Check required API keys
         if not self.openai_key:
             issues.append("OPENAI_API_KEY not set")
+        
+        # Check Claude Flow integration if enabled
+        if self.claude_flow_enabled:
+            try:
+                from .integrations.claude_flow_bridge import get_claude_flow_status
+                status = get_claude_flow_status()
+                if not status["claude_flow_installed"]:
+                    issues.append("claude-flow not installed (run 'claudette --install-claude-flow')")
+            except ImportError:
+                issues.append("claude-flow bridge not available")
             
         if issues:
             print("❌ Configuration Issues:")

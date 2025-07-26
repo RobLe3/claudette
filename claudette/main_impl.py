@@ -120,7 +120,8 @@ class ClaudetteCLI:
                 return self._handle_help()
             
             # Handle special claudette commands
-            if args and args[0] in ['config', 'doctor', 'performance', 'stats', 'diagnose', 'fix']:
+            if args and args[0] in ['config', 'doctor', 'performance', 'stats', 'diagnose', 'fix', 
+                                  'claude-flow-status', 'install-claude-flow', 'check-dependencies', 'swarm-init']:
                 return self._handle_special_commands(args)
             
             # Preprocess arguments if needed

@@ -16,6 +16,14 @@ from .performance_monitor import get_performance_stats
 from .error_handler import check_system_requirements, validate_environment
 from .cache import get_cache_manager
 
+# Claude Flow integration imports (with graceful fallback)
+try:
+    from .integrations.claude_flow_bridge import claude_flow, check_integration
+    from .integrations.dependency_manager import DependencyManager
+    CLAUDE_FLOW_AVAILABLE = True
+except ImportError:
+    CLAUDE_FLOW_AVAILABLE = False
+
 
 def cmd_config(args) -> int:
     """Handle config subcommand"""
@@ -299,6 +307,167 @@ def cmd_performance(args) -> int:
         return 1
 
 
+# Helper function for getting claude flow bridge
+def get_claude_flow_bridge():
+    """Get the claude flow bridge instance"""
+    if not CLAUDE_FLOW_AVAILABLE:
+        raise RuntimeError("Claude Flow integration not available")
+    return claude_flow
+
+
+def cmd_claude_flow_status(args) -> int:
+    """Check claude-flow integration status"""
+    if not CLAUDE_FLOW_AVAILABLE:
+        print("❌ Claude-flow integration not available")
+        print("   Install with: pip install -e .[dev]")
+        return 1
+    
+    try:
+        # Check integration status
+        status = check_integration()
+        
+        print("🔍 Claude-Flow Integration Status")
+        print("=" * 35)
+        
+        # Claude-flow availability
+        if status['claude_flow_available']:
+            print(f"✅ Claude-flow: {status['claude_flow_version']}")
+        else:
+            print("❌ Claude-flow: Not available")
+            print("   Install with: npm install claude-flow@alpha")
+        
+        # Swarm status
+        swarm_status = status['swarm_status']
+        print(f"🐝 Swarm: {swarm_status['status']}")
+        
+        # Overall integration
+        if status['integration_ready']:
+            print("\n🎉 Integration is ready for use!")
+            print("   Try: claudette swarm-init")
+        else:
+            print("\n⚠️  Integration needs setup")
+            print("   Run: claudette install-claude-flow")
+        
+        return 0 if status['integration_ready'] else 1
+        
+    except Exception as e:
+        print(f"❌ Error checking claude-flow status: {e}")
+        return 1
+
+
+def cmd_install_claude_flow(args) -> int:
+    """Install claude-flow integration"""
+    if not CLAUDE_FLOW_AVAILABLE:
+        print("❌ Claude-flow integration module not available")
+        return 1
+    
+    try:
+        print("🚀 Installing claude-flow integration...")
+        
+        # Install claude-flow
+        result = claude_flow.install_claude_flow()
+        
+        if result['success']:
+            print(f"✅ {result['message']}")
+            if 'version' in result:
+                print(f"   Version: {result['version']}")
+            return 0
+        else:
+            print(f"❌ Installation failed: {result['error']}")
+            return 1
+            
+    except Exception as e:
+        print(f"❌ Error during installation: {e}")
+        return 1
+
+
+def cmd_check_dependencies(args) -> int:
+    """Check all dependencies"""
+    if not CLAUDE_FLOW_AVAILABLE:
+        print("❌ Dependency manager not available")
+        return 1
+    
+    try:
+        manager = DependencyManager()
+        status = manager.comprehensive_check()
+        
+        print("📋 Dependency Status Report")
+        print("=" * 30)
+        
+        # System dependencies
+        node_status = status['system']['node_js']
+        npm_status = status['system']['npm']
+        
+        print(f"Node.js: {'✅' if node_status['available'] else '❌'}")
+        if node_status['available']:
+            print(f"  Version: {node_status['version']}")
+            if not node_status.get('supported', True):
+                print(f"  ⚠️  {node_status.get('recommendation', '')}")
+        else:
+            print(f"  Issue: {node_status.get('reason', 'Unknown')}")
+        
+        print(f"npm: {'✅' if npm_status['available'] else '❌'}")
+        if npm_status['available']:
+            print(f"  Version: {npm_status['version']}")
+        
+        # Package dependencies
+        cf_status = status['packages']['claude_flow']
+        py_status = status['packages']['python_packages']
+        
+        print(f"Claude-flow: {'✅' if cf_status['available'] else '❌'}")
+        if cf_status['available']:
+            print(f"  Version: {cf_status['version']}")
+        
+        print(f"Python packages: {'✅' if py_status['all_available'] else '⚠️'}")
+        if not py_status['all_available']:
+            missing = py_status.get('missing_packages', [])
+            print(f"  Missing: {', '.join(missing)}")
+        
+        # Recommendations
+        actions = status['status']['recommended_actions']
+        if actions and not (len(actions) == 1 and 'All dependencies' in actions[0]):
+            print("\n📋 Recommended Actions:")
+            for action in actions:
+                print(f"  {action}")
+        
+        # Overall status
+        print(f"\n🎯 Integration Ready: {'✅' if status['status']['integration_ready'] else '❌'}")
+        
+        return 0 if status['status']['integration_ready'] else 1
+        
+    except Exception as e:
+        print(f"❌ Error checking dependencies: {e}")
+        return 1
+
+
+def cmd_swarm_init(args) -> int:
+    """Initialize claude-flow swarm"""
+    if not CLAUDE_FLOW_AVAILABLE:
+        print("❌ Claude-flow integration not available")
+        return 1
+    
+    try:
+        topology = getattr(args, 'topology', 'hierarchical')
+        max_agents = getattr(args, 'max_agents', 8)
+        
+        print(f"🐝 Initializing swarm (topology: {topology}, max_agents: {max_agents})...")
+        
+        result = claude_flow.initialize_swarm(topology=topology, max_agents=max_agents)
+        
+        if result['success']:
+            print("✅ Swarm initialized successfully!")
+            if 'output' in result:
+                print(f"   {result['output']}")
+            return 0
+        else:
+            print(f"❌ Swarm initialization failed: {result['error']}")
+            return 1
+            
+    except Exception as e:
+        print(f"❌ Error initializing swarm: {e}")
+        return 1
+
+
 def setup_cli_commands(parser) -> None:
     """Setup enhanced CLI subcommands"""
     subparsers = parser.add_subparsers(dest='subcommand', help='Available commands')
@@ -318,5 +487,22 @@ def setup_cli_commands(parser) -> None:
     # Performance command
     perf_parser = subparsers.add_parser('performance', help='Performance statistics')
     perf_parser.set_defaults(func=cmd_performance)
+    
+    # Claude Flow integration commands
+    cf_status_parser = subparsers.add_parser('claude-flow-status', help='Check claude-flow integration status')
+    cf_status_parser.set_defaults(func=cmd_claude_flow_status)
+    
+    cf_install_parser = subparsers.add_parser('install-claude-flow', help='Install claude-flow integration')
+    cf_install_parser.set_defaults(func=cmd_install_claude_flow)
+    
+    deps_parser = subparsers.add_parser('check-dependencies', help='Check all dependencies')
+    deps_parser.set_defaults(func=cmd_check_dependencies)
+    
+    # Swarm initialization command
+    swarm_parser = subparsers.add_parser('swarm-init', help='Initialize claude-flow swarm')
+    swarm_parser.add_argument('--topology', choices=['hierarchical', 'mesh', 'ring', 'star'], 
+                             default='hierarchical', help='Swarm topology')
+    swarm_parser.add_argument('--max-agents', type=int, default=8, help='Maximum number of agents')
+    swarm_parser.set_defaults(func=cmd_swarm_init)
     
     return subparsers

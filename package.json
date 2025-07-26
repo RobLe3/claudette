@@ -1,0 +1,28 @@
+{
+  "name": "claudette-ai-tools-integration",
+  "version": "1.0.0",
+  "description": "NPM dependencies for claudette-ai-tools with claude-flow integration",
+  "dependencies": {
+    "claude-flow": "^2.0.0-alpha"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "check-claude-flow": "npx claude-flow@alpha --version",
+    "test-integration": "npx claude-flow@alpha features detect",
+    "install-claude-flow": "npm install claude-flow@alpha"
+  },
+  "keywords": [
+    "claudette",
+    "ai-tools",
+    "claude-flow",
+    "integration",
+    "automation"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruvnet/claudette-ai-tools"
+  }
+}
