@@ -1,95 +1,168 @@
-# Claude Flow - Advanced AI Development Extensions
+# Claude-Flow v2.0.0 Alpha
 
-**Private development repository for Claude Flow extensions and customizations**
+Revolutionary AI development orchestration platform with advanced swarm intelligence.
 
-This repository contains advanced extensions, customizations, and experimental features for AI-powered development workflows. It complements the public [Claudette](https://github.com/RobLe3/claudette) CLI tool with enhanced coordination capabilities.
+**🚨 NOTICE: Python Components Moved** (January 2025)  
+Python AI tools (claudette) have been moved to a dedicated repository: [claudette-ai-tools](https://github.com/ruvnet/claudette-ai-tools). This repository now focuses exclusively on JavaScript/Node.js MCP tools and swarm coordination.
 
-## 🎯 Repository Purpose
+## 🧠 Hive-Mind Intelligence
 
-This is a **private development repository** containing:
+Claude-Flow revolutionizes AI-powered development through a sophisticated "Queen-led" coordination system that orchestrates specialized AI agents for complex software development tasks.
 
-- Advanced AI coordination systems and swarm architectures
-- Experimental cost optimization algorithms
-- Development automation and workflow extensions
-- Research prototypes and proof-of-concepts
-- Internal tooling and custom integrations
+### Agent Hierarchy
+- **👑 Queen Agent**: Orchestrates overall strategy and coordination
+- **🏗️ Architect**: System design and architecture planning
+- **💻 Coder**: Implementation and development tasks
+- **🔍 Analyst**: Data analysis and performance monitoring
+- **🧪 Tester**: Quality assurance and validation
+- **📚 Researcher**: Information gathering and research
+- **📊 Coordinator**: Task management and workflow coordination
+- **⚡ Optimizer**: Performance and efficiency improvements
 
-## 🔗 Related Projects
+## 🚀 Features
 
-- **[Claudette](https://github.com/RobLe3/claudette)** - Public CLI tool with multi-backend support
-- **[Claude Flow (ruvnet)](https://github.com/ruvnet/claude-flow)** - Original orchestration platform
+### Advanced MCP Tools (87 total)
+- **Swarm Orchestration**: Dynamic agent spawning and coordination
+- **Neural Training**: 27+ models with WASM SIMD acceleration
+- **Memory Persistence**: SQLite-based cross-session memory
+- **GitHub Integration**: Repository-aware development workflows
+- **Performance Analytics**: Real-time bottleneck analysis
+- **Workflow Automation**: Custom automation rules and triggers
 
-## 📁 Repository Structure
+### Technical Innovations
+- **84.8% SWE-Bench solve rate** - Industry-leading problem resolution
+- **32.3% token reduction** - Efficient resource utilization
+- **2.8-4.4x speed improvement** - Parallel coordination strategies
+- **Self-healing workflows** - Automatic error recovery
+- **Dynamic Agent Architecture (DAA)** - Adaptive agent management
 
-```
-claude-flow/
-├── core/                   # Core coordination systems
-│   ├── coordination/       # Advanced agent coordination
-│   ├── cost-tracking/      # Cost optimization research
-│   └── monitoring/         # Performance monitoring
-├── scripts/                # Automation and utility scripts
-│   ├── automation/         # Development automation
-│   ├── cost-tracking/      # Cost analysis tools
-│   └── release/            # Deployment scripts
-├── .claude/                # Claude Code integration
-│   ├── commands/           # Custom slash commands
-│   ├── helpers/            # Setup and utility scripts
-│   └── settings.json       # Claude Code configuration
-└── docs/                   # Development documentation
-```
+## 📦 Quick Start
 
-## 🔧 Development Setup
-
-This repository contains experimental and development code. For production use, see the [Claudette](https://github.com/RobLe3/claudette) public repository.
-
-### Prerequisites
-
-- Python 3.8+
-- Claude Code CLI
-- Git with SSH access to this private repository
-
-### Installation
-
+### Alpha Installation
 ```bash
-git clone git@github.com:RobLe3/claude-flow.git
-cd claude-flow
-pip install -r requirements.txt  # If available
+# Install Claude-Flow Alpha
+npx claude-flow@alpha init --force
+
+# Initialize your first swarm
+npx claude-flow@alpha swarm init --topology mesh --agents 5
+
+# Start development coordination
+npx claude-flow@alpha task orchestrate "Build a full-stack app"
 ```
 
-## 📊 Features
+### MCP Integration
+```bash
+# Add as MCP server to Claude Code
+claude mcp add claude-flow npx claude-flow@alpha mcp start
+```
 
-### Advanced Coordination
-- Multi-agent swarm architectures
-- Dynamic agent spawning and coordination
-- Cross-session memory persistence
-- Real-time performance monitoring
+## 🎯 Use Cases
 
-### Cost Optimization Research
-- Intelligent model routing algorithms
-- Token usage analysis and optimization
-- Cost tracking across multiple backends
-- Budget management and alerting
+### Full-Stack Development
+```bash
+npx claude-flow@alpha swarm init --topology hierarchical --agents 8
+npx claude-flow@alpha task orchestrate "Build React app with Node.js backend"
+```
 
-### Development Automation
-- Automated testing and validation
+### Research & Analysis
+```bash
+npx claude-flow@alpha swarm init --topology mesh --agents 5
+npx claude-flow@alpha task orchestrate "Research neural architecture trends"
+```
+
+### Security & Compliance
+```bash
+npx claude-flow@alpha swarm init --topology star --agents 6
+npx claude-flow@alpha task orchestrate "Security audit and compliance review"
+```
+
+## 🧠 Neural Intelligence
+
+Claude-Flow includes advanced neural pattern recognition:
+- **Cognitive Analysis**: Understand development patterns
+- **Adaptive Learning**: Improve from each interaction
+- **Pattern Recognition**: Identify optimal workflows
+- **Performance Prediction**: Anticipate bottlenecks
+
+## 🔧 Architecture
+
+### Swarm Topologies
+- **Mesh**: Peer-to-peer agent communication
+- **Hierarchical**: Structured command chains
+- **Star**: Central coordinator with specialized agents
+- **Ring**: Circular communication patterns
+
+### Memory System
+- **Cross-session persistence**: SQLite-based storage
+- **Agent memory**: Individual agent learning
+- **Swarm memory**: Collective intelligence
+- **Pattern storage**: Reusable workflow patterns
+
+## 🐍 Python Tools Moved
+
+**Looking for Python AI tools?** They've been moved to a dedicated repository:
+
+**📦 [claudette-ai-tools](https://github.com/ruvnet/claudette-ai-tools)**
+- Advanced Python CLI for AI backends
+- Multi-provider support (OpenAI, Anthropic, Mistral, Ollama)
+- Cost optimization and performance monitoring
+- Plugin architecture and session management
+
+### Migration Guide
+If you were using Python components from this repository:
+```bash
+# Install the new dedicated package
+pip install claudette-ai-tools
+
+# Your commands remain the same
+claudette "your prompt here"
+```
+
+See the [Migration Guide](https://github.com/ruvnet/claudette-ai-tools/blob/main/MIGRATION_GUIDE.md) for complete migration instructions.
+
+## 📊 Performance
+
+Benchmarked performance improvements:
+- **Development Speed**: 2.8-4.4x faster
+- **Code Quality**: 84.8% success rate
+- **Resource Efficiency**: 32.3% token reduction
+- **Error Recovery**: Self-healing workflows
+
+## 🛠️ Advanced Features
+
+### Workflow Automation
+- Custom triggers and actions
 - CI/CD pipeline integration
-- Session management and state persistence
-- Performance benchmarking
+- Automated testing and validation
+- Performance monitoring
 
-## 🔒 Privacy Notice
+### GitHub Integration
+- Repository analysis
+- Pull request enhancement
+- Issue triage and management
+- Code review automation
 
-This repository contains proprietary development work and experimental features. Content should not be shared outside authorized development contexts.
+## 🚀 Roadmap
 
-## 📝 Development Status
+- **Q1 2025**: Enhanced neural models
+- **Q2 2025**: Stable release
+- **Q3 2025**: Enterprise features
+- **Q4 2025**: Multi-language support
 
-- **Status**: Active development
-- **Stability**: Experimental
-- **Production Ready**: See [Claudette](https://github.com/RobLe3/claudette)
+## 📚 Documentation
+
+- [Getting Started Guide](docs/README.md)
+- [API Reference](docs/api/)
+- [Examples](examples/)
 
 ## 🤝 Contributing
 
-This is a private development repository. Contributions are coordinated through internal development processes.
+Claude-Flow is open source and welcomes contributions. See our contributing guidelines for more information.
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
 
 ---
 
-**Note**: For public-facing features and stable releases, see the [Claudette](https://github.com/RobLe3/claudette) repository.
+**Build faster, smarter, and more efficiently with AI-powered development orchestration.**

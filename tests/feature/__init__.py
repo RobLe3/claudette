@@ -1,1 +1,0 @@
-"""Feature tests for claudette end-to-end functionality."""

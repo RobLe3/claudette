@@ -1,1 +1,0 @@
-"""Bug hunt regression tests for claudette."""
