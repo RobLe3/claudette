@@ -39,14 +39,21 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Import cost tracking for quota detection
-sys.path.append(str(Path(__file__).parent.parent / "core" / "cost-tracking"))
+# Import cost tracking for quota detection - updated path for new structure
 try:
+    # Try development structure path first
+    sys.path.append(str(Path(__file__).parent.parent.parent / "dev" / "cost-tracking"))
     from tracker import ClaudeCostTracker
 except ImportError:
-    class ClaudeCostTracker:
-        def get_daily_token_usage(self): return 0
-        def get_monthly_token_usage(self): return 0
+    try:
+        # Try legacy path
+        sys.path.append(str(Path(__file__).parent.parent / "core" / "cost-tracking"))
+        from tracker import ClaudeCostTracker
+    except ImportError:
+        # Fallback mock implementation
+        class ClaudeCostTracker:
+            def get_daily_token_usage(self): return 0
+            def get_monthly_token_usage(self): return 0
 
 
 class BaseBackend(ABC):

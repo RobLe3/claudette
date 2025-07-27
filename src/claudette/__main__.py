@@ -5,7 +5,7 @@ Drop-in replacement for Claude Code CLI with preprocessing pipeline
 """
 
 import sys
-from claudette.main import cli
+from .main import cli
 
 if __name__ == "__main__":
     cli(sys.argv[1:])
