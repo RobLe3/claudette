@@ -1,0 +1,144 @@
+{
+  "test_duration": 42.08690905570984,
+  "individual_test_results": {
+    "mcp_integration": {
+      "available": true,
+      "tools_found": [
+        "mcp__claude-flow__swarm_init",
+        "mcp__claude-flow__agent_spawn",
+        "mcp__claude-flow__task_orchestrate",
+        "mcp__claude-flow__swarm_status"
+      ],
+      "total_tools": 4,
+      "integration_ready": true
+    },
+    "swarm_initialization": {
+      "topologies_tested": 3,
+      "successful_initializations": 3,
+      "success_rate": 1.0,
+      "individual_results": [
+        {
+          "topology": "hierarchical",
+          "success": true,
+          "initialization_time": 0.5002939701080322,
+          "max_agents": 5,
+          "swarm_id": "swarm_hierarchical_1753648239"
+        },
+        {
+          "topology": "mesh",
+          "success": true,
+          "initialization_time": 0.5012338161468506,
+          "max_agents": 5,
+          "swarm_id": "swarm_mesh_1753648239"
+        },
+        {
+          "topology": "star",
+          "success": true,
+          "initialization_time": 0.5002470016479492,
+          "max_agents": 5,
+          "swarm_id": "swarm_star_1753648240"
+        }
+      ]
+    },
+    "agent_spawning": {
+      "agent_types_tested": 5,
+      "successful_spawns": 5,
+      "spawn_success_rate": 1.0,
+      "total_spawn_time": 1.505472183227539,
+      "individual_results": [
+        {
+          "agent_type": "coordinator",
+          "success": true,
+          "spawn_time": 0.3011741638183594,
+          "agent_id": "agent_coordinator_1753648240",
+          "capabilities": [
+            "coordinator_skill_1",
+            "coordinator_skill_2"
+          ]
+        },
+        {
+          "agent_type": "researcher",
+          "success": true,
+          "spawn_time": 0.30147886276245117,
+          "agent_id": "agent_researcher_1753648240",
+          "capabilities": [
+            "researcher_skill_1",
+            "researcher_skill_2"
+          ]
+        },
+        {
+          "agent_type": "coder",
+          "success": true,
+          "spawn_time": 0.30088114738464355,
+          "agent_id": "agent_coder_1753648240",
+          "capabilities": [
+            "coder_skill_1",
+            "coder_skill_2"
+          ]
+        },
+        {
+          "agent_type": "analyst",
+          "success": true,
+          "spawn_time": 0.3012959957122803,
+          "agent_id": "agent_analyst_1753648241",
+          "capabilities": [
+            "analyst_skill_1",
+            "analyst_skill_2"
+          ]
+        },
+        {
+          "agent_type": "tester",
+          "success": true,
+          "spawn_time": 0.3006420135498047,
+          "agent_id": "agent_tester_1753648241",
+          "capabilities": [
+            "tester_skill_1",
+            "tester_skill_2"
+          ]
+        }
+      ]
+    },
+    "task_orchestration": {
+      "tasks_tested": 3,
+      "successful_orchestrations": 3,
+      "orchestration_success_rate": 1.0,
+      "average_quality": 0.85,
+      "individual_results": [
+        {
+          "task": "Write a Python function to calculate factorial",
+          "strategy": "sequential",
+          "success": true,
+          "orchestration_time": 1.0004520416259766,
+          "agents_coordinated": 2,
+          "coordination_quality": 0.85
+        },
+        {
+          "task": "Analyze pros and cons of different sorting algorithms",
+          "strategy": "parallel",
+          "success": true,
+          "orchestration_time": 1.000213861465454,
+          "agents_coordinated": 2,
+          "coordination_quality": 0.85
+        },
+        {
+          "task": "Design a REST API for user management",
+          "strategy": "balanced",
+          "success": true,
+          "orchestration_time": 1.0004119873046875,
+          "agents_coordinated": 3,
+          "coordination_quality": 0.85
+        }
+      ]
+    },
+    "cli_integration": {
+      "cli_available": true,
+      "cli_functional": false,
+      "error": "CLI command timed out",
+      "integration_ready": false
+    }
+  },
+  "overall_score": 0.8,
+  "tests_passed": 4,
+  "total_tests": 5,
+  "swarm_readiness": true
+}

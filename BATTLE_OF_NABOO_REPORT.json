@@ -1,0 +1,42 @@
+{
+  "battle_report": {
+    "gungan_victories": 0,
+    "droid_defeats": 5,
+    "battle_efficiency": [],
+    "warrior_performance": {},
+    "naboo_protected": false,
+    "total_battle_time": 40.28466725349426
+  },
+  "squadron_details": [
+    {
+      "squadron": 1,
+      "victory": false,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=20)",
+      "battle_time": 20.15569305419922
+    },
+    {
+      "squadron": 2,
+      "victory": false,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=20)",
+      "battle_time": 20.156692028045654
+    },
+    {
+      "squadron": 3,
+      "victory": false,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=20)",
+      "battle_time": 20.157492876052856
+    },
+    {
+      "squadron": 4,
+      "victory": false,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=20)",
+      "battle_time": 20.118731021881104
+    },
+    {
+      "squadron": 5,
+      "victory": false,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=20)",
+      "battle_time": 20.124495029449463
+    }
+  ]
+}

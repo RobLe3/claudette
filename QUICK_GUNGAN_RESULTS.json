@@ -1,0 +1,20 @@
+{
+  "test_type": "quick_sequential_test",
+  "total_time": 24.21017599105835,
+  "victories": 1,
+  "total_challenges": 2,
+  "success_rate": 0.5,
+  "squadron_results": [
+    {
+      "squadron": 1,
+      "victory": false,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=15)"
+    },
+    {
+      "squadron": 2,
+      "victory": true,
+      "battle_time": 8.058788776397705,
+      "solution_length": 172
+    }
+  ]
+}

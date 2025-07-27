@@ -1,0 +1,53 @@
+{
+  "single_qwen": [
+    {
+      "success": false,
+      "time": 15.156979084014893,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=15)",
+      "approach": "single_qwen"
+    },
+    {
+      "success": true,
+      "time": 8.972656011581421,
+      "content_length": 219,
+      "approach": "single_qwen"
+    },
+    {
+      "success": false,
+      "time": 15.160052061080933,
+      "error": "HTTPSConnectionPool(host='tools.flexcon-ai.de', port=443): Read timed out. (read timeout=15)",
+      "approach": "single_qwen"
+    }
+  ],
+  "teamwork_sim": [
+    {
+      "success": true,
+      "time": 3.146899938583374,
+      "teamwork_quality": 0.9,
+      "team_members": 2,
+      "approach": "teamwork_simulation"
+    },
+    {
+      "success": true,
+      "time": 0.4043140411376953,
+      "teamwork_quality": 0.96,
+      "team_members": 2,
+      "approach": "teamwork_simulation"
+    },
+    {
+      "success": true,
+      "time": 0.4021890163421631,
+      "teamwork_quality": 0.96,
+      "team_members": 2,
+      "approach": "teamwork_simulation"
+    }
+  ],
+  "comparison": {
+    "total_tasks": 3,
+    "single_qwen_success_rate": 0.3333333333333333,
+    "teamwork_success_rate": 1.0,
+    "single_avg_time": 13.096562385559082,
+    "teamwork_avg_time": 1.3178009986877441,
+    "teamwork_advantage": 0.6666666666666666
+  }
+}

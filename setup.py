@@ -14,7 +14,7 @@ long_description = readme_file.read_text() if readme_file.exists() else ""
 version = "2.0.0"
 
 setup(
-    name="claudette-dev",
+    name="claudette",
     version=version,
     description="Claudette AI Tools Development Repository",
     long_description=long_description,
