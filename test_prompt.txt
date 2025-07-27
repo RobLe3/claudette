@@ -1,0 +1,1 @@
+Create a Python class called 'DatabaseConnector' that handles PostgreSQL connections with connection pooling, transaction management, and proper error handling. Include type hints and comprehensive logging.

@@ -1,0 +1,22 @@
+{
+  "default": [
+    {
+      "key": "objective",
+      "value": "init",
+      "namespace": "default",
+      "timestamp": 1753559565687
+    },
+    {
+      "key": "swarm_strategy",
+      "value": "SPARC",
+      "namespace": "default",
+      "timestamp": 1753559586517
+    },
+    {
+      "key": "execution_mode",
+      "value": "parallel",
+      "namespace": "default",
+      "timestamp": 1753559608729
+    }
+  ]
+}
