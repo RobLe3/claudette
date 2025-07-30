@@ -1,0 +1,18 @@
+{
+  "maxTurns": 100,
+  "defaultProjectName": "Claude Flow",
+  "features": {
+    "memory": true,
+    "mcp": true
+  },
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": [],
+    "PreCommit": [],
+    "Stop": []
+  },
+  "includeCoAuthoredBy": true,
+  "enabledMcpjsonServers": [
+    "claude-flow"
+  ]
+}
