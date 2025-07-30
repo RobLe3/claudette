@@ -62,7 +62,7 @@ Claudette is an intelligent AI middleware platform that provides **multi-backend
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/claudette.git
+git clone https://github.com/roblemumin/claudette.git
 cd claudette/src
 
 # Install dependencies
@@ -165,80 +165,6 @@ node test-qwen-integration.js
 
 ---
 
-## 🏗️ Architecture
-
-### Backend Router System
-
-```mermaid
-graph TD
-    A[Client Request] --> B[Backend Router]
-    B --> C{Health Check}
-    C -->|Healthy| D[Score Backends]
-    D --> E[Select Best Backend]
-    E --> F[Execute Request]
-    F --> G[Monitor Performance]
-    G --> H[Return Response]
-    C -->|Unhealthy| I[Circuit Breaker]
-    I --> J[Try Alternative Backend]
-```
-
-### Component Structure
-
-```
-src/
-├── backends/           # Backend implementations
-│   ├── base.ts        # Abstract backend class
-│   ├── openai.ts      # OpenAI integration
-│   ├── qwen.ts        # Qwen/CodeLLM integration
-│   └── claude.ts      # Claude integration (planned)
-├── cache/             # Intelligent caching system
-├── database/          # SQLite data persistence
-├── router/            # Smart routing logic
-├── types/             # TypeScript definitions
-├── cli/               # Command-line interface
-└── tests/             # Comprehensive test suites
-```
-
----
-
-## 📊 Advanced Configuration
-
-### Router Options
-
-```typescript
-const router = new BackendRouter({
-  cost_weight: 0.4,        // Prioritize cost optimization
-  latency_weight: 0.4,     // Balance response speed
-  availability_weight: 0.2, // Consider backend health
-  fallback_enabled: true   // Enable automatic fallbacks
-});
-```
-
-### Backend Configuration
-
-```typescript
-// OpenAI Backend
-const openaiBackend = new OpenAIBackend({
-  enabled: true,
-  priority: 1,
-  cost_per_token: 0.0001,
-  model: 'gpt-4o-mini',
-  api_key: process.env.OPENAI_API_KEY
-});
-
-// Qwen Backend  
-const qwenBackend = new QwenBackend({
-  enabled: true,
-  priority: 1,
-  cost_per_token: 0.0001,
-  base_url: 'https://tools.flexcon-ai.de',
-  model: 'Qwen/Qwen2.5-Coder-7B-Instruct-AWQ',
-  api_key: process.env.CODELLM_API_KEY
-});
-```
-
----
-
 ## 📈 Performance Monitoring
 
 ### Real-Time Metrics
@@ -299,102 +225,6 @@ node test-cli-experience.js
 
 ---
 
-## 🛠️ Development
-
-### Adding New Backends
-
-1. **Create Backend Class**: Extend `BaseBackend` in `src/backends/`
-2. **Implement Required Methods**: `send()`, `isAvailable()`, `getAvailableModels()`
-3. **Add to Router**: Register with `BackendRouter`
-4. **Add Tests**: Create capability tests for the new backend
-
-### Example Backend Implementation
-
-```typescript
-export class CustomBackend extends BaseBackend {
-  constructor(config: BackendSettings) {
-    super('custom', config);
-  }
-
-  async send(request: ClaudetteRequest): Promise<ClaudetteResponse> {
-    // Implementation here
-  }
-
-  protected async healthCheck(): Promise<boolean> {
-    // Health check logic
-  }
-
-  getAvailableModels(): string[] {
-    // Return available models
-  }
-}
-```
-
----
-
-## 🔐 Security
-
-### API Key Management
-- **Secure Storage**: macOS Keychain integration for API keys
-- **Environment Variables**: Support for `.env` configuration
-- **No Logging**: API keys never logged or exposed in output
-
-### Error Handling
-- **Sanitized Errors**: No sensitive information in error messages
-- **Rate Limiting**: Automatic handling of API rate limits
-- **Timeout Protection**: Configurable request timeouts
-
----
-
-## 📚 API Reference
-
-### Core Classes
-
-#### `BackendRouter`
-Main routing class for managing multiple backends.
-
-```typescript
-class BackendRouter {
-  registerBackend(backend: Backend): void
-  routeRequest(request: ClaudetteRequest): Promise<ClaudetteResponse>
-  selectBackend(request: ClaudetteRequest): Promise<Backend>
-  healthCheckAll(): Promise<{name: string, healthy: boolean}[]>
-}
-```
-
-#### `ClaudetteRequest`
-Standard request format across all backends.
-
-```typescript
-interface ClaudetteRequest {
-  prompt: string;
-  files?: string[];
-  backend?: string;
-  options?: {
-    max_tokens?: number;
-    temperature?: number;
-    model?: string;
-  };
-}
-```
-
-#### `ClaudetteResponse`
-Standardized response with metadata.
-
-```typescript
-interface ClaudetteResponse {
-  content: string;
-  backend_used: string;
-  tokens_input: number;
-  tokens_output: number;
-  cost_eur: number;
-  latency_ms: number;
-  cache_hit: boolean;
-}
-```
-
----
-
 ## 🎯 Use Cases
 
 ### 🏢 **Enterprise Applications**
@@ -444,7 +274,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ```bash
 # Clone and setup
-git clone https://github.com/username/claudette.git
+git clone https://github.com/roblemumin/claudette.git
 cd claudette/src
 npm install
 

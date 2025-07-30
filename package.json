@@ -1,0 +1,34 @@
+{
+  "name": "claudette",
+  "version": "1.0.0",
+  "description": "High-performance Claude Code middleware and AI backend manager",
+  "main": "claudette",
+  "bin": {
+    "claudette": "./claudette"
+  },
+  "scripts": {
+    "start": "./claudette",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "claude",
+    "middleware",
+    "ai",
+    "claude-code",
+    "task-interception",
+    "cost-optimization"
+  ],
+  "author": "Claudette Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/claudette"
+  },
+  "bugs": {
+    "url": "https://github.com/user/claudette/issues"
+  },
+  "homepage": "https://github.com/user/claudette#readme"
+}
