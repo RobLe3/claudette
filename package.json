@@ -1,6 +1,6 @@
 {
   "name": "claudette",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "High-performance Claude Code middleware and AI backend manager",
   "main": "claudette",
   "bin": {
@@ -8,7 +8,14 @@
   },
   "scripts": {
     "start": "./claudette",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "npm run build && node src/test/claudette-unit-tests.js",
+    "test:kpi": "node src/test/kpi-framework.js",
+    "test:quality": "node src/test/qwen-code-quality.js",
+    "test:direct": "node src/test/qwen-direct.js",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "validate": "tsc --noEmit"
   },
   "keywords": [
     "claude",

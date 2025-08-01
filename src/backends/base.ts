@@ -3,6 +3,7 @@
 import { 
   Backend, 
   BackendSettings, 
+  BackendInfo,
   ClaudetteRequest, 
   ClaudetteResponse, 
   BackendError 
@@ -97,25 +98,19 @@ export abstract class BaseBackend implements Backend {
   /**
    * Get backend-specific information
    */
-  getInfo(): {
-    name: string;
-    enabled: boolean;
-    priority: number;
-    costPerToken: number;
-    avgLatency?: number;
-    healthy: boolean;
-  } {
+  getInfo(): BackendInfo {
     const avgLatency = this.recentLatencies.length > 0
       ? this.recentLatencies.reduce((a, b) => a + b) / this.recentLatencies.length
       : undefined;
 
     return {
       name: this.name,
-      enabled: this.config.enabled,
+      type: (this.config.backend_type === 'self_hosted') ? 'self_hosted' : 'cloud',
+      model: this.config.model || 'unknown',
       priority: this.config.priority,
-      costPerToken: this.config.cost_per_token,
-      avgLatency,
-      healthy: this.isHealthy
+      cost_per_token: this.config.cost_per_token,
+      healthy: this.isHealthy,
+      avg_latency: avgLatency
     };
   }
 

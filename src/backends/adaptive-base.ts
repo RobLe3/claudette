@@ -4,6 +4,7 @@
 import { 
   Backend, 
   BackendSettings, 
+  BackendInfo,
   ClaudetteRequest, 
   ClaudetteResponse, 
   BackendError 
@@ -30,7 +31,7 @@ export interface AdaptiveBackendSettings extends BackendSettings {
   success_rate_threshold?: number;      // Minimum success rate to maintain (default: 0.7)
   
   // Backend type
-  backend_type?: 'cloud' | 'self_hosted' | 'hybrid'; // Backend classification
+  backend_type?: 'cloud' | 'self_hosted'; // Backend classification
 }
 
 export interface HealthCheckResult {
@@ -58,14 +59,14 @@ export abstract class AdaptiveBaseBackend implements Backend {
   protected asyncContributions: Map<string, AsyncContribution> = new Map();
   
   // Health tracking
-  private lastHealthCheck: number = 0;
-  private isHealthy: boolean = true;
-  private consecutiveFailures: number = 0;
+  protected lastHealthCheck: number = 0;
+  protected isHealthy: boolean = true;
+  protected consecutiveFailures: number = 0;
   
   // Adaptive timeout tracking
-  private currentTimeoutMs: number;
-  private successfulRequests: number = 0;
-  private totalRequests: number = 0;
+  protected currentTimeoutMs: number;
+  protected successfulRequests: number = 0;
+  protected totalRequests: number = 0;
 
   constructor(name: string, config: AdaptiveBackendSettings) {
     this.name = name;
@@ -338,50 +339,6 @@ export abstract class AdaptiveBaseBackend implements Backend {
     }
   }
 
-  /**
-   * Get enhanced backend information
-   */
-  getInfo(): {
-    name: string;
-    enabled: boolean;
-    priority: number;
-    costPerToken: number;
-    backendType: string;
-    healthy: boolean;
-    avgLatency?: number;
-    currentTimeout: number;
-    successRate: number;
-    consecutiveFailures: number;
-    asyncContributions: number;
-    adaptiveFeatures: {
-      timeoutAdaptation: boolean;
-      asyncContribution: boolean;
-      healthMonitoring: boolean;
-    };
-  } {
-    const avgLatency = this.recentLatencies.length > 0
-      ? this.recentLatencies.reduce((a, b) => a + b) / this.recentLatencies.length
-      : undefined;
-
-    return {
-      name: this.name,
-      enabled: this.config.enabled,
-      priority: this.config.priority,
-      costPerToken: this.config.cost_per_token,
-      backendType: this.config.backend_type || 'unknown',
-      healthy: this.isHealthy,
-      avgLatency,
-      currentTimeout: this.currentTimeoutMs,
-      successRate: this.getSuccessRate(),
-      consecutiveFailures: this.consecutiveFailures,
-      asyncContributions: this.asyncContributions.size,
-      adaptiveFeatures: {
-        timeoutAdaptation: this.config.latency_adaptation_enabled || false,
-        asyncContribution: this.config.async_contribution_enabled || false,
-        healthMonitoring: true
-      }
-    };
-  }
 
   /**
    * Get pending async contributions
@@ -409,6 +366,24 @@ export abstract class AdaptiveBaseBackend implements Backend {
   // Utility methods
   estimateCost(tokens: number): number {
     return (tokens / 1000) * this.config.cost_per_token;
+  }
+
+  getInfo(): BackendInfo {
+    const avgLatency = this.recentLatencies.length > 0
+      ? this.recentLatencies.reduce((a, b) => a + b) / this.recentLatencies.length
+      : undefined;
+
+    return {
+      name: this.name,
+      type: (this.config.backend_type === 'self_hosted') ? 'self_hosted' : 'cloud',
+      model: this.config.model || 'unknown',
+      priority: this.config.priority,
+      cost_per_token: this.config.cost_per_token,
+      healthy: this.isHealthy,
+      avg_latency: avgLatency,
+      current_timeout: this.currentTimeoutMs,
+      success_rate: this.totalRequests > 0 ? this.successfulRequests / this.totalRequests : 0
+    };
   }
 
   async getLatencyScore(): Promise<number> {

@@ -24,6 +24,7 @@ export interface BackendSettings {
   model?: string;
   max_tokens?: number;
   temperature?: number;
+  backend_type?: 'cloud' | 'self_hosted';
 }
 
 export interface FeatureConfig {
@@ -122,6 +123,20 @@ export interface Backend {
   getLatencyScore(): Promise<number>;
   send(request: ClaudetteRequest): Promise<ClaudetteResponse>;
   validateConfig(): boolean;
+  getInfo(): BackendInfo;
+}
+
+// Backend info interface
+export interface BackendInfo {
+  name: string;
+  type: 'cloud' | 'self_hosted';
+  model: string;
+  priority: number;
+  cost_per_token: number;
+  healthy: boolean;
+  avg_latency?: number;
+  current_timeout?: number;
+  success_rate?: number;
 }
 
 // Hook system types

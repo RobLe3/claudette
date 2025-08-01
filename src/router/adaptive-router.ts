@@ -1,7 +1,7 @@
 // Adaptive Router with Pipeline Contribution Support
 // Enhanced routing for self-hosted and cloud backends with async processing
 
-import { Router, BackendRouter } from './base-router';
+import { BaseRouter } from './base-router';
 import { Backend, ClaudetteRequest, ClaudetteResponse, BackendError } from '../types/index';
 import { AdaptiveBaseBackend, AsyncContribution } from '../backends/adaptive-base';
 
@@ -31,8 +31,7 @@ export interface AdaptiveRoutingStrategy {
   boost_self_hosted_success: boolean;
 }
 
-export class AdaptiveRouter implements Router {
-  private backends: Map<string, Backend> = new Map();
+export class AdaptiveRouter extends BaseRouter {
   private strategy: AdaptiveRoutingStrategy;
   private backendScores: Map<string, number> = new Map();
   private requestHistory: Array<{
@@ -43,6 +42,8 @@ export class AdaptiveRouter implements Router {
   }> = [];
 
   constructor(strategy: Partial<AdaptiveRoutingStrategy> = {}) {
+    super(); // Call BaseRouter constructor
+    
     this.strategy = {
       primary_selection: 'hybrid',
       enable_async_contributions: true,
@@ -60,8 +61,8 @@ export class AdaptiveRouter implements Router {
   /**
    * Register backend with adaptive scoring
    */
-  registerBackend(backend: Backend): void {
-    this.backends.set(backend.name, backend);
+  registerBackend(name: string, backend: Backend): void {
+    this.backends.set(name, backend);
     
     // Initialize score based on backend type
     const info = backend.getInfo();
@@ -73,14 +74,37 @@ export class AdaptiveRouter implements Router {
       initialScore *= 1.2;
     }
     
-    this.backendScores.set(backend.name, initialScore);
-    console.log(`📝 Registered ${backend.name} with initial score: ${initialScore.toFixed(2)}`);
+    this.backendScores.set(name, initialScore);
+    console.log(`📝 Registered ${name} with initial score: ${initialScore.toFixed(2)}`);
+  }
+
+  /**
+   * Select the best backend for a request
+   */
+  async selectBackend(request: ClaudetteRequest): Promise<string> {
+    const availableBackends = Array.from(this.backends.keys()).filter(name => {
+      const backend = this.backends.get(name);
+      return backend && this.backendScores.get(name)! > 0;
+    });
+
+    if (availableBackends.length === 0) {
+      throw new Error('No available backends');
+    }
+
+    // Simple selection based on scores for now
+    const scores = availableBackends.map(name => ({
+      name,
+      score: this.backendScores.get(name)!
+    }));
+
+    scores.sort((a, b) => b.score - a.score);
+    return scores[0].name;
   }
 
   /**
    * Enhanced route with pipeline contribution support
    */
-  async route(request: ClaudetteRequest): Promise<ClaudetteResponse | PipelineResult> {
+  async route(request: ClaudetteRequest): Promise<ClaudetteResponse> {
     const startTime = Date.now();
     
     try {
@@ -146,7 +170,7 @@ export class AdaptiveRouter implements Router {
         }
       }
 
-      return pipelineResult;
+      return primaryResponse;
 
     } catch (error) {
       console.error('❌ Adaptive routing failed:', error);
@@ -196,7 +220,7 @@ export class AdaptiveRouter implements Router {
 
     for (const backend of backends) {
       const info = backend.getInfo();
-      const avgLatency = info.avgLatency || Infinity;
+      const avgLatency = info.avg_latency || Infinity;
       
       if (avgLatency < lowestLatency) {
         lowestLatency = avgLatency;
@@ -212,8 +236,8 @@ export class AdaptiveRouter implements Router {
    */
   private selectCheapestBackend(backends: Backend[]): Backend {
     return backends.reduce((cheapest, current) => {
-      const cheapestCost = cheapest.getInfo().costPerToken;
-      const currentCost = current.getInfo().costPerToken;
+      const cheapestCost = cheapest.getInfo().cost_per_token;
+      const currentCost = current.getInfo().cost_per_token;
       return currentCost < cheapestCost ? current : cheapest;
     });
   }
@@ -256,13 +280,13 @@ export class AdaptiveRouter implements Router {
       let compositeScore = adaptiveScore;
       
       // Factor in latency (penalize slow backends if enabled)
-      if (this.strategy.penalize_slow_backends && info.avgLatency) {
-        const latencyPenalty = Math.min(info.avgLatency / 10000, 0.5); // Max 50% penalty
+      if (this.strategy.penalize_slow_backends && info.avg_latency) {
+        const latencyPenalty = Math.min(info.avg_latency / 10000, 0.5); // Max 50% penalty
         compositeScore *= (1 - latencyPenalty);
       }
       
       // Factor in cost (prefer cheaper backends slightly)
-      const costBonus = Math.max(0, (0.001 - info.costPerToken) / 0.001 * 0.1);
+      const costBonus = Math.max(0, (0.001 - info.cost_per_token) / 0.001 * 0.1);
       compositeScore += costBonus;
       
       // Boost healthy backends
@@ -529,9 +553,6 @@ export class AdaptiveRouter implements Router {
   }
 
   // Implement remaining Router interface methods
-  getBackends(): Backend[] {
-    return Array.from(this.backends.values());
-  }
 
   getBackendByName(name: string): Backend | undefined {
     return this.backends.get(name);

@@ -154,7 +154,8 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
       console.error(`❌ Qwen request failed after ${latency}ms:`, error);
       
       // Handle specific timeout scenarios
-      if (error.message.includes('timeout') || error.code === 'ETIMEDOUT') {
+      const errorObj = error as Error;
+      if (errorObj.message?.includes('timeout') || (error as any).code === 'ETIMEDOUT') {
         console.log(`⏱️ Qwen timeout after ${this.currentTimeoutMs}ms - adapting for next request`);
       }
       
