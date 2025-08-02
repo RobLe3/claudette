@@ -12,6 +12,26 @@ export interface QwenBackendSettings extends AdaptiveBackendSettings {
   custom_headers?: Record<string, string>;
 }
 
+export interface QwenResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+    finish_reason?: string;
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+  };
+  model?: string;
+}
+
+export interface QwenModelsResponse {
+  data?: Array<{
+    id: string;
+  }>;
+}
+
 export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
   private readonly baseURL: string;
   private readonly apiKey: string;
@@ -49,6 +69,9 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
    */
   async healthCheck(): Promise<boolean> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.health_check_timeout_ms);
+      
       const response = await fetch(`${this.baseURL}/v1/models`, {
         method: 'GET',
         headers: {
@@ -56,16 +79,18 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
           'Content-Type': 'application/json',
           ...this.customHeaders
         },
-        timeout: this.config.health_check_timeout_ms
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         console.warn(`Qwen health check failed: ${response.status} ${response.statusText}`);
         return false;
       }
 
-      const data = await response.json();
-      const hasModel = data.data?.some((model: any) => model.id === this.defaultModel);
+      const data = await response.json() as QwenModelsResponse;
+      const hasModel = data.data?.some((model) => model.id === this.defaultModel);
       
       if (!hasModel) {
         console.warn(`Qwen model ${this.defaultModel} not available`);
@@ -104,6 +129,9 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
       console.log(`🤖 Qwen request with ${this.currentTimeoutMs}ms timeout...`);
       
       // Make request with current adaptive timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.currentTimeoutMs);
+      
       const response = await fetch(`${this.baseURL}/v1/chat/completions`, {
         method: 'POST',
         headers: {
@@ -112,8 +140,10 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
           ...this.customHeaders
         },
         body: JSON.stringify(qwenRequest),
-        timeout: this.currentTimeoutMs
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       const endTime = Date.now();
       const latency = endTime - startTime;
@@ -123,7 +153,7 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
         throw new Error(`Qwen API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as QwenResponse;
       
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         throw new Error('Invalid response format from Qwen API');
