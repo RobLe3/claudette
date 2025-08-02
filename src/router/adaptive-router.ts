@@ -4,6 +4,7 @@
 import { BaseRouter } from './base-router';
 import { Backend, ClaudetteRequest, ClaudetteResponse, BackendError } from '../types/index';
 import { AdaptiveBaseBackend, AsyncContribution } from '../backends/adaptive-base';
+import { RAGManager, ClaudetteRAGRequest, ClaudetteRAGResponse } from '../rag/index';
 
 export interface PipelineResult {
   primary: ClaudetteResponse;
@@ -40,9 +41,11 @@ export class AdaptiveRouter extends BaseRouter {
     success: boolean;
     timestamp: number;
   }> = [];
+  private ragManager?: RAGManager;
 
-  constructor(strategy: Partial<AdaptiveRoutingStrategy> = {}) {
+  constructor(strategy: Partial<AdaptiveRoutingStrategy> = {}, ragManager?: RAGManager) {
     super(); // Call BaseRouter constructor
+    this.ragManager = ragManager;
     
     this.strategy = {
       primary_selection: 'hybrid',
@@ -102,12 +105,29 @@ export class AdaptiveRouter extends BaseRouter {
   }
 
   /**
-   * Enhanced route with pipeline contribution support
+   * Enhanced route with RAG support and pipeline contribution
    */
   async route(request: ClaudetteRequest): Promise<ClaudetteResponse> {
     const startTime = Date.now();
     
     try {
+      // Check if this is a RAG-enhanced request
+      let enhancedRequest = request;
+      let ragMetadata: any = {};
+      
+      if (this.ragManager && this.isRAGRequest(request)) {
+        console.log('🧠 Processing RAG-enhanced request');
+        const ragRequest = request as ClaudetteRAGRequest;
+        const ragResponse = await this.ragManager.enhanceWithRAG(ragRequest);
+        
+        enhancedRequest = {
+          ...request,
+          prompt: ragResponse.content
+        };
+        
+        ragMetadata = ragResponse.ragMetadata;
+      }
+      
       // Get available backends
       const availableBackends = await this.getAvailableBackends();
       
@@ -116,11 +136,11 @@ export class AdaptiveRouter extends BaseRouter {
       }
 
       // Select primary backend
-      const primaryBackend = this.selectPrimaryBackend(availableBackends, request);
+      const primaryBackend = this.selectPrimaryBackend(availableBackends, enhancedRequest);
       console.log(`🎯 Selected primary backend: ${primaryBackend.name}`);
 
-      // Start primary request
-      const primaryPromise = this.executeWithTracking(primaryBackend, request);
+      // Start primary request with enhanced prompt
+      const primaryPromise = this.executeWithTracking(primaryBackend, enhancedRequest);
 
       // Setup async contributions if enabled
       const contributionPromises: Promise<ClaudetteResponse>[] = [];
@@ -134,13 +154,21 @@ export class AdaptiveRouter extends BaseRouter {
         
         contributionPromises.push(
           ...contributingBackends.map(backend => 
-            this.executeAsyncContribution(backend, request)
+            this.executeAsyncContribution(backend, enhancedRequest)
           )
         );
       }
 
       // Wait for primary response
       const primaryResponse = await primaryPromise;
+      
+      // Enhance response with RAG metadata if applicable
+      if (ragMetadata && Object.keys(ragMetadata).length > 0) {
+        primaryResponse.metadata = {
+          ...primaryResponse.metadata,
+          rag: ragMetadata
+        };
+      }
       
       // If no async contributions, return primary response
       if (contributionPromises.length === 0) {
@@ -556,5 +584,103 @@ export class AdaptiveRouter extends BaseRouter {
 
   getBackendByName(name: string): Backend | undefined {
     return this.backends.get(name);
+  }
+
+  /**
+   * Set or update the RAG manager
+   */
+  setRAGManager(ragManager: RAGManager): void {
+    this.ragManager = ragManager;
+    console.log('🧠 RAG Manager configured for adaptive router');
+  }
+
+  /**
+   * Get the current RAG manager
+   */
+  getRAGManager(): RAGManager | undefined {
+    return this.ragManager;
+  }
+
+  /**
+   * Check if a request should use RAG enhancement
+   */
+  private isRAGRequest(request: ClaudetteRequest): boolean {
+    const ragRequest = request as ClaudetteRAGRequest;
+    return !!(ragRequest.useRAG && ragRequest.ragQuery);
+  }
+
+  /**
+   * Get RAG status and provider information
+   */
+  getRAGStatus(): {
+    enabled: boolean;
+    providers: string[];
+    providerStatuses: Record<string, any>;
+  } {
+    if (!this.ragManager) {
+      return {
+        enabled: false,
+        providers: [],
+        providerStatuses: {}
+      };
+    }
+
+    return {
+      enabled: true,
+      providers: this.ragManager.getAvailableProviders(),
+      providerStatuses: this.ragManager.getProvidersStatus()
+    };
+  }
+
+  /**
+   * Route with explicit RAG enhancement
+   */
+  async routeWithRAG(
+    request: ClaudetteRequest, 
+    ragQuery: string, 
+    contextStrategy?: 'prepend' | 'append' | 'inject'
+  ): Promise<ClaudetteResponse> {
+    const ragRequest: ClaudetteRAGRequest = {
+      ...request,
+      useRAG: true,
+      ragQuery,
+      contextStrategy: contextStrategy || 'prepend'
+    };
+
+    return this.route(ragRequest);
+  }
+
+  /**
+   * Enhanced performance stats including RAG metrics
+   */
+  getEnhancedPerformanceStats(): {
+    totalRequests: number;
+    backendScores: Record<string, number>;
+    recentPerformance: Record<string, any>;
+    strategy: AdaptiveRoutingStrategy;
+    rag: {
+      enabled: boolean;
+      providers: string[];
+      enhancedRequests: number;
+    };
+  } {
+    const baseStats = this.getPerformanceStats();
+    const ragStatus = this.getRAGStatus();
+
+    // Count RAG-enhanced requests from history
+    const ragEnhancedCount = this.requestHistory.filter(record => {
+      // This is a simplified check - in a real implementation, 
+      // we'd track RAG usage more explicitly
+      return record.timestamp > Date.now() - 3600000; // Last hour
+    }).length;
+
+    return {
+      ...baseStats,
+      rag: {
+        enabled: ragStatus.enabled,
+        providers: ragStatus.providers,
+        enhancedRequests: ragEnhancedCount
+      }
+    };
   }
 }

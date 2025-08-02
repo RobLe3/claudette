@@ -1,7 +1,7 @@
 {
   "name": "claudette",
-  "version": "2.1.0",
-  "description": "High-performance Claude Code middleware and AI backend manager",
+  "version": "2.1.5",
+  "description": "High-performance Claude Code middleware with RAG integration and AI backend manager",
   "main": "claudette",
   "bin": {
     "claudette": "./claudette"
@@ -10,6 +10,8 @@
     "start": "./claudette",
     "build": "tsc",
     "test": "npm run build && node src/test/claudette-unit-tests.js",
+    "test:rag": "node src/test/rag-integration-tests.js",
+    "test:all": "npm run test && npm run test:rag",
     "test:kpi": "node src/test/kpi-framework.js",
     "test:quality": "node src/test/qwen-code-quality.js",
     "test:direct": "node src/test/qwen-direct.js",
@@ -23,7 +25,14 @@
     "ai",
     "claude-code",
     "task-interception",
-    "cost-optimization"
+    "cost-optimization",
+    "rag",
+    "graphrag",
+    "vector-db",
+    "lightrag",
+    "mcp",
+    "docker",
+    "retrieval-augmented-generation"
   ],
   "author": "Claudette Team",
   "license": "MIT",
