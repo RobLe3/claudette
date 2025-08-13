@@ -151,3 +151,7 @@ scripts/temp/
 # Backup directories
 aneos-project-backup-*/
 *.tar.bz2
+
+# Embedded repositories and test clones
+aneos-project/
+test-clone/
