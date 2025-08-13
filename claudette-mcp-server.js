@@ -191,7 +191,7 @@ class ClaudetteMCPServer {
   }
 
   async executeClaudetteQuery(prompt, backend, verbose) {
-    const projectRoot = '/Users/roble/Documents/Python/claude_flow';
+    const projectRoot = process.cwd();
     
     const args = [
       'npx', 'ts-node', 'src/cli/index.ts',
@@ -256,7 +256,7 @@ class ClaudetteMCPServer {
   }
 
   async getClaudetteStatus() {
-    const projectRoot = '/Users/roble/Documents/Python/claude_flow';
+    const projectRoot = process.cwd();
     
     return new Promise((resolve, reject) => {
       const child = spawn('npx', ['ts-node', 'src/cli/index.ts', 'status'], {

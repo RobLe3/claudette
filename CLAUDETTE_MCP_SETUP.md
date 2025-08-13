@@ -36,7 +36,7 @@ If you prefer manual setup, add to your Claude Code configuration (usually `~/.c
   "mcpServers": {
     "claudette": {
       "command": "node",
-      "args": ["/Users/roble/Documents/Python/claude_flow/claudette-mcp-server.js"],
+      "args": ["./claudette-mcp-server.js"],
       "description": "Claudette AI system integration",
       "capabilities": ["tools", "resources"]
     }
@@ -98,7 +98,7 @@ Once configured, you can use these tools without manual confirmation:
 node --version
 
 # Test server manually
-node /Users/roble/Documents/Python/claude_flow/claudette-mcp-server.js
+node ./claudette-mcp-server.js
 ```
 
 ### API Key Issues
