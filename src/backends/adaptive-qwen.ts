@@ -41,11 +41,11 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
   constructor(config: QwenBackendSettings) {
     // Enhanced configuration for self-hosted Qwen
     const adaptiveConfig: AdaptiveBackendSettings = {
-      base_timeout_ms: 60000,        // 60s base timeout for self-hosted
-      max_timeout_ms: 300000,        // 5 minutes max timeout
-      timeout_multiplier: 2.0,       // More aggressive timeout scaling
+      base_timeout_ms: 30000,        // 30s base timeout - XO Claudette fix
+      max_timeout_ms: 120000,        // 2 minutes max timeout - reduced  
+      timeout_multiplier: 1.5,       // Less aggressive timeout scaling
       health_check_interval_ms: 45000, // Check health every 45s
-      health_check_timeout_ms: 15000,  // 15s health check timeout
+      health_check_timeout_ms: 10000,  // 10s health check timeout - optimized
       consecutive_failures_threshold: 2, // Lower threshold for self-hosted
       async_contribution_enabled: true,  // Enable async contribution
       contribution_timeout_ms: 600000,   // 10 minutes for async contribution

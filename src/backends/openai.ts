@@ -23,7 +23,8 @@ export class OpenAIBackend extends BaseBackend {
 
     this.client = new OpenAI({
       apiKey,
-      baseURL: config.base_url
+      baseURL: config.base_url,
+      timeout: 30000  // XO Claudette fix: 30 second timeout
     });
   }
 
