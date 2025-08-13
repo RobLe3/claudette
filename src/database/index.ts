@@ -289,9 +289,14 @@ export class DatabaseManager {
         WHERE expires_at > datetime('now')
       `).get() as { count: number };
       
-      const isHealthy = lastEntry?.timestamp 
-        ? new Date(lastEntry.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
-        : false;
+      // Database is healthy if it's accessible and tables exist
+      // We don't require recent entries for a fresh/clean system
+      const tablesExist = this.db.prepare(`
+        SELECT COUNT(*) as count FROM sqlite_master 
+        WHERE type='table' AND name IN ('quota_ledger', 'cache_entries')
+      `).get() as { count: number };
+      
+      const isHealthy = tablesExist.count >= 2;
       
       return {
         healthy: isHealthy,

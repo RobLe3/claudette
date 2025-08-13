@@ -18,7 +18,7 @@ const claudette = new Claudette();
 program
   .name('claudette')
   .description('Multi-backend AI CLI with intelligent caching and cost optimization')
-  .version('2.0.0');
+  .version('2.1.5');
 
 // Main command - analyze/process text
 program
@@ -247,8 +247,34 @@ program
   .description('Show current configuration')
   .action(async () => {
     try {
-      // TODO: Display current configuration
-      console.log(chalk.yellow('Configuration display not yet implemented'));
+      const config = claudette.getConfig();
+      
+      console.log('\n' + chalk.bold('Claudette Configuration'));
+      console.log('═'.repeat(50));
+      
+      // Backend configurations
+      console.log('\n' + chalk.bold('Backends'));
+      Object.entries(config.backends || {}).forEach(([name, backend]: [string, any]) => {
+        const status = backend.enabled ? '✅ Enabled' : '⚠️  Disabled';
+        console.log(`  ${name.charAt(0).toUpperCase() + name.slice(1)}: ${status} (Priority: ${backend.priority || 'N/A'})`);
+        if (backend.model) console.log(`    Model: ${backend.model}`);
+        if (backend.cost_per_token) console.log(`    Cost: €${backend.cost_per_token}/token`);
+      });
+      
+      // Feature settings
+      console.log('\n' + chalk.bold('Features'));
+      Object.entries(config.features || {}).forEach(([feature, enabled]) => {
+        const status = enabled ? '✅' : '❌';
+        const displayName = feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        console.log(`  ${status} ${displayName}`);
+      });
+      
+      // Threshold settings
+      console.log('\n' + chalk.bold('Thresholds'));
+      Object.entries(config.thresholds || {}).forEach(([key, value]) => {
+        const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        console.log(`  ${displayName}: ${value}`);
+      });
     } catch (error: any) {
       console.error(chalk.red(`Error: ${error.message}`));
       process.exit(1);
