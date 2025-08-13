@@ -148,3 +148,6 @@ __pycache__/
 # Development artifacts
 experiments/temp/
 scripts/temp/
+# Backup directories
+aneos-project-backup-*/
+*.tar.bz2
