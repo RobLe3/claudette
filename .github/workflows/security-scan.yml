@@ -1,0 +1,255 @@
+name: 🔐 Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security scans daily at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  dependency-scan:
+    name: 🔍 Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🔍 npm audit
+      run: |
+        echo "Running npm audit..."
+        npm audit --audit-level=moderate || {
+          echo "❌ npm audit found vulnerabilities"
+          npm audit --audit-level=moderate --json > npm-audit-results.json
+          exit 1
+        }
+
+    - name: 📤 Upload audit results
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: npm-audit-results
+        path: npm-audit-results.json
+        retention-days: 30
+
+  code-scan:
+    name: 🧐 Code Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🏗️ Build project
+      run: npm run build
+
+    - name: 🔍 CodeQL Analysis
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript
+        queries: security-extended
+
+    - name: 🔍 Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:javascript"
+
+  secret-scan:
+    name: 🔑 Secret Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for secret detection
+
+    - name: 🔍 Run TruffleHog OSS
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+
+  container-scan:
+    name: 🐳 Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'  # Skip container scan on schedule
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📦 Build package
+      run: |
+        npm ci
+        npm run build
+        npm pack
+
+    - name: 🐳 Build test container
+      run: |
+        cat > Dockerfile.test << EOF
+        FROM node:18-alpine
+        WORKDIR /app
+        COPY claudette-*.tgz ./
+        RUN npm install -g claudette-*.tgz
+        USER 1000
+        ENTRYPOINT ["claudette"]
+        EOF
+        docker build -t claudette:test -f Dockerfile.test .
+
+    - name: 🔍 Run Trivy container scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'claudette:test'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: 📤 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  license-scan:
+    name: 📄 License Compliance Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 📄 Install license checker
+      run: npm install -g license-checker
+
+    - name: 🔍 Check licenses
+      run: |
+        echo "Checking dependency licenses..."
+        license-checker --summary --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;Unlicense' || {
+          echo "❌ License compliance check failed"
+          echo "Generating detailed license report..."
+          license-checker --json > license-report.json
+          exit 1
+        }
+
+    - name: 📤 Upload license report
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-report
+        path: license-report.json
+        retention-days: 30
+
+  security-report:
+    name: 📊 Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, code-scan, secret-scan, license-scan]
+    if: always()
+    
+    steps:
+    - name: 📥 Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./security-artifacts
+
+    - name: 📊 Generate security report
+      run: |
+        cat > security-report.md << 'EOF'
+        # 🔐 Security Scan Report
+        
+        **Timestamp**: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)
+        **Commit**: ${{ github.sha }}
+        **Branch**: ${{ github.ref_name }}
+        
+        ## 📋 Scan Results
+        
+        | Check | Status | Details |
+        |-------|--------|---------|
+        | Dependency Vulnerabilities | ${{ needs.dependency-scan.result }} | npm audit scan |
+        | Code Security Analysis | ${{ needs.code-scan.result }} | CodeQL static analysis |
+        | Secret Detection | ${{ needs.secret-scan.result }} | TruffleHog secret scan |
+        | License Compliance | ${{ needs.license-scan.result }} | Dependency license check |
+        
+        ## 🎯 Summary
+        
+        - **Overall Status**: $([ "${{ needs.dependency-scan.result }}" = "success" ] && [ "${{ needs.code-scan.result }}" = "success" ] && [ "${{ needs.secret-scan.result }}" = "success" ] && [ "${{ needs.license-scan.result }}" = "success" ] && echo "✅ PASSED" || echo "❌ FAILED")
+        - **Critical Issues**: $(find security-artifacts -name "*.json" 2>/dev/null | wc -l || echo "0") artifacts generated
+        - **Recommendation**: $([ "${{ needs.dependency-scan.result }}" = "success" ] && [ "${{ needs.code-scan.result }}" = "success" ] && [ "${{ needs.secret-scan.result }}" = "success" ] && [ "${{ needs.license-scan.result }}" = "success" ] && echo "✅ Safe to deploy" || echo "⚠️ Review security issues before deployment")
+        
+        ## 📁 Artifacts
+        
+        Security scan artifacts are available in the Actions run:
+        $(find security-artifacts -name "*.json" -o -name "*.sarif" 2>/dev/null | sed 's|security-artifacts/||' | sed 's/^/- /' || echo "- No artifacts generated")
+        
+        ---
+        
+        Generated by Claudette Security Pipeline
+        EOF
+        
+        echo "Security report generated:"
+        cat security-report.md
+
+    - name: 📤 Upload security report
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-report
+        path: security-report.md
+        retention-days: 90
+
+    - name: ✅ Security scan completion
+      run: |
+        if [ "${{ needs.dependency-scan.result }}" = "success" ] && [ "${{ needs.code-scan.result }}" = "success" ] && [ "${{ needs.secret-scan.result }}" = "success" ] && [ "${{ needs.license-scan.result }}" = "success" ]; then
+          echo "🎉 All security scans passed successfully!"
+          echo "✅ Repository is secure and ready for deployment"
+        else
+          echo "⚠️ Some security scans failed - review before deployment"
+          echo "Failed scans:"
+          [ "${{ needs.dependency-scan.result }}" != "success" ] && echo "  - Dependency scan: ${{ needs.dependency-scan.result }}"
+          [ "${{ needs.code-scan.result }}" != "success" ] && echo "  - Code scan: ${{ needs.code-scan.result }}"
+          [ "${{ needs.secret-scan.result }}" != "success" ] && echo "  - Secret scan: ${{ needs.secret-scan.result }}"
+          [ "${{ needs.license-scan.result }}" != "success" ] && echo "  - License scan: ${{ needs.license-scan.result }}"
+          exit 1
+        fi

@@ -17,7 +17,13 @@
     "test:direct": "node src/test/qwen-direct.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "validate": "tsc --noEmit"
+    "validate": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build && npm run test",
+    "prepack": "npm run build",
+    "release": "scripts/emergency-release.sh",
+    "release:emergency": "scripts/emergency-release.sh --emergency",
+    "release:dry-run": "scripts/emergency-release.sh --dry-run",
+    "validate:artifacts": "scripts/validate-artifacts.sh"
   },
   "keywords": [
     "claude",
@@ -41,12 +47,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/user/claudette"
+    "url": "git+https://github.com/user/claudette.git"
   },
   "bugs": {
     "url": "https://github.com/user/claudette/issues"
   },
   "homepage": "https://github.com/user/claudette#readme",
+  "files": [
+    "dist/**/*",
+    "claudette",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.1.0"

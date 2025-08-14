@@ -27,6 +27,44 @@ Claudette is an intelligent AI middleware platform that provides **multi-backend
 
 ---
 
+## 🚀 Quick Installation
+
+### NPM (Recommended)
+```bash
+npm install -g claudette
+claudette --version
+```
+
+### GitHub Releases
+Download platform-specific packages from [Releases](https://github.com/user/claudette/releases):
+
+```bash
+# Linux/macOS
+wget https://github.com/user/claudette/releases/download/v2.1.5/claudette-2.1.5-linux-x64.tar.gz
+tar -xzf claudette-2.1.5-linux-x64.tar.gz
+cd claudette-2.1.5-linux-x64
+./install.sh
+```
+
+```batch
+# Windows
+# Download claudette-2.1.5-win32-x64.zip
+# Extract and run install.bat
+```
+
+### Verification
+```bash
+claudette --version  # Should output: 2.1.5
+claudette --help     # Display usage information
+```
+
+### Requirements
+- **Node.js**: 18.0.0 or higher
+- **npm**: Latest version recommended
+- **Operating System**: Linux, macOS, Windows
+
+---
+
 ## ✨ Features
 
 ### 🧠 **RAG (Retrieval-Augmented Generation) Integration**
