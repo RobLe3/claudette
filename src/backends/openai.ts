@@ -2,6 +2,7 @@
 
 import OpenAI from 'openai';
 import { BaseBackend } from './base';
+import { getCredentialManager } from '../credentials';
 import { 
   BackendSettings, 
   ClaudetteRequest, 
@@ -16,25 +17,64 @@ export class OpenAIBackend extends BaseBackend {
   constructor(config: BackendSettings) {
     super('openai', config);
     
-    const apiKey = config.api_key || process.env.OPENAI_API_KEY;
+    // Will be initialized in the first API call
+    this.client = null as any;
+  }
+
+  async validateConfig(): Promise<boolean> {
+    const apiKey = await this.getApiKey();
+    return await super.validateConfig() && !!apiKey;
+  }
+
+  /**
+   * Get API key from config, environment, or credential storage
+   */
+  private async getApiKey(): Promise<string | null> {
+    // Try config first
+    if (this.config.api_key) {
+      return this.config.api_key;
+    }
+
+    // Try environment variable
+    if (process.env.OPENAI_API_KEY) {
+      return process.env.OPENAI_API_KEY;
+    }
+
+    // Try credential storage
+    try {
+      const credentialManager = getCredentialManager();
+      const stored = await credentialManager.retrieve('openai-api-key');
+      return stored;
+    } catch (error) {
+      console.warn('Failed to retrieve OpenAI API key from credential storage:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Initialize OpenAI client with API key
+   */
+  private async initializeClient(): Promise<void> {
+    if (this.client) {
+      return; // Already initialized
+    }
+
+    const apiKey = await this.getApiKey();
     if (!apiKey) {
-      throw new BackendError('OpenAI API key not found', 'openai', false);
+      throw new BackendError('OpenAI API key not found in config, environment, or credential storage', 'openai', false);
     }
 
     this.client = new OpenAI({
       apiKey,
-      baseURL: config.base_url,
+      baseURL: this.config.base_url,
       timeout: 30000  // XO Claudette fix: 30 second timeout
     });
   }
 
-  validateConfig(): boolean {
-    const hasApiKey = !!(this.config.api_key || process.env.OPENAI_API_KEY);
-    return super.validateConfig() && hasApiKey;
-  }
-
   protected async healthCheck(): Promise<boolean> {
     try {
+      await this.initializeClient();
+      
       // Simple health check - try to list models
       await this.client.models.list();
       return true;
@@ -47,6 +87,8 @@ export class OpenAIBackend extends BaseBackend {
   }
 
   async send(request: ClaudetteRequest): Promise<ClaudetteResponse> {
+    await this.initializeClient();
+    
     const startTime = Date.now();
     
     try {
@@ -161,6 +203,8 @@ export class OpenAIBackend extends BaseBackend {
    * Support for streaming responses
    */
   async sendStream(request: ClaudetteRequest): Promise<AsyncIterable<string>> {
+    await this.initializeClient();
+    
     try {
       const { prompt, maxTokens, temperature, model } = this.prepareRequest(request);
       

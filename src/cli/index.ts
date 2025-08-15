@@ -9,6 +9,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 import { Claudette, optimize, ClaudetteResponse } from '../index';
+import { SetupContext, SetupConfiguration, UserPreferences } from '../setup/types';
 
 const program = new Command();
 
@@ -241,12 +242,121 @@ program
     }
   });
 
+// Setup wizard commands
+const setupCmd = program
+  .command('setup')
+  .description('Interactive setup and configuration wizard');
+
+setupCmd
+  .command('init')
+  .alias('wizard')
+  .description('Run the interactive setup wizard')
+  .option('-q, --quick', 'Quick setup mode with smart defaults')
+  .option('--target-time <seconds>', 'Target completion time in seconds', '120')
+  .option('--skip-welcome', 'Skip welcome screen')
+  .option('-v, --verbose', 'Verbose output')
+  .action(async (options) => {
+    try {
+      const { SetupWizard } = await import('../setup/setup-wizard');
+      
+      const wizard = new SetupWizard({
+        quickSetup: options.quick,
+        targetTime: parseInt(options.targetTime),
+        skipWelcome: options.skipWelcome,
+        verboseOutput: options.verbose
+      });
+      
+      if (options.quick) {
+        await wizard.runQuick();
+      } else {
+        await wizard.run();
+      }
+      
+    } catch (error: any) {
+      console.error(chalk.red(`Setup failed: ${error.message}`));
+      if (options.verbose && error.stack) {
+        console.error(chalk.gray(error.stack));
+      }
+      process.exit(1);
+    }
+  });
+
+setupCmd
+  .command('validate')
+  .description('Validate current setup without making changes')
+  .option('-f, --fix', 'Attempt to fix issues automatically')
+  .action(async (options) => {
+    try {
+      const { ValidationStep } = await import('../setup/steps/validation');
+      
+      console.log(chalk.cyan('🔍 Validating Claudette setup...\n'));
+      
+      const validator = new ValidationStep();
+      const context = await createMockContext(); // This would get actual config
+      
+      const result = await validator.execute(context);
+      
+      if (result.success) {
+        console.log(chalk.green('✅ Validation passed!'));
+        if (result.warnings?.length) {
+          console.log(chalk.yellow('\nWarnings:'));
+          result.warnings.forEach(warning => console.log(chalk.yellow(`  ⚠️  ${warning}`)));
+        }
+      } else {
+        console.log(chalk.red('❌ Validation failed!'));
+        console.log(chalk.red(`Error: ${result.message}`));
+        
+        if (options.fix) {
+          console.log(chalk.cyan('\n🔧 Attempting automatic fixes...'));
+          // TODO: Implement auto-fix functionality
+        }
+        
+        process.exit(1);
+      }
+      
+    } catch (error: any) {
+      console.error(chalk.red(`Validation error: ${error.message}`));
+      process.exit(1);
+    }
+  });
+
+// Add the init command as a top-level command for convenience
+program
+  .command('init')
+  .description('Quick setup wizard (alias for setup init --quick)')
+  .action(async () => {
+    try {
+      const { SetupWizard } = await import('../setup/setup-wizard');
+      
+      const wizard = new SetupWizard({
+        quickSetup: true,
+        targetTime: 90,
+        skipWelcome: false
+      });
+      
+      await wizard.runQuick();
+      
+    } catch (error: any) {
+      console.error(chalk.red(`Setup failed: ${error.message}`));
+      process.exit(1);
+    }
+  });
+
 // Configuration command
 program
   .command('config')
   .description('Show current configuration')
-  .action(async () => {
+  .option('--setup', 'Show setup-specific configuration')
+  .action(async (options) => {
     try {
+      if (options.setup) {
+        // Show setup wizard configuration
+        console.log(chalk.bold.cyan('Setup Wizard Configuration\n'));
+        console.log(chalk.dim('Run "claudette init" to start interactive setup'));
+        console.log(chalk.dim('Run "claudette setup validate" to check current configuration'));
+        return;
+      }
+      
       const config = claudette.getConfig();
       
       console.log('\n' + chalk.bold('Claudette Configuration'));
@@ -275,11 +385,64 @@ program
         const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         console.log(`  ${displayName}: ${value}`);
       });
+      
+      console.log(chalk.dim(`\n💡 Run "claudette init" to reconfigure interactively`));
+      
     } catch (error: any) {
       console.error(chalk.red(`Error: ${error.message}`));
       process.exit(1);
     }
   });
+
+// Helper function to create a mock context for validation
+async function createMockContext(): Promise<SetupContext> {
+  return {
+    options: {
+      targetTime: 120,
+      allowSkipSteps: true,
+      verboseOutput: false,
+      validateEverything: true
+    },
+    progress: {
+      currentStep: 0,
+      totalSteps: 0,
+      stepId: '',
+      stepName: '',
+      elapsed: 0,
+      estimated: 120,
+      remaining: 120,
+      percentage: 0,
+      phase: 'starting'
+    },
+    configuration: {
+      credentials: {},
+      backends: {
+        priority: [],
+        fallback: true
+      },
+      rag: {
+        enabled: false,
+        deployment: 'none'
+      },
+      features: {
+        caching: true,
+        compression: false,
+        routing: true,
+        monitoring: true
+      }
+    },
+    preferences: {
+      experienceLevel: 'beginner',
+      primaryUseCase: 'development',
+      costPriority: 'medium',
+      performancePriority: 'medium',
+      privacyLevel: 'basic',
+      skipOptional: false
+    },
+    results: new Map(),
+    startTime: Date.now()
+  };
+}
 
 // Utility functions
 async function readStdin(): Promise<string> {

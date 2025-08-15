@@ -33,7 +33,7 @@ export abstract class BaseBackend implements Backend {
     }
 
     try {
-      this.isHealthy = this.config.enabled && this.validateConfig() && await this.healthCheck();
+      this.isHealthy = this.config.enabled && await this.validateConfig() && await this.healthCheck();
       this.lastHealthCheck = now;
       return this.isHealthy;
     } catch (error) {
@@ -77,7 +77,7 @@ export abstract class BaseBackend implements Backend {
   /**
    * Validate backend configuration
    */
-  validateConfig(): boolean {
+  async validateConfig(): Promise<boolean> {
     return this.config.enabled && 
            this.config.cost_per_token >= 0 &&
            this.config.priority > 0;

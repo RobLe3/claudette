@@ -2,6 +2,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { BaseBackend } from './base';
+import { getCredentialManager } from '../credentials';
 import { 
   BackendSettings, 
   ClaudetteRequest, 
@@ -16,24 +17,64 @@ export class ClaudeBackend extends BaseBackend {
   constructor(config: BackendSettings) {
     super('claude', config);
     
-    const apiKey = config.api_key || process.env.ANTHROPIC_API_KEY;
+    // Will be initialized in the first API call
+    this.client = null as any;
+  }
+
+  async validateConfig(): Promise<boolean> {
+    const apiKey = await this.getApiKey();
+    return await super.validateConfig() && !!apiKey;
+  }
+
+  /**
+   * Get API key from config, environment, or credential storage
+   */
+  private async getApiKey(): Promise<string | null> {
+    // Try config first
+    if (this.config.api_key) {
+      return this.config.api_key;
+    }
+
+    // Try environment variable
+    if (process.env.ANTHROPIC_API_KEY) {
+      return process.env.ANTHROPIC_API_KEY;
+    }
+
+    // Try credential storage
+    try {
+      const credentialManager = getCredentialManager();
+      const stored = await credentialManager.retrieve('claude-api-key') ||
+                     await credentialManager.retrieve('anthropic-api-key');
+      return stored;
+    } catch (error) {
+      console.warn('Failed to retrieve Claude API key from credential storage:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Initialize Anthropic client with API key
+   */
+  private async initializeClient(): Promise<void> {
+    if (this.client) {
+      return; // Already initialized
+    }
+
+    const apiKey = await this.getApiKey();
     if (!apiKey) {
-      throw new BackendError('Claude API key not found', 'claude', false);
+      throw new BackendError('Claude API key not found in config, environment, or credential storage', 'claude', false);
     }
 
     this.client = new Anthropic({
       apiKey,
-      baseURL: config.base_url
+      baseURL: this.config.base_url
     });
-  }
-
-  validateConfig(): boolean {
-    const hasApiKey = !!(this.config.api_key || process.env.ANTHROPIC_API_KEY);
-    return super.validateConfig() && hasApiKey;
   }
 
   protected async healthCheck(): Promise<boolean> {
     try {
+      await this.initializeClient();
+      
       // Simple health check - try to get model info
       await this.client.messages.create({
         model: this.config.model || this.defaultModel,
@@ -51,6 +92,8 @@ export class ClaudeBackend extends BaseBackend {
   }
 
   async send(request: ClaudetteRequest): Promise<ClaudetteResponse> {
+    await this.initializeClient();
+    
     const startTime = Date.now();
     
     try {

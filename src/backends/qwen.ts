@@ -1,6 +1,7 @@
 // Qwen (CodeLLM) backend implementation
 
 import { BaseBackend } from './base';
+import { getCredentialManager } from '../credentials';
 import { 
   BackendSettings, 
   ClaudetteRequest, 
@@ -15,18 +16,39 @@ export class QwenBackend extends BaseBackend {
   constructor(config: BackendSettings) {
     super('qwen', config);
     
-    const apiKey = config.api_key || process.env.CODELLM_API_KEY;
-    if (!apiKey) {
-      throw new BackendError('CodeLLM API key not found', 'qwen', false);
-    }
-
     this.baseURL = config.base_url || 'https://tools.flexcon-ai.de';
   }
 
-  validateConfig(): boolean {
-    const hasApiKey = !!(this.config.api_key || process.env.CODELLM_API_KEY);
+  async validateConfig(): Promise<boolean> {
+    const apiKey = await this.getApiKey();
     const hasBaseURL = !!this.baseURL;
-    return super.validateConfig() && hasApiKey && hasBaseURL;
+    return await super.validateConfig() && !!apiKey && hasBaseURL;
+  }
+
+  /**
+   * Get API key from config, environment, or credential storage
+   */
+  private async getApiKey(): Promise<string | null> {
+    // Try config first
+    if (this.config.api_key) {
+      return this.config.api_key;
+    }
+
+    // Try environment variable
+    if (process.env.CODELLM_API_KEY) {
+      return process.env.CODELLM_API_KEY;
+    }
+
+    // Try credential storage with multiple key names
+    try {
+      const credentialManager = getCredentialManager();
+      const stored = await credentialManager.retrieve('codellm-api-key') ||
+                     await credentialManager.retrieve('qwen-api-key');
+      return stored;
+    } catch (error) {
+      console.warn('Failed to retrieve Qwen/CodeLLM API key from credential storage:', error);
+      return null;
+    }
   }
 
   protected async healthCheck(): Promise<boolean> {
@@ -43,7 +65,11 @@ export class QwenBackend extends BaseBackend {
   }
 
   private async makeRequest(endpoint: string, method: string = 'POST', body?: any): Promise<Response> {
-    const apiKey = this.config.api_key || process.env.CODELLM_API_KEY;
+    const apiKey = await this.getApiKey();
+    
+    if (!apiKey) {
+      throw new BackendError('CodeLLM API key not found in config, environment, or credential storage', 'qwen', false);
+    }
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

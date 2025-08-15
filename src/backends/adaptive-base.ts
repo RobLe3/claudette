@@ -394,7 +394,7 @@ export abstract class AdaptiveBaseBackend implements Backend {
     return avgLatency / 1000;
   }
 
-  validateConfig(): boolean {
+  async validateConfig(): Promise<boolean> {
     return this.config.enabled && 
            this.config.cost_per_token >= 0 &&
            this.config.priority > 0;

@@ -1,0 +1,224 @@
+name: 🐛 Bug Report
+description: Create a bug report to help us improve Claudette
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! 
+        
+        Before submitting, please search existing issues to avoid duplicates.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm you have completed these steps
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I have read the documentation and troubleshooting guides
+          required: true
+        - label: I have tested with the latest version of Claudette
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Claudette Version
+      description: What version of Claudette are you running?
+      placeholder: "e.g., 2.1.5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment are you running Claudette in?
+      options:
+        - Node.js (npm/yarn)
+        - Docker
+        - GitHub Releases (binary)
+        - Development environment
+        - Other (please specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Docker container
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Install Claudette with '...'
+        2. Configure backends with '...'
+        3. Run command '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+      placeholder: Describe the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+      placeholder: Describe what actually happened, including any error messages
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Your Claudette configuration (remove sensitive information like API keys)
+      placeholder: |
+        ```json
+        {
+          "backends": {
+            "openai": { "enabled": true },
+            "claude": { "enabled": false }
+          },
+          "rag": {
+            "enabled": true,
+            "provider": "local_docker"
+          }
+        }
+        ```
+      render: json
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: Any relevant log output (remove sensitive information)
+      placeholder: |
+        ```
+        [ERROR] Backend selection failed: ...
+        [DEBUG] RAG provider unavailable: ...
+        ```
+      render: shell
+
+  - type: dropdown
+    id: backend
+    attributes:
+      label: AI Backend(s) Affected
+      description: Which AI backend(s) are involved in this bug?
+      multiple: true
+      options:
+        - OpenAI (GPT models)
+        - Claude (Anthropic)
+        - Qwen (CodeLLM)
+        - Mistral
+        - Ollama (Local)
+        - All backends
+        - Not backend-specific
+
+  - type: dropdown
+    id: rag
+    attributes:
+      label: RAG Component Affected
+      description: Is this related to RAG functionality?
+      options:
+        - Not RAG-related
+        - MCP Plugin integration
+        - Docker container setup
+        - Remote API connection
+        - Vector database (Chroma, Pinecone, etc.)
+        - GraphRAG (LightRAG)
+        - Context retrieval
+        - RAG performance
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Bug Severity
+      description: How severe is this bug?
+      options:
+        - Low - Minor issue, workaround available
+        - Medium - Functionality impacted, no workaround
+        - High - Major functionality broken
+        - Critical - System unusable or data loss
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact Assessment
+      description: Who is affected and how does this impact usage?
+      placeholder: |
+        - User type affected (developers, end-users, enterprise)
+        - Frequency of occurrence
+        - Business/development impact
+        - Any available workarounds
+
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System Information
+      description: Additional system information (if relevant)
+      placeholder: |
+        - Node.js version: 
+        - npm version: 
+        - Docker version: 
+        - Available memory: 
+        - Network configuration: 
+        - Firewall/proxy settings:
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context about the problem
+      placeholder: |
+        - Screenshots or videos
+        - Related issues or PRs
+        - Recent changes to setup
+        - Performance metrics
+        - Community discussion links
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Interest
+      description: Would you be interested in contributing to fix this bug?
+      options:
+        - label: I would like to work on fixing this bug
+        - label: I need guidance on how to contribute
+        - label: I can provide additional testing/validation

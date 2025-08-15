@@ -122,7 +122,7 @@ export interface Backend {
   estimateCost(tokens: number): number;
   getLatencyScore(): Promise<number>;
   send(request: ClaudetteRequest): Promise<ClaudetteResponse>;
-  validateConfig(): boolean;
+  validateConfig(): Promise<boolean>;
   getInfo(): BackendInfo;
 }
 

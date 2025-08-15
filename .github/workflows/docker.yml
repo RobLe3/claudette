@@ -1,0 +1,633 @@
+name: Docker Build & Deploy
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      push_to_registry:
+        description: 'Push to container registry'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Build multi-platform Docker images
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Create optimized Dockerfile
+      run: |
+        cat > Dockerfile << 'EOF'
+        # Multi-stage build for optimal image size
+        FROM node:20-alpine AS builder
+        
+        WORKDIR /app
+        
+        # Copy package files
+        COPY package*.json ./
+        COPY tsconfig.json ./
+        
+        # Install dependencies (including dev dependencies for build)
+        RUN npm ci
+        
+        # Copy source code
+        COPY src/ ./src/
+        COPY claudette ./claudette
+        
+        # Build TypeScript
+        RUN npm run build
+        
+        # Remove dev dependencies
+        RUN npm prune --production
+        
+        # Production stage
+        FROM node:20-alpine AS production
+        
+        # Install security updates
+        RUN apk update && apk upgrade && apk add --no-cache dumb-init
+        
+        # Create non-root user
+        RUN addgroup -g 1001 -S nodejs && \
+            adduser -S claudette -u 1001 -G nodejs
+        
+        WORKDIR /app
+        
+        # Copy built application
+        COPY --from=builder --chown=claudette:nodejs /app/dist ./dist
+        COPY --from=builder --chown=claudette:nodejs /app/node_modules ./node_modules
+        COPY --from=builder --chown=claudette:nodejs /app/package*.json ./
+        COPY --chown=claudette:nodejs claudette ./claudette
+        
+        # Make claudette executable
+        RUN chmod +x ./claudette
+        
+        # Create data directory
+        RUN mkdir -p /data && chown claudette:nodejs /data
+        
+        # Switch to non-root user
+        USER claudette
+        
+        # Health check
+        HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+            CMD node -e "require('./dist/index.js')" || exit 1
+        
+        # Default command
+        ENTRYPOINT ["dumb-init", "--"]
+        CMD ["./claudette", "--help"]
+        EOF
+        
+    - name: Create Docker Compose for development
+      run: |
+        cat > docker-compose.yml << 'EOF'
+        version: '3.8'
+        
+        services:
+          claudette:
+            build:
+              context: .
+              dockerfile: Dockerfile
+            container_name: claudette
+            environment:
+              - NODE_ENV=production
+            volumes:
+              - ./data:/data
+            ports:
+              - "3000:3000"
+            restart: unless-stopped
+            healthcheck:
+              test: ["CMD", "node", "-e", "require('./dist/index.js')"]
+              interval: 30s
+              timeout: 10s
+              retries: 3
+              start_period: 40s
+        
+          # Optional: RAG service container
+          rag-service:
+            image: python:3.11-slim
+            container_name: claudette-rag
+            working_dir: /app
+            volumes:
+              - ./rag:/app
+            command: ["python", "-m", "http.server", "8000"]
+            ports:
+              - "8000:8000"
+            depends_on:
+              - claudette
+        EOF
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Build and test Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: ${{ matrix.platform }}
+        push: false
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Test Docker image functionality
+      if: matrix.platform == 'linux/amd64'
+      run: |
+        # Build for local testing
+        docker build -t claudette:test .
+        
+        # Test basic functionality
+        echo "Testing Docker image functionality..."
+        
+        # Test help command
+        docker run --rm claudette:test ./claudette --help
+        
+        # Test version command
+        docker run --rm claudette:test ./claudette --version
+        
+        # Test health check
+        docker run --rm --health-cmd="node -e 'require(\"./dist/index.js\")'" claudette:test sleep 5
+        
+        echo "✅ Docker image tests passed"
+        
+    - name: Push Docker image
+      if: github.event_name != 'pull_request' && (github.event_name == 'push' || github.event.inputs.push_to_registry == 'true')
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: ${{ matrix.platform }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Security scanning for Docker images
+  docker-security-scan:
+    name: Docker Security Scan
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name != 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Build image for scanning
+      run: |
+        docker build -t claudette:security-scan .
+        
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'claudette:security-scan'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+        
+    - name: Run Docker Bench for Security
+      run: |
+        docker run --rm --net host --pid host --userns host --cap-add audit_control \
+            -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
+            -v /etc:/etc:ro \
+            -v /usr/bin/containerd:/usr/bin/containerd:ro \
+            -v /usr/bin/runc:/usr/bin/runc:ro \
+            -v /usr/lib/systemd:/usr/lib/systemd:ro \
+            -v /var/lib:/var/lib:ro \
+            -v /var/run/docker.sock:/var/run/docker.sock:ro \
+            --label docker_bench_security \
+            docker/docker-bench-security > docker-bench-results.txt || true
+            
+        echo "=== Docker Bench Security Results ==="
+        head -50 docker-bench-results.txt
+        
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-security-scan-results
+        path: |
+          trivy-results.sarif
+          docker-bench-results.txt
+        retention-days: 30
+
+  # Integration testing with Docker Compose
+  docker-integration-test:
+    name: Docker Integration Test
+    runs-on: ubuntu-latest
+    needs: docker-build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build test environment
+      run: |
+        # Create test data directory
+        mkdir -p data
+        
+        # Build the image
+        docker build -t claudette:integration-test .
+        
+    - name: Run integration tests
+      run: |
+        echo "=== Docker Integration Tests ==="
+        
+        # Test 1: Container startup and health
+        echo "Testing container startup..."
+        CONTAINER_ID=$(docker run -d --name claudette-test claudette:integration-test sleep 60)
+        
+        # Wait for container to be ready
+        sleep 10
+        
+        # Check if container is running
+        if docker ps | grep -q claudette-test; then
+          echo "✅ Container started successfully"
+        else
+          echo "❌ Container failed to start"
+          docker logs claudette-test
+          exit 1
+        fi
+        
+        # Test 2: Execute commands in container
+        echo "Testing command execution..."
+        docker exec claudette-test ./claudette --help
+        docker exec claudette-test ./claudette --version
+        
+        # Test 3: Health check
+        echo "Testing health check..."
+        HEALTH_EXIT_CODE=$(docker exec claudette-test node -e "require('./dist/index.js')" && echo "0" || echo "1")
+        
+        if [ "$HEALTH_EXIT_CODE" = "0" ]; then
+          echo "✅ Health check passed"
+        else
+          echo "❌ Health check failed"
+          exit 1
+        fi
+        
+        # Test 4: Resource usage
+        echo "Testing resource usage..."
+        MEMORY_USAGE=$(docker stats --no-stream claudette-test | tail -n 1 | awk '{print $4}')
+        echo "Memory usage: $MEMORY_USAGE"
+        
+        # Cleanup
+        docker rm -f claudette-test
+        
+        echo "✅ All integration tests passed"
+        
+    - name: Test Docker Compose setup
+      run: |
+        echo "=== Docker Compose Integration Test ==="
+        
+        # Start services
+        docker-compose up -d
+        
+        # Wait for services to be ready
+        sleep 15
+        
+        # Check if services are running
+        if docker-compose ps | grep -q "Up"; then
+          echo "✅ Docker Compose services started successfully"
+        else
+          echo "❌ Docker Compose services failed to start"
+          docker-compose logs
+          exit 1
+        fi
+        
+        # Test service connectivity
+        docker-compose exec -T claudette ./claudette --help
+        
+        # Cleanup
+        docker-compose down
+        
+        echo "✅ Docker Compose test passed"
+
+  # Documentation and examples
+  docker-documentation:
+    name: Generate Docker Documentation
+    runs-on: ubuntu-latest
+    needs: [docker-build, docker-integration-test]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Create Docker documentation
+      run: |
+        mkdir -p docs/docker
+        
+        cat > docs/docker/README.md << 'EOF'
+        # Claudette Docker Guide
+        
+        This guide covers running Claudette in Docker containers for development and production use.
+        
+        ## Quick Start
+        
+        ### Using pre-built images
+        
+        ```bash
+        # Pull the latest image
+        docker pull ghcr.io/${{ github.repository }}:latest
+        
+        # Run Claudette
+        docker run --rm ghcr.io/${{ github.repository }}:latest --help
+        ```
+        
+        ### Using Docker Compose
+        
+        ```bash
+        # Clone the repository
+        git clone https://github.com/${{ github.repository }}.git
+        cd claudette
+        
+        # Start services
+        docker-compose up -d
+        
+        # Use Claudette
+        docker-compose exec claudette ./claudette --help
+        ```
+        
+        ## Building from Source
+        
+        ```bash
+        # Build the image
+        docker build -t claudette:local .
+        
+        # Run the container
+        docker run --rm claudette:local --help
+        ```
+        
+        ## Configuration
+        
+        ### Environment Variables
+        
+        - `NODE_ENV`: Runtime environment (production/development)
+        - `OPENAI_API_KEY`: OpenAI API key
+        - `ANTHROPIC_API_KEY`: Anthropic API key
+        
+        ### Volumes
+        
+        - `/data`: Persistent data directory
+        - `/app/config`: Configuration files
+        
+        ### Example with API keys
+        
+        ```bash
+        docker run --rm \
+          -e OPENAI_API_KEY="your-openai-key" \
+          -e ANTHROPIC_API_KEY="your-anthropic-key" \
+          -v $(pwd)/data:/data \
+          ghcr.io/${{ github.repository }}:latest \
+          "Your prompt here"
+        ```
+        
+        ## Production Deployment
+        
+        ### Docker Compose Production
+        
+        ```yaml
+        version: '3.8'
+        services:
+          claudette:
+            image: ghcr.io/${{ github.repository }}:latest
+            restart: unless-stopped
+            environment:
+              - NODE_ENV=production
+            volumes:
+              - claudette_data:/data
+            healthcheck:
+              test: ["CMD", "node", "-e", "require('./dist/index.js')"]
+              interval: 30s
+              timeout: 10s
+              retries: 3
+        
+        volumes:
+          claudette_data:
+        ```
+        
+        ### Kubernetes Deployment
+        
+        ```yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: claudette
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: claudette
+          template:
+            metadata:
+              labels:
+                app: claudette
+            spec:
+              containers:
+              - name: claudette
+                image: ghcr.io/${{ github.repository }}:latest
+                resources:
+                  requests:
+                    memory: "128Mi"
+                    cpu: "100m"
+                  limits:
+                    memory: "512Mi"
+                    cpu: "500m"
+                env:
+                - name: NODE_ENV
+                  value: "production"
+                volumeMounts:
+                - name: data
+                  mountPath: /data
+              volumes:
+              - name: data
+                persistentVolumeClaim:
+                  claimName: claudette-pvc
+        ```
+        
+        ## Security Best Practices
+        
+        - Use specific version tags instead of `latest` in production
+        - Run containers as non-root user (default in our images)
+        - Use Docker secrets for API keys in production
+        - Regular security scanning with Trivy
+        - Keep base images updated
+        
+        ## Troubleshooting
+        
+        ### Common Issues
+        
+        1. **Container fails to start**
+           ```bash
+           docker logs <container-name>
+           ```
+        
+        2. **Health check failing**
+           ```bash
+           docker exec <container-name> node -e "require('./dist/index.js')"
+           ```
+        
+        3. **Performance issues**
+           ```bash
+           docker stats <container-name>
+           ```
+        
+        ### Debug Mode
+        
+        ```bash
+        docker run --rm -it ghcr.io/${{ github.repository }}:latest sh
+        ```
+        
+        ## Development
+        
+        For development with hot reload:
+        
+        ```bash
+        docker run --rm -it \
+          -v $(pwd):/app \
+          -w /app \
+          node:20-alpine \
+          npm run dev
+        ```
+        EOF
+        
+        cat > docs/docker/examples.md << 'EOF'
+        # Docker Examples
+        
+        ## Basic Usage Examples
+        
+        ### Simple prompt processing
+        ```bash
+        docker run --rm \
+          -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+          ghcr.io/${{ github.repository }}:latest \
+          "Explain quantum computing in simple terms"
+        ```
+        
+        ### Batch processing
+        ```bash
+        # Create input file
+        echo "Question 1: What is AI?" > questions.txt
+        echo "Question 2: How does ML work?" >> questions.txt
+        
+        # Process batch
+        docker run --rm \
+          -v $(pwd):/data \
+          -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+          ghcr.io/${{ github.repository }}:latest \
+          --batch /data/questions.txt
+        ```
+        
+        ### With custom configuration
+        ```bash
+        docker run --rm \
+          -v $(pwd)/claudette.config.json:/app/claudette.config.json \
+          -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+          ghcr.io/${{ github.repository }}:latest \
+          "Your prompt here"
+        ```
+        
+        ## Advanced Examples
+        
+        ### Multi-container setup with RAG
+        ```yaml
+        version: '3.8'
+        services:
+          claudette:
+            image: ghcr.io/${{ github.repository }}:latest
+            depends_on:
+              - rag-service
+            environment:
+              - RAG_ENDPOINT=http://rag-service:8000
+            volumes:
+              - ./data:/data
+        
+          rag-service:
+            image: lightrag/lightrag:latest
+            ports:
+              - "8000:8000"
+            volumes:
+              - ./rag-data:/data
+        ```
+        
+        ### Load balancer setup
+        ```yaml
+        version: '3.8'
+        services:
+          nginx:
+            image: nginx:alpine
+            ports:
+              - "80:80"
+            volumes:
+              - ./nginx.conf:/etc/nginx/nginx.conf
+            depends_on:
+              - claudette-1
+              - claudette-2
+        
+          claudette-1:
+            image: ghcr.io/${{ github.repository }}:latest
+            environment:
+              - NODE_ENV=production
+        
+          claudette-2:
+            image: ghcr.io/${{ github.repository }}:latest
+            environment:
+              - NODE_ENV=production
+        ```
+        EOF
+        
+    - name: Upload Docker documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-documentation
+        path: docs/docker/
+        retention-days: 90
