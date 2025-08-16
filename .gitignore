@@ -152,6 +152,12 @@ scripts/temp/
 aneos-project-backup-*/
 *.tar.bz2
 
+# Development tools
+.hive-mind/
+
+# Test artifacts  
+test-install-local-*/
+
 # Embedded repositories and test clones
 aneos-project/
 test-clone/
