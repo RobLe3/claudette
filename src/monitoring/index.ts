@@ -269,8 +269,8 @@ export class MonitoringPlatform {
         details: dashboardData.health
       },
       integrations: {
-        status: integrationStatus.some(i => i.healthStatus === 'critical') ? 'critical' :
-                integrationStatus.some(i => i.healthStatus === 'warning') ? 'warning' : 'healthy',
+        status: (integrationStatus.some(i => i.healthStatus === 'critical') ? 'critical' :
+                integrationStatus.some(i => i.healthStatus === 'warning') ? 'warning' : 'healthy') as 'healthy' | 'warning' | 'critical',
         details: integrationStatus
       }
     };

@@ -5,6 +5,23 @@
  * providing a comprehensive type-safe interface for plugin development.
  */
 
+// Import core types that plugins need
+import {
+  Backend,
+  BackendSettings,
+  BackendInfo,
+  ClaudetteRequest,
+  ClaudetteResponse,
+  BackendError,
+  RAGProvider,
+  RAGQuery,
+  RAGResult,
+  CacheProvider,
+  CacheEntry
+} from '../types/index';
+
+import { BasePlugin } from './plugin-sdk';
+
 // Re-export core types that plugins need
 export {
   Backend,
@@ -18,7 +35,7 @@ export {
   RAGResult,
   CacheProvider,
   CacheEntry
-} from '../types/index';
+};
 
 // Plugin-specific types
 export interface PluginManifest {

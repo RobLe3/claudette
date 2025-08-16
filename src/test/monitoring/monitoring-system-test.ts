@@ -627,7 +627,7 @@ export class MonitoringSystemTestSuite {
       
       console.log(`   📊 Metric throughput: ${throughput.toFixed(0)} ops/sec`);
       return throughput > 100; // Should handle at least 100 metrics/sec
-    }, { expectedMetrics: { throughput: 'ops/sec' } });
+    }, { expectedMetrics: { throughput: 100 } });
 
     // Test 2: Trace processing performance
     await this.runTest('Performance - Trace Processing Speed', async () => {
@@ -775,7 +775,7 @@ export class MonitoringSystemTestSuite {
   private async runTest(
     testName: string,
     testFunction: () => Promise<boolean>,
-    options: { expectedMetrics?: Record<string, string> } = {}
+    options: { expectedMetrics?: Record<string, number> } = {}
   ): Promise<void> {
     
     const startTime = Date.now();

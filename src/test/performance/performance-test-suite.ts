@@ -5,7 +5,7 @@ import { MLRoutingEngine, MLRoutingConfig, MLPrediction } from '../../router/ml/
 import { MultiLayerCache, CacheConfiguration } from '../../cache/advanced/multi-layer-cache';
 import { PerformanceAnalytics, AnalyticsConfiguration } from '../../analytics/performance/performance-analytics';
 import { SystemOptimizer, OptimizationConfiguration } from '../../optimization/system-optimizer';
-import { ClaudetteRequest, ClaudetteResponse, Backend } from '../../types/index';
+import { ClaudetteRequest, ClaudetteResponse, Backend, BackendInfo } from '../../types/index';
 
 export interface TestConfiguration {
   ml: {
@@ -602,9 +602,13 @@ export class PerformanceTestSuite {
       if (!forecast) {
         return {
           score: 0,
-          metrics: { forecastGenerated: 0 },
+          metrics: { 
+            forecastGenerated: 0,
+            accuracy: 0,
+            predictions: 0
+          },
           errors: ['Failed to generate forecast'],
-          warnings: []
+          warnings: [] as string[]
         };
       }
 
@@ -619,7 +623,7 @@ export class PerformanceTestSuite {
           predictions: forecast.predictions.length
         },
         errors: passed ? [] : [`Forecast accuracy ${forecastAccuracy.toFixed(2)} below target`],
-        warnings: []
+        warnings: [] as string[]
       };
     });
 
@@ -659,11 +663,22 @@ export class PerformanceTestSuite {
         memory: {
           enabled: true,
           maxHeapUsage: 512,
-          gcStrategy: 'adaptive'
+          gcStrategy: 'adaptive' as 'adaptive' | 'automatic' | 'manual',
+          gcThreshold: 0.8,
+          memoryLeakDetection: true,
+          objectPooling: false,
+          compressionEnabled: true
         },
         monitoring: {
           enabled: true,
-          samplingInterval: 5000
+          alertThresholds: {
+            memory: 1000,
+            cpu: 90,
+            networkLatency: 500,
+            diskUsage: 85
+          },
+          samplingInterval: 5000,
+          detailedProfiling: false
         }
       };
 
@@ -857,7 +872,7 @@ export class PerformanceTestSuite {
             }
           }
           
-          return { success: true, latency: response?.latency_ms || 0 };
+          return { success: true, latency: (response && 'latency_ms' in response) ? response.latency_ms : 0 };
         } catch (error) {
           return { success: false, latency: 0 };
         }
@@ -1166,7 +1181,11 @@ export class PerformanceTestSuite {
       prompt: prompts[Math.floor(Math.random() * prompts.length)],
       model: 'test-model',
       temperature: 0.7,
-      max_tokens: 1000
+      options: {
+        max_tokens: 1000,
+        model: 'test-model',
+        temperature: 0.7
+      }
     };
   }
 
@@ -1175,16 +1194,17 @@ export class PerformanceTestSuite {
     
     return {
       content,
-      model: request.model || 'test-model',
-      latency_ms: Math.random() * 5000 + 500,
+      backend_used: 'mock-backend',
+      tokens_input: request.prompt?.length || 0,
+      tokens_output: content.length,
       cost_eur: Math.random() * 0.01 + 0.001,
+      latency_ms: Math.random() * 5000 + 500,
+      cache_hit: false,
       usage: {
         prompt_tokens: request.prompt?.length || 0,
         completion_tokens: content.length,
         total_tokens: (request.prompt?.length || 0) + content.length
-      },
-      backend_used: 'mock-backend',
-      timestamp: Date.now()
+      }
     };
   }
 
@@ -1325,16 +1345,17 @@ class MockBackend implements Backend {
     
     const response: ClaudetteResponse = {
       content: `Mock response from ${this.name} for: ${request.prompt?.substring(0, 50)}...`,
-      model: request.model || 'mock-model',
-      latency_ms: this.config.avgLatency + Math.random() * 1000,
+      backend_used: this.name,
+      tokens_input: request.prompt?.length || 0,
+      tokens_output: 100,
       cost_eur: this.config.cost + Math.random() * 0.001,
+      latency_ms: this.config.avgLatency + Math.random() * 1000,
+      cache_hit: false,
       usage: {
         prompt_tokens: request.prompt?.length || 0,
         completion_tokens: 100,
         total_tokens: (request.prompt?.length || 0) + 100
       },
-      backend_used: this.name,
-      timestamp: Date.now(),
       error: Math.random() < 0.05 ? 'Mock error' : undefined // 5% error rate
     };
 
@@ -1345,13 +1366,27 @@ class MockBackend implements Backend {
     return Math.random() > 0.05; // 95% availability
   }
 
-  getInfo() {
+  getInfo(): BackendInfo {
     return {
       name: this.name,
-      priority: Math.random() * 10,
+      type: 'cloud' as 'cloud' | 'self_hosted',
+      model: 'mock-model',
+      priority: Math.round(Math.random() * 10),
       cost_per_token: this.config.cost / 100,
       avg_latency: this.config.avgLatency,
       healthy: true
     };
+  }
+
+  estimateCost(tokens: number): number {
+    return tokens * this.config.cost;
+  }
+
+  async getLatencyScore(): Promise<number> {
+    return Math.max(0, 100 - this.config.avgLatency / 10);
+  }
+
+  async validateConfig(): Promise<boolean> {
+    return true;
   }
 }

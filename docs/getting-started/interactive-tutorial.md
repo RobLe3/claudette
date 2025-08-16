@@ -38,46 +38,80 @@ node --version && npm --version && echo "✅ Environment ready!"
 
 ---
 
-## Quick Setup
+## Quick Setup - v2.1.6
 
-### Option 1: Automated Setup (Recommended)
+### Option 1: Setup Wizard (Recommended) 🧙‍♂️
 
 ```bash
-# Download and run the setup script
-curl -sSL https://raw.githubusercontent.com/user/claudette/main/scripts/quick-setup.sh | bash
+# Install Claudette globally
+npm install -g claudette
+
+# Run the 2-minute interactive setup wizard
+claudette setup wizard
+
+# The wizard will guide you through:
+# ✅ API key configuration and secure storage
+# ✅ Backend auto-discovery and testing
+# ✅ RAG provider setup (optional)
+# ✅ Performance optimization recommendations
+# ✅ Validation of complete configuration
+
+# Verify setup
+claudette --version
+claudette setup validate
 ```
 
-### Option 2: Manual Setup
+### Option 2: Express Setup for Development
 
 ```bash
 # Create project directory
 mkdir claudette-tutorial && cd claudette-tutorial
 
-# Install Claudette
+# Install Claudette locally
 npm init -y
 npm install claudette
+
+# Quick setup with guided prompts
+npx claudette init --quick
 
 # Create basic project structure
 mkdir src examples
 ```
 
-### 🔑 API Key Setup
-
-Choose your preferred AI provider and set up credentials:
+### Option 3: Manual Configuration
 
 ```bash
-# Option 1: Environment variables (recommended for development)
+# Install Claudette
+npm install claudette
+
+# Manual credential setup
+claudette credentials setup  # Interactive credential configuration
+
+# Or use environment variables for development
 export OPENAI_API_KEY="your-openai-key"
 export ANTHROPIC_API_KEY="your-claude-key"
 
-# Option 2: Secure keychain storage (recommended for production)
-./setup-api-keys.sh
+# Test configuration
+claudette backends test
+```
 
-# Option 3: Configuration file
-echo '{
-  "openai_api_key": "your-key",
-  "anthropic_api_key": "your-key"
-}' > claudette.config.json
+### 🔑 Advanced Credential Management
+
+Claudette v2.1.6 provides enterprise-grade credential security:
+
+```bash
+# Platform-specific secure storage
+claudette credentials setup    # Interactive guided setup
+
+# Test all credentials
+claudette credentials test     # Validates all stored credentials
+
+# Rotate API keys securely
+claudette credentials rotate   # Secure key rotation
+
+# Manual credential storage
+claudette credentials store openai-api-key    # Prompts for secure input
+claudette credentials store claude-api-key    # Platform keychain storage
 ```
 
 ---
@@ -100,54 +134,119 @@ Each step builds on the previous one with working code examples.
 
 ---
 
-## Step 1: First Optimization
+## Step 1: First Optimization with Setup Wizard
 
-**Goal**: Make your first AI request through Claudette
+**Goal**: Use the setup wizard and make your first AI request through Claudette
 **Time**: 5 minutes
 
-### 1.1 Create Your First Script
+### 1.1 Setup Wizard Experience
+
+First, let's use the v2.1.6 setup wizard to configure everything:
+
+```bash
+# Run the interactive setup wizard
+claudette setup wizard
+
+# Expected wizard flow:
+# 🧙‍♂️ Welcome to Claudette Setup Wizard (v2.1.6)
+# ⏱️ Target time: 2 minutes
+# 
+# Step 1/4: Credential Setup
+# 🔐 Which AI providers do you want to configure?
+# [x] OpenAI (recommended for cost optimization)
+# [x] Claude (recommended for complex reasoning)
+# [ ] Qwen (self-hosted coding)
+# 
+# Step 2/4: Backend Configuration
+# ✅ OpenAI: Connected successfully (gpt-4o-mini)
+# ✅ Claude: Connected successfully (claude-3-sonnet)
+# 
+# Step 3/4: RAG Setup (Optional)
+# 🧠 Would you like to set up RAG providers? [y/N] n
+# 
+# Step 4/4: Validation & Optimization
+# ✅ Testing backend routing...
+# ✅ Optimizing configuration...
+# ✅ Setup completed successfully!
+```
+
+### 1.2 Create Your First Script
 
 Create `src/hello-claudette.js`:
 
 ```javascript
 // src/hello-claudette.js
-import { Claudette } from 'claudette';
+import { 
+  Claudette, 
+  MonitoringManager 
+} from 'claudette';
 
 async function main() {
-  console.log('🚀 Starting Claudette tutorial...');
+  console.log('🚀 Starting Claudette v2.1.6 tutorial...');
   
   try {
-    // Initialize Claudette
+    // Initialize Claudette (configuration auto-loaded from setup wizard)
     const claudette = new Claudette();
     await claudette.initialize();
     
     console.log('✅ Claudette initialized successfully!');
     
+    // Optional: Enable real-time monitoring
+    const monitoring = new MonitoringManager();
+    await monitoring.initialize();
+    
+    console.log('📊 Monitoring enabled');
+    
     // Make your first optimization request
     const result = await claudette.optimize(
-      'Explain what TypeScript interfaces are in 2 sentences'
+      'Explain what TypeScript interfaces are in 2 sentences',
+      [], // No files
+      {
+        enableMonitoring: true,
+        costOptimization: true
+      }
     );
     
-    // Display results
+    // Display comprehensive results
     console.log('\n📝 Response:');
     console.log(result.content);
     
-    console.log('\n📊 Metadata:');
-    console.log(`Backend used: ${result.backend_used}`);
+    console.log('\n📊 Optimization Metadata:');
+    console.log(`Backend selected: ${result.backend_used}`);
+    console.log(`Model: ${result.metadata?.model || 'unknown'}`);
     console.log(`Cost: €${result.cost_eur.toFixed(6)}`);
     console.log(`Latency: ${result.latency_ms}ms`);
     console.log(`Cache hit: ${result.cache_hit}`);
+    console.log(`Tokens (input/output): ${result.tokens_input}/${result.tokens_output}`);
+    
+    // Show routing decision factors
+    if (result.metadata?.routingDecision) {
+      console.log('\n🧠 Routing Decision:');
+      console.log(`Cost weight: ${result.metadata.routingDecision.costScore}`);
+      console.log(`Speed weight: ${result.metadata.routingDecision.speedScore}`);
+      console.log(`Quality weight: ${result.metadata.routingDecision.qualityScore}`);
+    }
+    
+    // Display real-time metrics
+    const metrics = await monitoring.getCurrentMetrics();
+    console.log('\n📈 Real-time Metrics:');
+    console.log(`Total requests: ${metrics.totalRequests}`);
+    console.log(`Success rate: ${(metrics.successRate * 100).toFixed(1)}%`);
+    console.log(`Average cost: €${metrics.averageCost.toFixed(6)}`);
     
     // Cleanup
+    await monitoring.cleanup();
     await claudette.cleanup();
     
   } catch (error) {
     console.error('❌ Error:', error.message);
     
     if (error.message.includes('API key')) {
-      console.log('\n💡 Solution: Set up your API keys:');
-      console.log('   export OPENAI_API_KEY="your-key"');
-      console.log('   # or run ./setup-api-keys.sh');
+      console.log('\n💡 Solution: Run the setup wizard:');
+      console.log('   claudette setup wizard');
+    } else if (error.message.includes('No backends')) {
+      console.log('\n💡 Solution: Configure backends:');
+      console.log('   claudette backends setup');
     }
   }
 }

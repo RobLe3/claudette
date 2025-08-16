@@ -293,11 +293,11 @@ export class ObservabilityFramework extends EventEmitter {
       span.status = 'error';
       span.tags.error = true;
       span.tags.errorMessage = error.message;
-      span.tags.errorStack = error.stack;
+      span.tags.errorStack = error.stack || 'No stack trace available';
       
       this.addSpanLog(spanId, 'error', error.message, {
         errorType: error.constructor.name,
-        errorStack: error.stack
+        errorStack: error.stack || 'No stack trace available'
       });
     }
 
@@ -341,7 +341,7 @@ export class ObservabilityFramework extends EventEmitter {
 
     const logEntry = {
       timestamp: Date.now(),
-      level,
+      level: level === 'fatal' ? 'error' : level,
       message,
       fields
     };
@@ -349,7 +349,9 @@ export class ObservabilityFramework extends EventEmitter {
     span.logs.push(logEntry);
     
     // Also create structured log entry
-    this.log(level, message, {
+    // Filter fatal level to error for external interfaces that don't support it
+    const compatibleLevel = level === 'fatal' ? 'error' : level;
+    this.log(compatibleLevel, message, {
       ...fields,
       traceId: span.traceId,
       spanId: span.spanId,
@@ -484,7 +486,7 @@ export class ObservabilityFramework extends EventEmitter {
       sessionId: parentContext?.sessionId,
       requestId: parentContext?.requestId || this.generateRequestId(),
       correlationId: parentContext?.correlationId || this.generateCorrelationId(),
-      baggage: { ...parentContext?.baggage } || {}
+      baggage: parentContext?.baggage ? { ...parentContext.baggage } : {}
     };
 
     return context;

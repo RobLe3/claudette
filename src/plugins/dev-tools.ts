@@ -324,10 +324,10 @@ export class PluginTestUtils {
   static createMockContext(overrides: any = {}): any {
     return {
       logger: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        debug: jest.fn()
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+        debug: () => {}
       },
       config: {
         enabled: true,
@@ -335,9 +335,9 @@ export class PluginTestUtils {
         ...overrides.config
       },
       events: {
-        emit: jest.fn(),
-        on: jest.fn(),
-        off: jest.fn()
+        emit: () => {},
+        on: () => {},
+        off: () => {}
       },
       claudetteVersion: '2.0.0',
       environment: 'test',

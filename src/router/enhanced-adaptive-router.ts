@@ -4,7 +4,7 @@
 import { BaseRouter } from './base-router';
 import { Backend, ClaudetteRequest, ClaudetteResponse, BackendError } from '../types/index';
 import { AdaptiveBaseBackend, AsyncContribution } from '../backends/adaptive-base';
-import { RAGManager, ClaudetteRAGRequest, ClaudetteRAGResponse } from '../rag/index';
+import { RAGManager, ClaudetteRAGRequest, ClaudetteRAGResponse, RAGResponse } from '../rag/index';
 import { MLRoutingEngine, MLRoutingConfig, MLPrediction } from './ml/ml-routing-engine';
 import { MultiLayerCache, CacheConfiguration } from '../cache/advanced/multi-layer-cache';
 import { PerformanceAnalytics, AnalyticsConfiguration } from '../analytics/performance/performance-analytics';
@@ -163,6 +163,35 @@ export class EnhancedAdaptiveRouter extends BaseRouter {
   }
 
   /**
+   * Select optimal backend using enhanced adaptive strategy
+   */
+  async selectBackend(request: ClaudetteRequest): Promise<string> {
+    // Use ML prediction if available
+    if (this.mlEngine) {
+      const backends = Array.from(this.backends.values());
+      const prediction = await this.mlEngine.predictOptimalBackend(request, backends);
+      return prediction.recommendedBackend;
+    }
+
+    // Fallback to traditional scoring
+    const availableBackends = Array.from(this.backends.keys()).filter(name => {
+      const backend = this.backends.get(name);
+      return backend && this.backendScores.get(name)! > 0;
+    });
+
+    if (availableBackends.length === 0) {
+      throw new Error('No available backends');
+    }
+
+    // Select based on current scores
+    return availableBackends.reduce((best, current) => {
+      const bestScore = this.backendScores.get(best) || 0;
+      const currentScore = this.backendScores.get(current) || 0;
+      return currentScore > bestScore ? current : best;
+    });
+  }
+
+  /**
    * Enhanced routing with ML, caching, analytics, and optimization
    */
   async route(request: ClaudetteRequest): Promise<ClaudetteResponse> {
@@ -195,7 +224,7 @@ export class EnhancedAdaptiveRouter extends BaseRouter {
       }
 
       // Phase 2: Cache Check
-      let cacheResponse: ClaudetteResponse | null = null;
+      let cacheResponse: ClaudetteResponse | RAGResponse | null = null;
       if (this.strategy.advanced_caching.enabled && this.cache) {
         const cacheStartTime = Date.now();
         cacheResponse = await this.cache.get(enhancedRequest);
@@ -206,7 +235,7 @@ export class EnhancedAdaptiveRouter extends BaseRouter {
           console.log('🎯 Cache hit - returning cached response');
           
           // Record cache hit in analytics
-          if (this.analytics) {
+          if (this.analytics && 'backend_used' in cacheResponse) {
             this.analytics.recordRequestPerformance(
               enhancedRequest,
               cacheResponse,
@@ -215,7 +244,12 @@ export class EnhancedAdaptiveRouter extends BaseRouter {
             );
           }
           
-          return this.enhanceResponseWithMetadata(cacheResponse, ragMetadata, {
+          // Convert RAGResponse to ClaudetteResponse if needed
+          const claudetteResponse = 'backend_used' in cacheResponse 
+            ? cacheResponse 
+            : this.convertRAGToClaudetteResponse(cacheResponse);
+          
+          return this.enhanceResponseWithMetadata(claudetteResponse, ragMetadata, {
             ...performanceMetrics,
             routingTime: Date.now() - routingStartTime
           }, true);
@@ -376,7 +410,13 @@ export class EnhancedAdaptiveRouter extends BaseRouter {
    * Get comprehensive performance statistics
    */
   getEnhancedPerformanceStats(): {
-    routing: typeof this.routingStats;
+    routing: {
+      totalRequests: number;
+      mlRoutingUsed: number;
+      cacheHits: number;
+      optimizationEvents: number;
+      avgRoutingTime: number;
+    };
     ml: any;
     cache: any;
     analytics: any;
@@ -901,5 +941,21 @@ export class EnhancedAdaptiveRouter extends BaseRouter {
     }
     
     console.log('✅ Enhanced router shutdown complete');
+  }
+
+  /**
+   * Convert RAGResponse to ClaudetteResponse format
+   */
+  private convertRAGToClaudetteResponse(ragResponse: RAGResponse): ClaudetteResponse {
+    return {
+      content: ragResponse.results.map(r => r.content).join('\n'),
+      backend_used: 'rag-cache',
+      tokens_input: 0,
+      tokens_output: ragResponse.results.reduce((sum, r) => sum + r.content.length, 0),
+      cost_eur: 0,
+      latency_ms: ragResponse.metadata.processingTime,
+      cache_hit: true,
+      metadata: ragResponse.metadata
+    };
   }
 }

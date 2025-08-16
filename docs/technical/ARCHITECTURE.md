@@ -1,8 +1,8 @@
 # Claudette Architecture Documentation
 
-> **Technical Architecture Overview for Claudette v2.1.5**
+> **Technical Architecture Overview for Claudette v2.1.6**
 > 
-> This document provides a comprehensive technical overview of Claudette's architecture, design patterns, and system components.
+> This document provides a comprehensive technical overview of Claudette's enterprise AI middleware architecture, design patterns, and system components including the latest infrastructure enhancements.
 
 ## Table of Contents
 
@@ -29,25 +29,25 @@ Claudette is designed as a high-performance AI middleware platform that provides
 4. **Extensibility**: Plugin architecture for backends and RAG providers
 5. **Type Safety**: Full TypeScript implementation with comprehensive type definitions
 
-### High-Level Architecture
+### High-Level Architecture v2.1.6
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                           Application Layer                          │
-├─────────────────────────────────────────────────────────────────────┤
-│                         Claudette Core API                          │
-├─────────────────────────────┬───────────────────────────────────────┤
-│        Router System        │           RAG System                  │
-│   ┌─────────────────────┐   │   ┌─────────────────────────────────┐ │
-│   │  Adaptive Router    │   │   │      RAG Manager               │ │
-│   │  - Weight-based     │   │   │  - Provider Orchestration      │ │
-│   │  - Circuit Breaker  │   │   │  - Fallback Chains             │ │
-│   │  - Health Monitoring│   │   │  - Context Integration         │ │
-│   └─────────────────────┘   │   └─────────────────────────────────┘ │
-├─────────────────────────────┼───────────────────────────────────────┤
-│        Backend Layer        │         Storage & Cache               │
-│   ┌─────┬─────┬─────┬───┐   │   ┌─────────┬─────────────────────┐   │
-│   │OpenAI│Claude│Qwen│...│   │   │SQLite DB│   Memory Cache      │   │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Application Layer                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                         Claudette Core API v2.1.6                           │
+├──────────────┬──────────────┬──────────────┬──────────────┬──────────────────┤
+│Setup Wizard  │Router System │  RAG System  │ Monitoring   │ Infrastructure   │
+│┌───────────┐ │┌───────────┐ │┌───────────┐ │┌───────────┐ │┌───────────────┐ │
+││Interactive│ ││Adaptive   │ ││RAG Manager│ ││Real-time  │ ││Release        │ │
+││2min Setup │ ││Router     │ ││Multi-      │ ││Metrics    │ ││Pipeline       │ │
+││Wizard     │ ││Enhanced   │ ││deployment │ ││Observ.    │ ││Emergency      │ │
+││Validation │ ││ML Routing │ ││Fallback   │ ││Alerting   │ ││Deploy         │ │
+│└───────────┘ │└───────────┘ │└───────────┘ │└───────────┘ │└───────────────┘ │
+├──────────────┼──────────────┼──────────────┼──────────────┼──────────────────┤
+│        Backend Layer         │     RAG Providers       │    Infrastructure     │
+│   ┌─────┬─────┬─────┬───┐   │ ┌─────┬─────┬─────────┐ │ ┌─────────┬─────────┐ │
+│   │OpenAI│Claude│Qwen│...│   │ │ MCP │Docker│Remote  │ │ │SQLite DB│Cache    │ │
 │   └─────┴─────┴─────┴───┘   │   └─────────┴─────────────────────┘   │
 └─────────────────────────────┴───────────────────────────────────────┘
 ```

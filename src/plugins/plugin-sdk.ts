@@ -14,6 +14,7 @@ import { EventEmitter } from 'events';
 import { Logger } from '../utils/logger';
 import { 
   Backend, 
+  BackendInfo,
   BackendSettings,
   ClaudetteRequest,
   ClaudetteResponse,
@@ -61,13 +62,13 @@ export interface PluginContext {
 // Base Plugin Interface
 export abstract class BasePlugin {
   public readonly metadata: PluginMetadata;
-  protected context: PluginContext;
+  protected context!: PluginContext;
   protected logger: Logger;
   private _initialized: boolean = false;
 
   constructor(metadata: PluginMetadata) {
     this.metadata = metadata;
-    this.logger = new Logger(`plugin:${metadata.name}`);
+    this.logger = new Logger();
   }
 
   /**
@@ -138,7 +139,10 @@ export abstract class BackendPlugin extends BasePlugin implements Backend {
   // Backend interface implementation
   abstract isAvailable(): Promise<boolean>;
   abstract estimateCost(tokens: number): number;
-  abstract getInfo(): Promise<any>;
+  abstract getLatencyScore(): Promise<number>;
+  abstract validateConfig(): Promise<boolean>;
+  abstract getInfo(): BackendInfo;
+  abstract send(request: ClaudetteRequest): Promise<ClaudetteResponse>;
   abstract processRequest(request: ClaudetteRequest): Promise<ClaudetteResponse>;
   abstract healthCheck(): Promise<boolean>;
 }
@@ -196,7 +200,7 @@ export class PluginManager extends EventEmitter {
 
   constructor() {
     super();
-    this.logger = new Logger('plugin-manager');
+    this.logger = new Logger();
   }
 
   /**
@@ -261,7 +265,7 @@ export class PluginManager extends EventEmitter {
     }
 
     const context: PluginContext = {
-      logger: new Logger(`plugin:${pluginName}`),
+      logger: new Logger(),
       config,
       events: this,
       claudetteVersion: '2.1.6', // TODO: Get from package.json
@@ -382,7 +386,7 @@ export class PluginUtils {
    * Create development logger
    */
   static createLogger(pluginName: string): Logger {
-    return new Logger(`dev-plugin:${pluginName}`);
+    return new Logger();
   }
 }
 

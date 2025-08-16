@@ -1,55 +1,71 @@
-# Claude Flow Private Development Documentation
+# Claudette v2.1.6 - Documentation Hub
 
-**Internal documentation for Claude Flow advanced development and extensions.**
+**Comprehensive documentation for Claudette enterprise AI middleware platform.**
 
-This documentation covers the private development repository containing advanced extensions, experimental features, and internal tooling that complements the public [Claudette](https://github.com/RobLe3/claudette) CLI tool.
+This documentation covers all aspects of Claudette v2.1.6, including setup, configuration, API usage, development guidelines, and advanced features. Claudette is the premier enterprise AI middleware platform with intelligent routing, RAG integration, monitoring, and cost optimization.
 
-## 🎯 Repository Purpose
+## 🎯 Platform Overview
 
-This private repository focuses on:
-- **Advanced AI coordination systems** and swarm architectures
-- **Experimental cost optimization** algorithms and research
-- **Development automation** and workflow extensions
-- **Research prototypes** and proof-of-concepts
-- **Internal tooling** and custom integrations
+Claudette v2.1.6 provides:
+- **Enterprise AI Middleware** with intelligent multi-backend routing
+- **Advanced RAG Integration** with MCP, Docker, and remote API support
+- **Real-time Monitoring** with observability and alerting
+- **Interactive Setup Wizard** for 2-minute onboarding
+- **Cost Intelligence** with predictive analytics and optimization
+- **Production Security** with encrypted credential management
 
 ## 📚 Documentation Structure
 
-### 🔧 Core Systems
-Essential documentation for core development systems:
+### 🚀 Getting Started
+Quick start guides and onboarding:
 
-- **[COST_CONSERVATION_GUIDE.md](guides/COST_CONSERVATION_GUIDE.md)** - Cost optimization strategies
-- **[CLAUDE_CODE_UPDATE_PROTECTION.md](guides/CLAUDE_CODE_UPDATE_PROTECTION.md)** - Update protection system
+- **[Installation Guide](getting-started/interactive-tutorial.md)** - Complete installation and setup
+- **[Quick Start Tutorial](getting-started/interactive-tutorial.md)** - 2-minute guided setup
+- **[Setup Wizard Guide](technical/setup/SETUP_WIZARD_IMPLEMENTATION_COMPLETE.md)** - Interactive configuration
 
-### 🤖 AI Integration
-Advanced AI integration and coordination:
+### 🔧 API Documentation
+Comprehensive API reference and integration guides:
 
-- **[CHATGPT_INTEGRATION_README.md](guides/CHATGPT_INTEGRATION_README.md)** - ChatGPT backend integration
-- **[CLAUDE_CHATGPT_FALLBACK_GUIDE.md](guides/CLAUDE_CHATGPT_FALLBACK_GUIDE.md)** - Intelligent fallback strategies
+- **[Core API Reference](api/core/claudette-api.md)** - Main Claudette API
+- **[Backend Integration](api/backends.md)** - AI provider integration
+- **[RAG System API](api/rag/rag-system.md)** - RAG integration and usage
+- **[Backend Architecture](api/backends/backend-architecture.md)** - Backend system design
 
-### 🛠️ Development Tools
-Internal development and automation tools:
+### 🧠 RAG Integration
+Retrieval-Augmented Generation documentation:
 
-- **[cache_usage.md](guides/cache_usage.md)** - Caching system documentation
-- **[cost_dashboard.md](guides/cost_dashboard.md)** - Cost monitoring dashboard
-- **[release_process.md](guides/release_process.md)** - Release management process
+- **[RAG System Overview](api/rag/rag-system.md)** - Complete RAG integration guide
+- **[Vector Database Setup](technical/setup/CLAUDETTE_MCP_SETUP.md)** - MCP and vector DB configuration
+- **[RAG Provider Configuration](api/rag/rag-system.md)** - Multi-deployment setup
+
+### 🛠️ Technical Documentation
+Architecture, development, and infrastructure:
+
+- **[System Architecture](technical/ARCHITECTURE.md)** - Platform architecture overview
+- **[Contributing Guidelines](technical/CONTRIBUTING.md)** - Development workflow
+- **[Installation Guide](technical/setup/INSTALLATION_GUIDE.md)** - Advanced installation options
 
 ## 🔍 Quick Reference
 
-### For Private Development
-1. **Cost optimization research** → [guides/COST_CONSERVATION_GUIDE.md](guides/COST_CONSERVATION_GUIDE.md)
-2. **ChatGPT backend integration** → [guides/CHATGPT_INTEGRATION_README.md](guides/CHATGPT_INTEGRATION_README.md)
-3. **Development automation** → [scripts/automation/](../scripts/automation/) directory
+### For New Users
+1. **Getting Started** → [Getting Started Tutorial](getting-started/interactive-tutorial.md)
+2. **Setup Wizard** → `claudette setup wizard` (2-minute guided setup)
+3. **Basic Usage** → [Core API Reference](api/core/claudette-api.md)
 
-### For Production Use
-1. **Public Claudette CLI** → [https://github.com/RobLe3/claudette](https://github.com/RobLe3/claudette)
-2. **Installation and usage** → See public repository README
-3. **Bug reports and features** → Public repository issues
+### For Developers
+1. **API Integration** → [Backend Integration Guide](api/backends.md)
+2. **RAG Setup** → [RAG System Documentation](api/rag/rag-system.md)
+3. **Contributing** → [Contributing Guidelines](technical/CONTRIBUTING.md)
 
-### Core Components
-1. **Coordination systems** → [core/coordination/](../core/coordination/) directory
-2. **Cost tracking** → [core/cost-tracking/](../core/cost-tracking/) directory
-3. **Claude Code integration** → [.claude/](./.claude/) configuration
+### For DevOps/Infrastructure
+1. **Installation Options** → [Installation Guide](technical/setup/INSTALLATION_GUIDE.md)
+2. **Infrastructure Setup** → [Infrastructure Guide](technical/infrastructure/DEVOPS_INFRASTRUCTURE_GUIDE.md)
+3. **Monitoring Setup** → [Monitoring Documentation](../src/monitoring/README.md)
+
+### For Enterprise Users
+1. **Enterprise Features** → [Enterprise Documentation](technical/planning/CLAUDETTE_STRATEGIC_INTEGRATION_PLAN_V2.2-3.0.md)
+2. **Security Configuration** → [Security Documentation](SECURITY.md)
+3. **Advanced RAG** → [RAG Distribution Guide](technical/infrastructure/CLAUDETTE_V2.1.5_RAG_DISTRIBUTION.md)
 
 ## 📝 Documentation Standards
 

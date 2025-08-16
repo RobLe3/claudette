@@ -1,39 +1,68 @@
-# Claudette Cross-Platform Installation Guide
+# Claudette v2.1.6 Cross-Platform Installation Guide
 
-**Cross-Platform Agent - Phase 1 Implementation Swarm**
+**Enterprise Installation System with Setup Wizard**
 
-Universal installation system enabling >95% installation success rate across Linux/macOS/Windows with cross-platform credential storage.
+Universal installation system with interactive setup wizard enabling >95% installation success rate across Linux/macOS/Windows with enterprise-grade credential management and infrastructure readiness.
 
 ## Quick Start
 
-### One-Line Installation
+### Express Installation with Setup Wizard (Recommended)
 
 ```bash
-# Unix/Linux/macOS
-curl -sSL https://install.claudette.dev | bash
+# Global NPM installation with setup wizard
+npm install -g claudette
+claudette setup wizard  # 2-minute interactive setup
+
+# Verify installation
+claudette --version
+claudette setup validate
+```
+
+### One-Line Installation Script
+
+```bash
+# Unix/Linux/macOS - Downloads, installs, and runs setup wizard
+curl -sSL https://github.com/user/claudette/releases/download/v2.1.6/install.sh | bash
 
 # Windows (PowerShell)
-iwr -useb https://install.claudette.dev/windows | iex
+iwr -useb https://github.com/user/claudette/releases/download/v2.1.6/install.ps1 | iex
 ```
 
-### Manual Installation
+### Manual Installation Options
 
-#### Windows
-```powershell
-# Download and run Windows installer
-.\scripts\install\install-windows.ps1
-
-# With options
-.\scripts\install\install-windows.ps1 -InstallPath "C:\Claudette" -NoCredentials
-```
-
-#### macOS/Linux
+#### Option 1: NPM Package Manager
 ```bash
-# Download and run Unix installer
-./scripts/install/install-unix.sh
+# Install Claudette globally
+npm install -g claudette
 
-# With options
-./scripts/install/install-unix.sh --prefix /usr/local --verbose
+# Run interactive setup
+claudette init --wizard
+```
+
+#### Option 2: Release Archive
+```bash
+# Download and extract release
+wget https://github.com/user/claudette/releases/download/v2.1.6/claudette-2.1.6-linux-x64.tar.gz
+tar -xzf claudette-2.1.6-linux-x64.tar.gz
+cd claudette-2.1.6-linux-x64
+
+# Install and setup
+./install.sh
+./claudette setup wizard
+```
+
+#### Option 3: Development Build
+```bash
+# Clone repository
+git clone https://github.com/RobLe3/claudette.git
+cd claudette
+
+# Install dependencies and build
+npm install
+npm run build
+
+# Run setup wizard
+npm run setup:wizard
 ```
 
 ## Installation Features

@@ -4,7 +4,7 @@
  * Comprehensive validation system for Claudette plugins.
  */
 
-import { PluginMetadata, PluginCategory, ValidationResult, ValidationError } from './types';
+import { PluginMetadata, PluginCategory, ValidationResult, ValidationError, ValidationWarning } from './types';
 
 export class PluginValidator {
   /**
@@ -12,7 +12,7 @@ export class PluginValidator {
    */
   static validateMetadata(metadata: PluginMetadata): ValidationResult {
     const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
 
     // Required fields
     if (!metadata.name || metadata.name.trim() === '') {
@@ -45,7 +45,6 @@ export class PluginValidator {
         code: 'MISSING_DESCRIPTION',
         message: 'Plugin description is recommended for better discoverability',
         field: 'description',
-        severity: 'warning'
       });
     }
 
@@ -64,7 +63,6 @@ export class PluginValidator {
         code: 'INVALID_HOMEPAGE_URL',
         message: 'Homepage URL appears to be invalid',
         field: 'homepage',
-        severity: 'warning'
       });
     }
 
@@ -73,7 +71,6 @@ export class PluginValidator {
         code: 'INVALID_REPOSITORY_URL',
         message: 'Repository URL appears to be invalid',
         field: 'repository',
-        severity: 'warning'
       });
     }
 
@@ -82,7 +79,6 @@ export class PluginValidator {
         code: 'INVALID_CLAUDETTE_VERSION',
         message: 'Claudette version range appears to be invalid',
         field: 'claudetteVersion',
-        severity: 'warning'
       });
     }
 
@@ -98,7 +94,7 @@ export class PluginValidator {
    */
   static validateImplementation(pluginClass: any, category: PluginCategory): ValidationResult {
     const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
 
     // Check if it's a constructor function
     if (typeof pluginClass !== 'function') {
@@ -117,7 +113,7 @@ export class PluginValidator {
     } catch (error) {
       errors.push({
         code: 'INSTANTIATION_ERROR',
-        message: `Failed to instantiate plugin: ${error.message}`,
+        message: `Failed to instantiate plugin: ${error instanceof Error ? error.message : String(error)}`,
         severity: 'error'
       });
       return { valid: false, errors, warnings };
@@ -170,7 +166,7 @@ export class PluginValidator {
     };
   }
 
-  private static validateBackendPlugin(instance: any, errors: ValidationError[], warnings: ValidationError[]): void {
+  private static validateBackendPlugin(instance: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
     const backendMethods = ['isAvailable', 'estimateCost', 'getInfo', 'processRequest', 'healthCheck'];
     
     for (const method of backendMethods) {
@@ -194,7 +190,7 @@ export class PluginValidator {
     }
   }
 
-  private static validateRAGPlugin(instance: any, errors: ValidationError[], warnings: ValidationError[]): void {
+  private static validateRAGPlugin(instance: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
     const ragMethods = ['createProvider', 'getSupportedVectorDBs', 'getSupportedDeployments'];
     
     for (const method of ragMethods) {
@@ -209,7 +205,7 @@ export class PluginValidator {
     }
   }
 
-  private static validateCachePlugin(instance: any, errors: ValidationError[], warnings: ValidationError[]): void {
+  private static validateCachePlugin(instance: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
     const cacheMethods = ['createProvider', 'getSupportedBackends'];
     
     for (const method of cacheMethods) {
@@ -229,7 +225,7 @@ export class PluginValidator {
    */
   static validateConfiguration(config: any, pluginMetadata: PluginMetadata): ValidationResult {
     const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
 
     // Basic structure validation
     if (typeof config !== 'object' || config === null) {
@@ -255,7 +251,6 @@ export class PluginValidator {
         code: 'INVALID_PRIORITY',
         message: 'priority should be a non-negative number',
         field: 'priority',
-        severity: 'warning'
       });
     }
 
@@ -275,7 +270,7 @@ export class PluginValidator {
     settings: any, 
     category: PluginCategory, 
     errors: ValidationError[], 
-    warnings: ValidationError[]
+    warnings: ValidationWarning[]
   ): void {
     switch (category) {
       case PluginCategory.BACKEND:
@@ -290,13 +285,12 @@ export class PluginValidator {
     }
   }
 
-  private static validateBackendSettings(settings: any, errors: ValidationError[], warnings: ValidationError[]): void {
+  private static validateBackendSettings(settings: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
     if (settings.timeout && (typeof settings.timeout !== 'number' || settings.timeout <= 0)) {
       warnings.push({
         code: 'INVALID_TIMEOUT',
         message: 'timeout should be a positive number',
         field: 'settings.timeout',
-        severity: 'warning'
       });
     }
 
@@ -310,13 +304,12 @@ export class PluginValidator {
     }
   }
 
-  private static validateRAGSettings(settings: any, errors: ValidationError[], warnings: ValidationError[]): void {
+  private static validateRAGSettings(settings: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
     if (settings.topK && (typeof settings.topK !== 'number' || settings.topK <= 0)) {
       warnings.push({
         code: 'INVALID_TOP_K',
         message: 'topK should be a positive number',
         field: 'settings.topK',
-        severity: 'warning'
       });
     }
 
@@ -326,18 +319,16 @@ export class PluginValidator {
         code: 'INVALID_SCORE_THRESHOLD',
         message: 'scoreThreshold should be a number between 0 and 1',
         field: 'settings.scoreThreshold',
-        severity: 'warning'
       });
     }
   }
 
-  private static validateCacheSettings(settings: any, errors: ValidationError[], warnings: ValidationError[]): void {
+  private static validateCacheSettings(settings: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
     if (settings.ttl && (typeof settings.ttl !== 'number' || settings.ttl <= 0)) {
       warnings.push({
         code: 'INVALID_TTL',
         message: 'ttl should be a positive number',
         field: 'settings.ttl',
-        severity: 'warning'
       });
     }
 
@@ -346,7 +337,6 @@ export class PluginValidator {
         code: 'INVALID_MAX_SIZE',
         message: 'maxSize should be a positive number',
         field: 'settings.maxSize',
-        severity: 'warning'
       });
     }
   }
@@ -356,7 +346,7 @@ export class PluginValidator {
    */
   static validateSecurity(pluginCode: string): ValidationResult {
     const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
 
     // Check for dangerous patterns
     const dangerousPatterns = [
@@ -372,8 +362,7 @@ export class PluginValidator {
         warnings.push({
           code: 'SECURITY_WARNING',
           message,
-          severity: 'warning'
-        });
+          });
       }
     }
 

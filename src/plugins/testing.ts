@@ -33,7 +33,7 @@ export class PluginTestRunner {
           results: [{
             testName: 'Setup',
             passed: false,
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             duration: 0
           }],
           duration: Date.now() - startTime,
@@ -65,7 +65,7 @@ export class PluginTestRunner {
       try {
         await suite.teardown();
       } catch (error) {
-        console.warn('Teardown failed:', error.message);
+        console.warn('Teardown failed:', error instanceof Error ? error.message : String(error));
       }
     }
 
@@ -104,7 +104,7 @@ export class PluginTestRunner {
       return {
         testName: test.name,
         passed: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime
       };
     }
@@ -143,17 +143,18 @@ export class PluginTestRunner {
 }
 
 // Test Utilities
-export class PluginTestUtils {
+export class TestFrameworkUtils {
   /**
    * Create mock plugin context
    */
   static createMockContext(overrides: Partial<PluginContext> = {}): PluginContext {
     return {
       logger: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        debug: jest.fn()
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+        debug: () => {},
+        fatal: () => {}
       } as any,
       config: {
         enabled: true,

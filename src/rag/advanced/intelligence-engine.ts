@@ -494,7 +494,7 @@ export class AdvancedRAGIntelligenceEngine {
           cross_modal: 0.5
         },
         chunking: {
-          strategy: strategy.chunking,
+          strategy: strategy.chunking as "fixed" | "adaptive" | "semantic" | "contextual",
           chunkId: `chunk_${Date.now()}`,
           chunkSize: 512,
           overlap: 50

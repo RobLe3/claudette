@@ -225,3 +225,63 @@ export class DatabaseError extends ClaudetteError {
     this.name = 'DatabaseError';
   }
 }
+
+// RAG System types
+export interface RAGProvider {
+  name: string;
+  initialize(): Promise<void>;
+  query(request: RAGQuery): Promise<RAGResult[]>;
+  isAvailable(): Promise<boolean>;
+  getMetadata(): RAGProviderMetadata;
+}
+
+export interface RAGQuery {
+  query: string;
+  context?: string;
+  maxResults?: number;
+  threshold?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface RAGResult {
+  content: string;
+  score: number;
+  source: string;
+  metadata?: Record<string, any>;
+  relationships?: GraphRelationship[];
+}
+
+export interface RAGProviderMetadata {
+  name: string;
+  version: string;
+  type: 'vector' | 'graph' | 'hybrid';
+  capabilities: string[];
+}
+
+export interface GraphRelationship {
+  type: string;
+  target: string;
+  weight: number;
+  properties?: Record<string, any>;
+}
+
+// Cache Provider types
+export interface CacheProvider {
+  name: string;
+  initialize(): Promise<void>;
+  get(key: string): Promise<any>;
+  set(key: string, value: any, ttl?: number): Promise<void>;
+  delete(key: string): Promise<boolean>;
+  clear(): Promise<void>;
+  getStats(): Promise<CacheStats>;
+  isAvailable(): Promise<boolean>;
+}
+
+// Logger interface
+export interface Logger {
+  debug(message: string, ...args: any[]): void;
+  info(message: string, ...args: any[]): void;
+  warn(message: string, ...args: any[]): void;
+  error(message: string, ...args: any[]): void;
+  fatal(message: string, ...args: any[]): void;
+}

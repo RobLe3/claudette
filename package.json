@@ -1,7 +1,7 @@
 {
   "name": "claudette",
   "version": "2.1.6",
-  "description": "High-performance Claude Code middleware with RAG integration and AI backend manager",
+  "description": "Enterprise AI middleware platform with intelligent routing, RAG integration, monitoring, and cost optimization",
   "main": "claudette",
   "bin": {
     "claudette": "./claudette"
@@ -43,19 +43,26 @@
     "setup-credentials": "node -e \"require('./src/credentials').getCredentialManager().then(m => console.log('Use: claudette setup-credentials'))\""
   },
   "keywords": [
-    "claude",
-    "middleware",
-    "ai",
-    "claude-code",
-    "task-interception",
+    "ai-middleware",
+    "backend-routing",
     "cost-optimization",
     "rag",
+    "retrieval-augmented-generation",
+    "monitoring",
+    "observability",
+    "setup-wizard",
+    "claude",
+    "openai",
+    "qwen",
+    "anthropic",
     "graphrag",
-    "vector-db",
+    "vector-database",
     "lightrag",
     "mcp",
     "docker",
-    "retrieval-augmented-generation"
+    "enterprise-ai",
+    "ml-routing",
+    "predictive-analytics"
   ],
   "author": "Claudette Team",
   "license": "MIT",

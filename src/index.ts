@@ -413,5 +413,10 @@ export async function optimize(
 
 // Export other utilities
 export * from './types/index';
-export * from './rag/index';
+export { 
+  RAGManager,
+  DockerRAGProvider,
+  MCPRAGProvider,
+  BaseRAGProvider 
+} from './rag/index';
 export * from './setup/index';
