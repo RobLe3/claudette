@@ -713,7 +713,7 @@ export class PerformanceAnalytics {
     }
   }
 
-  private async updateAllForecasts(): void {
+  private async updateAllForecasts(): Promise<void> {
     const metricTypes = ['latency', 'cost', 'success_rate', 'quality'];
     const backends = new Set<string>();
     

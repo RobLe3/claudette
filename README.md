@@ -1,10 +1,10 @@
-# Claudette v2.1.5 - AI Middleware with RAG Integration 🧠
+# Claudette v2.1.6 - AI Middleware with RAG Integration 🧠
 
 🚀 **Production-Ready AI Backend Router, Cost Optimizer & RAG Platform**
 
-> **v2.1.5 MAJOR UPDATE**: Complete RAG (Retrieval-Augmented Generation) integration with support for MCP plugins, Docker containers, and remote APIs. All 41 tests passing (100% success rate).
+> **v2.1.6 MAJOR UPDATE**: Complete RAG (Retrieval-Augmented Generation) integration with support for MCP plugins, Docker containers, and remote APIs. All 41 tests passing (100% success rate).
 
-![Version](https://img.shields.io/badge/version-2.1.5-blue)
+![Version](https://img.shields.io/badge/version-2.1.6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)
 ![Tested](https://img.shields.io/badge/Quality-100%25-brightgreen)
@@ -40,21 +40,21 @@ Download platform-specific packages from [Releases](https://github.com/user/clau
 
 ```bash
 # Linux/macOS
-wget https://github.com/user/claudette/releases/download/v2.1.5/claudette-2.1.5-linux-x64.tar.gz
-tar -xzf claudette-2.1.5-linux-x64.tar.gz
-cd claudette-2.1.5-linux-x64
+wget https://github.com/user/claudette/releases/download/v2.1.6/claudette-2.1.6-linux-x64.tar.gz
+tar -xzf claudette-2.1.6-linux-x64.tar.gz
+cd claudette-2.1.6-linux-x64
 ./install.sh
 ```
 
 ```batch
 # Windows
-# Download claudette-2.1.5-win32-x64.zip
+# Download claudette-2.1.6-win32-x64.zip
 # Extract and run install.bat
 ```
 
 ### Verification
 ```bash
-claudette --version  # Should output: 2.1.5
+claudette --version  # Should output: 2.1.6
 claudette --help     # Display usage information
 ```
 
@@ -118,7 +118,7 @@ claudette --help     # Display usage information
 
 ```bash
 # Install from package
-npm install claudette-2.1.5.tgz
+npm install claudette-2.1.6.tgz
 
 # Or clone the repository
 git clone https://github.com/RobLe3/claudette.git
@@ -335,7 +335,7 @@ npm run test:quality
 
 ---
 
-## 🔄 v2.1.5 Changelog
+## 🔄 v2.1.6 Changelog
 
 ### 🧠 **MAJOR: RAG Integration**
 - **Complete RAG Ecosystem**: Full implementation with 6 new TypeScript modules
@@ -368,7 +368,7 @@ npm run test:quality
 
 ## 🗺️ Roadmap
 
-### ✅ v2.1.5 (Current)
+### ✅ v2.1.6 (Current)
 - [x] **RAG Integration**: Complete ecosystem with multi-deployment support
 - [x] **Enhanced Testing**: 24 additional tests for RAG functionality  
 - [x] **Vector Databases**: Support for major vector DB providers

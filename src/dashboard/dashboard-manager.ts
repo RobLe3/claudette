@@ -238,7 +238,9 @@ export class DashboardManager extends EventEmitter {
       // Build component health map
       const componentHealthMap: Record<string, 'healthy' | 'warning' | 'critical'> = {};
       Object.values(systemHealth).forEach(health => {
-        componentHealthMap[health.component] = health.status;
+        // Map 'unknown' to 'warning' for display purposes
+        const mappedStatus = health.status === 'unknown' ? 'warning' : health.status;
+        componentHealthMap[health.component] = mappedStatus;
       });
 
       // Get performance metrics for trends

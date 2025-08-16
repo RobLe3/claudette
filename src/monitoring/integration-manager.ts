@@ -189,7 +189,7 @@ export class IntegrationManager extends EventEmitter {
         'operation': operation,
         'model': request.model,
         'prompt_length': request.prompt?.length || 0,
-        'max_tokens': request.max_tokens || 0,
+        'max_tokens': request.options?.max_tokens || 0,
         'temperature': request.temperature || 0
       });
     }
@@ -206,7 +206,7 @@ export class IntegrationManager extends EventEmitter {
       metadata: {
         request_size: JSON.stringify(request).length,
         model: request.model,
-        max_tokens: request.max_tokens,
+        max_tokens: request.options?.max_tokens,
         temperature: request.temperature
       }
     };
@@ -254,7 +254,7 @@ export class IntegrationManager extends EventEmitter {
           'total_tokens': response.usage?.total_tokens || 0,
           'cost_eur': response.cost_eur,
           'latency_ms': duration,
-          'cached': response.cached || false
+          'cached': response.cache_hit || false
         };
 
         this.observabilityFramework.finishSpan(

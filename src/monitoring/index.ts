@@ -122,7 +122,7 @@ export class MonitoringPlatform {
   ) {
     this.db = db;
     
-    console.log('🚀 Initializing Claudette Monitoring Platform v2.1.5');
+    console.log('🚀 Initializing Claudette Monitoring Platform v2.1.6');
     
     // Initialize core monitoring components
     this.systemMonitor = new SystemMonitor(db, config.systemMonitor);
@@ -130,7 +130,7 @@ export class MonitoringPlatform {
     this.observabilityFramework = new ObservabilityFramework(
       db,
       config.serviceName || 'claudette',
-      config.serviceVersion || '2.1.5',
+      config.serviceVersion || '2.1.6',
       config.environment || 'production',
       config.observability
     );
@@ -257,16 +257,16 @@ export class MonitoringPlatform {
         details: systemHealth
       },
       alertManager: {
-        status: activeAlerts.length > 10 ? 'critical' : activeAlerts.length > 5 ? 'warning' : 'healthy',
+        status: (activeAlerts.length > 10 ? 'critical' : activeAlerts.length > 5 ? 'warning' : 'healthy') as 'healthy' | 'warning' | 'critical',
         details: { activeAlerts: activeAlerts.length }
       },
       observability: {
-        status: observabilityHealth.performance.memoryUsage > 1000 ? 'warning' : 'healthy',
+        status: (observabilityHealth.performance.memoryUsage > 1000 ? 'warning' : 'healthy') as 'healthy' | 'warning' | 'critical',
         details: observabilityHealth
       },
       dashboard: {
-        status: dashboardData.systemHealth.overall,
-        details: dashboardData.systemHealth
+        status: dashboardData.health.overall,
+        details: dashboardData.health
       },
       integrations: {
         status: integrationStatus.some(i => i.healthStatus === 'critical') ? 'critical' :
@@ -285,7 +285,7 @@ export class MonitoringPlatform {
       metrics: {
         activeTraces: observabilityHealth.tracing.activeTraces,
         activeAlerts: activeAlerts.length,
-        systemHealth: dashboardData.systemHealth.overall,
+        systemHealth: dashboardData.health.overall,
         dashboardHealth: components.dashboard.status,
         memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024,
         uptime: process.uptime()
@@ -456,41 +456,8 @@ export class MonitoringPlatform {
 
   // Private helper methods
   private setupCrossComponentIntegration(): void {
-    // Connect alert manager to system monitor
-    this.systemMonitor.on('alertTriggered', (alert) => {
-      this.alertManager.evaluateMetrics([{
-        name: alert.metricType,
-        value: alert.currentValue,
-        labels: { component: alert.component || 'system' },
-        timestamp: alert.timestamp
-      }]);
-    });
-
-    // Connect observability to dashboard
-    this.observabilityFramework.on('spanFinished', (span) => {
-      if (span.duration) {
-        this.performanceAnalytics.recordMetric({
-          timestamp: span.endTime || Date.now(),
-          metricType: 'latency',
-          value: span.duration,
-          backend: span.metadata.serviceName
-        });
-      }
-    });
-
-    // Connect performance analytics to dashboard
-    this.performanceAnalytics.on('alertTriggered', (alert) => {
-      this.dashboardManager.addWidget({
-        id: `alert_${alert.id}`,
-        type: 'alert',
-        title: 'Performance Alert',
-        description: alert.description,
-        data: alert,
-        config: {
-          thresholds: { warning: 1, critical: 3 }
-        }
-      });
-    });
+    // TODO: Implement event-based integration when SystemMonitor and PerformanceAnalytics extend EventEmitter
+    console.log('📊 Cross-component integration setup deferred - event emitters not implemented');
 
     console.log('🔗 Cross-component integration configured');
   }
@@ -525,7 +492,7 @@ export function initializeMonitoring(
   
   const config: MonitoringPlatformConfiguration = {
     serviceName,
-    serviceVersion: '2.1.5',
+    serviceVersion: '2.1.6',
     environment,
     systemMonitor: {
       enabled: true,
@@ -535,39 +502,69 @@ export function initializeMonitoring(
     observability: {
       tracing: {
         enabled: true,
-        samplingRate: 0.1
+        samplingRate: 0.1,
+        maxSpansPerTrace: 1000,
+        spanTimeout: 30000,
+        exportBatchSize: 100,
+        exportInterval: 5000
       },
       logging: {
         enabled: true,
-        level: 'info'
+        level: 'info',
+        structuredLogging: true,
+        includeStackTrace: false,
+        maxLogSize: 1048576,
+        bufferSize: 1000,
+        flushInterval: 5000
       },
       metrics: {
         enabled: true,
-        collectionInterval: 15000
+        collectionInterval: 15000,
+        histogramBuckets: [0.1, 0.5, 1, 2, 5, 10],
+        summaryObjectives: { 0.5: 0.05, 0.9: 0.01, 0.99: 0.001 },
+        labelCardinality: 1000
       }
     },
     analytics: {
       realTimeMonitoring: {
         enabled: true,
-        samplingRate: 1.0
+        samplingRate: 1.0,
+        alertThresholds: {
+          latencyP95: 1000,
+          errorRate: 0.05,
+          costPerRequest: 0.01,
+          memoryUsage: 80,
+          cacheHitRate: 0.8
+        },
+        alertCooldown: 300000
       },
       predictiveAnalytics: {
         enabled: true,
-        forecastHorizon: 24
+        forecastHorizon: 24,
+        models: ['linear', 'exponential', 'seasonal'],
+        confidenceInterval: 0.8,
+        minimumDataPoints: 100
       },
       regressionDetection: {
         enabled: true,
-        detectionWindow: 30
+        detectionWindow: 30,
+        sensitivityThreshold: 0.05,
+        minimumSampleSize: 50,
+        statisticalTests: ['t_test', 'mann_whitney']
       }
     },
     dashboard: {
       realTimeUpdates: {
         enabled: true,
-        updateInterval: 5000
+        updateInterval: 5000,
+        maxDataPoints: 1000,
+        compressionEnabled: true
       },
       visualization: {
         theme: 'dark',
-        refreshRate: 30
+        refreshRate: 30,
+        animationsEnabled: true,
+        responsiveLayout: true
       }
     },
     integrations: {

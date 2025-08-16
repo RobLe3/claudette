@@ -264,7 +264,7 @@ export class PluginManager extends EventEmitter {
       logger: new Logger(`plugin:${pluginName}`),
       config,
       events: this,
-      claudetteVersion: '2.1.5', // TODO: Get from package.json
+      claudetteVersion: '2.1.6', // TODO: Get from package.json
       environment: process.env.NODE_ENV as any || 'development'
     };
 

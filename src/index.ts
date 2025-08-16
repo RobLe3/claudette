@@ -376,7 +376,7 @@ export class Claudette {
         stats: routerStats,
         health: backendHealth
       },
-      version: '2.1.5'
+      version: '2.1.6'
     };
   }
 

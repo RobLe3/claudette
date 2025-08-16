@@ -59,6 +59,9 @@ export interface ClaudetteRequest {
   backend?: string;
   options?: RequestOptions;
   metadata?: Record<string, any>;
+  model?: string;
+  context?: string;
+  temperature?: number;
 }
 
 export interface RequestOptions {
@@ -81,6 +84,12 @@ export interface ClaudetteResponse {
   cache_hit: boolean;
   compression_ratio?: number;
   metadata?: Record<string, any>;
+  usage?: {
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+  };
+  error?: string;
 }
 
 // Database schema types

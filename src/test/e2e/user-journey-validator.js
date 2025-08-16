@@ -338,7 +338,7 @@ class UserJourneyValidator {
       // Create a mock configuration file
       const configPath = path.join(testDir, '.claudette', 'config.json');
       const mockConfig = {
-        version: '2.1.5',
+        version: '2.1.6',
         setupCompleted: true,
         setupTime: new Date().toISOString(),
         backends: {
