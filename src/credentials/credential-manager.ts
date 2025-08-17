@@ -52,16 +52,23 @@ export class UniversalCredentialManager {
       }
     }
 
-    // Ensure fallback is available if enabled
-    if (this.options.fallbackToFile !== false) {
-      if (!await this.fallbackStorage.isAvailable()) {
-        throw new CredentialError(
-          'No credential storage systems available',
-          platformInfo.platform,
-          'none',
-          false
-        );
-      }
+    // Check if we have at least one working storage system
+    const hasPrimaryStorage = this.primaryStorage !== null;
+    const hasFallbackStorage = this.options.fallbackToFile !== false && 
+                              await this.fallbackStorage.isAvailable();
+    
+    if (!hasPrimaryStorage && !hasFallbackStorage) {
+      throw new CredentialError(
+        'No credential storage systems available',
+        platformInfo.platform,
+        'none',
+        false
+      );
+    }
+    
+    // If fallback is enabled but not available, log a warning
+    if (this.options.fallbackToFile !== false && !hasFallbackStorage) {
+      console.warn('Warning: Fallback file storage not available, using primary storage only');
     }
 
     this.initialized = true;
@@ -85,8 +92,8 @@ export class UniversalCredentialManager {
       }
     }
 
-    // Try fallback storage
-    if (this.options.fallbackToFile !== false) {
+    // Try fallback storage if available
+    if (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) {
       try {
         await this.fallbackStorage.store(credential);
         return;
@@ -124,8 +131,8 @@ export class UniversalCredentialManager {
       }
     }
 
-    // Try fallback storage
-    if (this.options.fallbackToFile !== false) {
+    // Try fallback storage if available
+    if (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) {
       try {
         return await this.fallbackStorage.retrieve(service, account);
       } catch (error) {
@@ -154,8 +161,8 @@ export class UniversalCredentialManager {
       }
     }
 
-    // Delete from fallback storage
-    if (this.options.fallbackToFile !== false) {
+    // Delete from fallback storage if available
+    if (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) {
       try {
         const fallbackDeleted = await this.fallbackStorage.delete(service, account);
         deleted = deleted || fallbackDeleted;
@@ -184,8 +191,8 @@ export class UniversalCredentialManager {
       }
     }
 
-    // Check fallback storage
-    if (this.options.fallbackToFile !== false) {
+    // Check fallback storage if available
+    if (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) {
       try {
         return await this.fallbackStorage.exists(service, account);
       } catch (error) {
@@ -214,8 +221,8 @@ export class UniversalCredentialManager {
       }
     }
 
-    // Get services from fallback storage
-    if (this.options.fallbackToFile !== false) {
+    // Get services from fallback storage if available
+    if (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) {
       try {
         const fallbackServices = await this.fallbackStorage.listServices();
         fallbackServices.forEach(service => services.add(service));
@@ -249,7 +256,7 @@ export class UniversalCredentialManager {
       availableStorages,
       credentialCount,
       primaryStorage: this.primaryStorage?.getStorageName(),
-      fallbackStorage: this.options.fallbackToFile !== false ? 
+      fallbackStorage: (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) ? 
         this.fallbackStorage.getStorageName() : undefined
     };
 
@@ -343,7 +350,7 @@ export class UniversalCredentialManager {
       }
     }
 
-    if (this.options.fallbackToFile !== false) {
+    if (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) {
       try {
         info.fallback = await this.fallbackStorage.getStorageInfo();
       } catch {

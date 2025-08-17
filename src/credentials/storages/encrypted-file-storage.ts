@@ -227,6 +227,43 @@ export class EncryptedFileStorage implements CredentialStorage {
     try {
       await fs.mkdir(this.storageDirectory, { recursive: true, mode: 0o700 });
     } catch (error: any) {
+      // If mkdir fails, try to check if directory already exists with correct permissions
+      if (error.code === 'EACCES' || error.code === 'EPERM') {
+        try {
+          // Check if directory exists and is accessible
+          await fs.access(this.storageDirectory, fs.constants.R_OK | fs.constants.W_OK);
+          return; // Directory exists and is accessible
+        } catch {
+          // Directory doesn't exist or isn't accessible
+        }
+        
+        // Try alternative directory in user's home if main directory fails
+        const { homedir } = require('os');
+        const alternativeDir = join(homedir(), '.config', 'claudette', 'credentials');
+        
+        try {
+          await fs.mkdir(alternativeDir, { recursive: true, mode: 0o700 });
+          // Update paths to use alternative directory
+          (this as any).storageDirectory = alternativeDir;
+          (this as any).credentialFile = join(alternativeDir, 'credentials.enc');
+          return;
+        } catch {
+          // Fall back to temporary directory
+          const { tmpdir } = require('os');
+          const tempDir = join(tmpdir(), 'claudette-credentials');
+          
+          try {
+            await fs.mkdir(tempDir, { recursive: true, mode: 0o700 });
+            console.warn(`Warning: Using temporary directory for credential storage: ${tempDir}`);
+            (this as any).storageDirectory = tempDir;
+            (this as any).credentialFile = join(tempDir, 'credentials.enc');
+            return;
+          } catch {
+            // Give up
+          }
+        }
+      }
+      
       throw new CredentialError(
         `Failed to create storage directory: ${error.message}`,
         this.getCurrentPlatform(),
