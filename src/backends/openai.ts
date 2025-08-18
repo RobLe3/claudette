@@ -27,28 +27,10 @@ export class OpenAIBackend extends BaseBackend {
   }
 
   /**
-   * Get API key from config, environment, or credential storage
+   * Get API key using unified retrieval method
    */
-  private async getApiKey(): Promise<string | null> {
-    // Try config first
-    if (this.config.api_key) {
-      return this.config.api_key;
-    }
-
-    // Try environment variable
-    if (process.env.OPENAI_API_KEY) {
-      return process.env.OPENAI_API_KEY;
-    }
-
-    // Try credential storage
-    try {
-      const credentialManager = getCredentialManager();
-      const stored = await credentialManager.retrieve('openai-api-key');
-      return stored;
-    } catch (error) {
-      console.warn('Failed to retrieve OpenAI API key from credential storage:', error);
-      return null;
-    }
+  protected async getApiKey(): Promise<string | null> {
+    return await super.getApiKey('openai-api-key', ['OPENAI_API_KEY']);
   }
 
   /**

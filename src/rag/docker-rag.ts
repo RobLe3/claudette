@@ -133,12 +133,15 @@ export class DockerRAGProvider extends BaseRAGProvider {
 
       console.log(`✅ Docker RAG query completed in ${duration}ms`);
       
+      // Type cast the result to avoid TypeScript errors
+      const typedResult = result as any;
+      
       return {
-        results: result.results || [],
+        results: typedResult.results || [],
         metadata: {
-          totalResults: result.totalResults || result.results?.length || 0,
+          totalResults: typedResult.totalResults || typedResult.results?.length || 0,
           processingTime: duration,
-          source: result.source || 'vector',
+          source: typedResult.source || 'vector',
           queryId
         }
       };
@@ -165,7 +168,7 @@ export class DockerRAGProvider extends BaseRAGProvider {
         return false;
       }
       
-      const data = await response.json();
+      const data = await response.json() as any;
       return data.status === 'healthy' || data.status === 'ok';
 
     } catch (error: any) {

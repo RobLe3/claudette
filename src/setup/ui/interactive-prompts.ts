@@ -85,48 +85,102 @@ export class InteractivePrompts {
       process.stdin.setEncoding('utf8');
       
       let password = '';
+      let inputBuffer = '';
+      let processingTimeout: NodeJS.Timeout | null = null;
       
-      const onData = (char: string) => {
-        char = char.toString();
+      // State machine for input processing
+      enum InputState {
+        READY,      // Ready to process input
+        PROCESSING  // Currently processing input buffer
+      }
+      
+      let state = InputState.READY;
+      
+      const onData = (chunk: string) => {
+        // Add all incoming data to buffer
+        inputBuffer += chunk.toString();
         
-        switch (char) {
-          case '\n':
-          case '\r':
-          case '\u0004': // Ctrl-D
-            process.stdin.setRawMode(false);
-            process.stdin.removeListener('data', onData);
-            process.stdout.write('\n');
-            
-            if (validator) {
-              const validation = validator(password);
-              if (validation !== true) {
-                const errorMessage = typeof validation === 'string' ? validation : 'Invalid input';
-                console.log(chalk.red(errorMessage));
-                resolve(this.password(message, validator));
-                return;
-              }
-            }
-            
-            resolve(password);
-            break;
-            
-          case '\u0003': // Ctrl-C
-            process.stdout.write('\n');
-            process.exit(1);
-            break;
-            
-          case '\u007f': // Backspace
-            if (password.length > 0) {
-              password = password.slice(0, -1);
-              process.stdout.write('\b \b');
-            }
-            break;
-            
-          default:
-            password += char;
-            process.stdout.write('*');
-            break;
+        // If we're not already processing, start processing
+        if (state === InputState.READY) {
+          state = InputState.PROCESSING;
+          
+          // Clear any existing timeout
+          if (processingTimeout) {
+            clearTimeout(processingTimeout);
+          }
+          
+          // Process buffer after a minimal delay to handle paste operations
+          processingTimeout = setTimeout(() => {
+            processInputBuffer();
+          }, 5);
         }
+      };
+      
+      const processInputBuffer = () => {
+        if (!inputBuffer || state !== InputState.PROCESSING) return;
+        
+        // Process all characters in the buffer sequentially
+        for (let i = 0; i < inputBuffer.length; i++) {
+          const char = inputBuffer[i];
+          
+          switch (char) {
+            case '\n':
+            case '\r':
+            case '\u0004': // Ctrl-D
+              // Complete input - finish processing and return
+              cleanup();
+              process.stdout.write('\n');
+              
+              if (validator) {
+                const validation = validator(password);
+                if (validation !== true) {
+                  const errorMessage = typeof validation === 'string' ? validation : 'Invalid input';
+                  console.log(chalk.red(errorMessage));
+                  resolve(this.password(message, validator));
+                  return;
+                }
+              }
+              
+              resolve(password);
+              return;
+              
+            case '\u0003': // Ctrl-C
+              cleanup();
+              process.stdout.write('\n');
+              process.exit(1);
+              break;
+              
+            case '\u007f': // Backspace
+              if (password.length > 0) {
+                password = password.slice(0, -1);
+                process.stdout.write('\b \b');
+              }
+              break;
+              
+            default:
+              // Filter out control characters and ensure printable characters
+              if (char.charCodeAt(0) >= 32 && char.charCodeAt(0) <= 126) {
+                password += char;
+                process.stdout.write('*');
+              }
+              break;
+          }
+        }
+        
+        // Clear the buffer and reset state for next input
+        inputBuffer = '';
+        state = InputState.READY;
+        processingTimeout = null;
+      };
+      
+      const cleanup = () => {
+        if (processingTimeout) {
+          clearTimeout(processingTimeout);
+          processingTimeout = null;
+        }
+        process.stdin.setRawMode(false);
+        process.stdin.removeListener('data', onData);
+        state = InputState.READY;
       };
       
       process.stdin.on('data', onData);

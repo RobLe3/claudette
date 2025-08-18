@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-08-16T19:58:53.606Z",
+  "platform": "darwin",
+  "nodeVersion": "v24.6.0",
+  "measurements": [
+    {
+      "name": "Module Import Time",
+      "value": 1085.036161,
+      "unit": "ms",
+      "threshold": 2000,
+      "status": "PASS"
+    },
+    {
+      "name": "Startup Overhead",
+      "value": 5.210720999999921,
+      "unit": "ms",
+      "threshold": 100,
+      "status": "PASS"
+    },
+    {
+      "name": "Memory Usage (RSS)",
+      "value": 53.04296875,
+      "unit": "MB",
+      "threshold": 100,
+      "status": "PASS"
+    },
+    {
+      "name": "CLI Response Time",
+      "value": 1572.538894,
+      "unit": "ms",
+      "threshold": 3000,
+      "status": "PASS"
+    }
+  ],
+  "performanceScore": 100
+}

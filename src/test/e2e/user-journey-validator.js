@@ -531,9 +531,9 @@ class UserJourneyValidator {
     
     const testDir = await this.createJourneyEnvironment(journeyName, scenario);
     const journeyStart = Date.now();
+    let steps = []; // Declare outside try block to fix scoping
     
     try {
-      const steps = [];
 
       // Step 1: Installation
       this.log('step', 'Step 1: Installing Claudette');
@@ -605,7 +605,7 @@ class UserJourneyValidator {
         success: false,
         duration: journeyTime,
         error: error.message,
-        steps: steps || []
+        steps: steps
       };
 
       this.log('error', `❌ ${journeyName} journey failed: ${error.message}`);
@@ -622,9 +622,9 @@ class UserJourneyValidator {
     
     const testDir = await this.createJourneyEnvironment(journeyName, scenario);
     const journeyStart = Date.now();
+    let steps = []; // Declare outside try block to fix scoping
     
     try {
-      const steps = [];
 
       // Step 1: Installation
       const installResult = await this.installClaudetteForJourney(testDir, scenario);
@@ -703,7 +703,7 @@ class UserJourneyValidator {
         success: false,
         duration: journeyTime,
         error: error.message,
-        steps: steps || []
+        steps: steps
       };
 
       this.log('error', `❌ ${journeyName} journey failed: ${error.message}`);
@@ -720,9 +720,9 @@ class UserJourneyValidator {
     
     const testDir = await this.createJourneyEnvironment(journeyName, scenario);
     const journeyStart = Date.now();
+    let steps = []; // Declare outside try block to fix scoping
     
     try {
-      const steps = [];
 
       // Step 1: Installation
       const installResult = await this.installClaudetteForJourney(testDir, scenario);
@@ -818,7 +818,7 @@ class UserJourneyValidator {
         success: false,
         duration: journeyTime,
         error: error.message,
-        steps: steps || []
+        steps: steps
       };
 
       this.log('error', `❌ ${journeyName} journey failed: ${error.message}`);

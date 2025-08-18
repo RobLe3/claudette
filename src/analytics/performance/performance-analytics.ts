@@ -2,7 +2,23 @@
 // Real-time monitoring, predictive analytics, and performance regression detection
 
 import { ClaudetteRequest, ClaudetteResponse, Backend } from '../../types/index';
-import { MLPrediction } from '../../router/ml/ml-routing-engine';
+// ML prediction interface moved to analytics
+interface MLPrediction {
+  backendName: string;
+  confidence: number;
+  expectedLatency: number;
+  expectedCost: number;
+  reasoning: string[];
+  prediction: {
+    latency: number;
+    cost: number;
+    quality: number;
+    expectedLatency: number;
+    costEfficiency: number;
+    successProbability: number;
+    qualityScore: number;
+  };
+}
 
 export interface PerformanceMetric {
   timestamp: number;

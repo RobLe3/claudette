@@ -7,6 +7,7 @@ const assert = require('assert');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 class RAGTestSuite {
   constructor() {
@@ -93,7 +94,7 @@ class RAGTestSuite {
           deployment: 'mcp',
           connection: {
             type: 'mcp',
-            pluginPath: '/path/to/mcp/plugin.js',
+            pluginPath: path.join(os.tmpdir(), 'mcp', 'plugin.js'),
             serverPort: 3000
           }
         };
@@ -115,7 +116,7 @@ class RAGTestSuite {
           deployment: 'mcp',
           connection: {
             type: 'mcp',
-            pluginPath: '/nonexistent/path'
+            pluginPath: path.join(os.tmpdir(), 'nonexistent', 'path')
           }
         };
 
@@ -544,7 +545,7 @@ class RAGTestSuite {
   createMockConnection(type) {
     switch (type) {
       case 'mcp':
-        return { type: 'mcp', pluginPath: '/mock/plugin.js' };
+        return { type: 'mcp', pluginPath: path.join(os.tmpdir(), 'mock', 'plugin.js') };
       case 'local_docker':
         return { type: 'docker', containerName: 'mock-rag', port: 8080 };
       case 'remote_docker':

@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-08-16T21:23:37.857Z",
+  "tests": [
+    {
+      "name": "Code Structure",
+      "success": true,
+      "score": 100
+    },
+    {
+      "name": "Code Complexity",
+      "success": true,
+      "metrics": {
+        "cyclomaticComplexity": 8,
+        "cognitiveComplexity": 12,
+        "linesOfCode": 250,
+        "maintainabilityIndex": 85
+      }
+    },
+    {
+      "name": "API Consistency",
+      "success": true,
+      "score": 100,
+      "checks": {
+        "methodNaming": true,
+        "errorHandling": true,
+        "responseFormat": true,
+        "documentation": true
+      }
+    }
+  ],
+  "codeMetrics": {
+    "structureScore": 100,
+    "complexity": {
+      "cyclomaticComplexity": 8,
+      "cognitiveComplexity": 12,
+      "linesOfCode": 250,
+      "maintainabilityIndex": 85
+    },
+    "apiConsistencyScore": 100
+  },
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "qualityScore": 100
+  }
+}

@@ -26,29 +26,10 @@ export class QwenBackend extends BaseBackend {
   }
 
   /**
-   * Get API key from config, environment, or credential storage
+   * Get API key using unified retrieval method
    */
-  private async getApiKey(): Promise<string | null> {
-    // Try config first
-    if (this.config.api_key) {
-      return this.config.api_key;
-    }
-
-    // Try environment variable
-    if (process.env.CODELLM_API_KEY) {
-      return process.env.CODELLM_API_KEY;
-    }
-
-    // Try credential storage with multiple key names
-    try {
-      const credentialManager = getCredentialManager();
-      const stored = await credentialManager.retrieve('codellm-api-key') ||
-                     await credentialManager.retrieve('qwen-api-key');
-      return stored;
-    } catch (error) {
-      console.warn('Failed to retrieve Qwen/CodeLLM API key from credential storage:', error);
-      return null;
-    }
+  protected async getApiKey(): Promise<string | null> {
+    return await super.getApiKey('codellm-api-key', ['CODELLM_API_KEY', 'QWEN_API_KEY']);
   }
 
   protected async healthCheck(): Promise<boolean> {

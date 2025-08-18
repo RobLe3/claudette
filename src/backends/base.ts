@@ -8,6 +8,7 @@ import {
   ClaudetteResponse, 
   BackendError 
 } from '../types/index';
+import { getCredentialManager } from '../credentials';
 
 export abstract class BaseBackend implements Backend {
   public readonly name: string;
@@ -184,6 +185,38 @@ export abstract class BaseBackend implements Backend {
   protected estimateTokens(text: string): number {
     // Rough estimation: ~4 characters per token for English text
     return Math.ceil(text.length / 4);
+  }
+
+  /**
+   * Unified API key retrieval method for all backends
+   * Follows standardized fallback hierarchy:
+   * 1. Configuration file
+   * 2. Environment variables
+   * 3. Credential storage
+   */
+  protected async getApiKey(keyName: string, envVars: string[] = []): Promise<string | null> {
+    // Try config first
+    if (this.config.api_key) {
+      return this.config.api_key;
+    }
+
+    // Try environment variables
+    for (const envVar of envVars) {
+      if (process.env[envVar]) {
+        return process.env[envVar];
+      }
+    }
+
+    // Try credential storage with standardized naming
+    try {
+      const credentialManager = getCredentialManager();
+      const stored = await credentialManager.retrieve(`claudette-${this.name}`) ||
+                     await credentialManager.retrieve(keyName);
+      return stored;
+    } catch (error) {
+      console.warn(`Failed to retrieve ${this.name} API key from credential storage:`, error);
+      return null;
+    }
   }
 
   /**

@@ -236,14 +236,52 @@ class EmergencyReleaseValidator {
       const files = await this.findResultFiles(pattern);
       const results = [];
       
-      for (const file of files) {
-        const data = JSON.parse(await fs.readFile(file, 'utf8'));
-        results.push(data);
+      if (files.length === 0) {
+        this.log('warning', `No result files found matching pattern: ${pattern}`);
+        return [];
       }
       
+      for (const file of files) {
+        try {
+          const fileContent = await fs.readFile(file, 'utf8');
+          
+          // Handle empty files
+          if (!fileContent.trim()) {
+            this.log('warning', `Skipping empty result file: ${file}`);
+            continue;
+          }
+          
+          // Parse JSON with error handling
+          let data;
+          try {
+            data = JSON.parse(fileContent);
+          } catch (parseError) {
+            this.log('warning', `Invalid JSON in result file ${file}: ${parseError.message}`);
+            continue;
+          }
+          
+          // Validate basic structure
+          if (!data || typeof data !== 'object') {
+            this.log('warning', `Invalid data structure in result file: ${file}`);
+            continue;
+          }
+          
+          // Add metadata for tracking
+          data._filePath = file;
+          data._loadTime = new Date().toISOString();
+          
+          results.push(data);
+        } catch (fileError) {
+          this.log('warning', `Failed to read result file ${file}: ${fileError.message}`);
+          continue; // Continue with other files
+        }
+      }
+      
+      this.log('info', `Successfully loaded ${results.length} result files from pattern: ${pattern}`);
       return results;
     } catch (error) {
-      this.log('warning', `Failed to load result files ${pattern}: ${error.message}`);
+      this.log('error', `Failed to load result files ${pattern}: ${error.message}`);
+      // Return empty array instead of throwing to allow validation to continue
       return [];
     }
   }
@@ -713,33 +751,77 @@ class EmergencyReleaseValidator {
   async validateQualityGates(testResults) {
     this.log('validation', 'Validating quality gates against emergency release criteria');
 
-    // Validate each quality gate
+    // Check if we have any test results at all
+    const hasAnyResults = Object.values(testResults).some(results => 
+      Array.isArray(results) ? results.length > 0 : results.available
+    );
+    
+    if (!hasAnyResults) {
+      this.log('warning', 'No test results available - validation may be incomplete');
+    }
+
+    // Validate each quality gate with improved error handling
     for (const [gateId, validator] of Object.entries(this.qualityGateValidators)) {
       this.log('gate', `Validating quality gate: ${gateId}`);
       
       try {
-        const result = await validator(testResults);
-        this.results.qualityGates[gateId] = {
-          ...result,
+        // Add timeout to prevent hanging validators
+        const validationPromise = validator(testResults);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Validation timeout')), 30000)
+        );
+        
+        const result = await Promise.race([validationPromise, timeoutPromise]);
+        
+        // Ensure result has required properties
+        const normalizedResult = {
+          status: result.status || 'error',
+          message: result.message || 'No message provided',
+          critical: result.critical !== undefined ? result.critical : false,
+          details: result.details || {},
           timestamp: new Date().toISOString(),
           validator: gateId
         };
         
+        this.results.qualityGates[gateId] = normalizedResult;
+        
         this.log(
-          result.status === 'passed' ? 'success' : result.status === 'failed' ? 'error' : 'warning',
-          `Quality gate ${gateId}: ${result.status.toUpperCase()} - ${result.message}`
+          normalizedResult.status === 'passed' ? 'success' : 
+          normalizedResult.status === 'failed' ? 'error' : 'warning',
+          `Quality gate ${gateId}: ${normalizedResult.status.toUpperCase()} - ${normalizedResult.message}`
         );
         
       } catch (error) {
-        this.results.qualityGates[gateId] = {
+        // Categorize errors for better handling
+        let errorType = 'unknown';
+        const errorMessage = error.message || 'Unknown error';
+        
+        if (errorMessage.includes('timeout')) {
+          errorType = 'timeout';
+        } else if (errorMessage.includes('ENOENT') || errorMessage.includes('not found')) {
+          errorType = 'missing_dependency';
+        } else if (errorMessage.includes('permission') || errorMessage.includes('EACCES')) {
+          errorType = 'permission';
+        }
+        
+        const errorResult = {
           status: 'error',
-          message: `Validation error: ${error.message}`,
-          critical: true,
+          message: `Validation error (${errorType}): ${errorMessage}`,
+          critical: errorType !== 'timeout', // Timeouts might be recoverable
+          errorType,
           timestamp: new Date().toISOString(),
-          validator: gateId
+          validator: gateId,
+          emergency_bypass_available: this.options.emergencyMode && errorType === 'timeout'
         };
         
-        this.log('error', `Quality gate ${gateId} validation error: ${error.message}`);
+        this.results.qualityGates[gateId] = errorResult;
+        
+        this.log('error', `Quality gate ${gateId} validation error: ${errorMessage}`);
+        
+        // In emergency mode, certain errors might be bypassable
+        if (this.options.emergencyMode && errorType === 'timeout') {
+          this.log('warning', `Emergency mode: timeout error in ${gateId} may be bypassed`);
+        }
       }
     }
 

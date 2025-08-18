@@ -27,29 +27,10 @@ export class ClaudeBackend extends BaseBackend {
   }
 
   /**
-   * Get API key from config, environment, or credential storage
+   * Get API key using unified retrieval method
    */
-  private async getApiKey(): Promise<string | null> {
-    // Try config first
-    if (this.config.api_key) {
-      return this.config.api_key;
-    }
-
-    // Try environment variable
-    if (process.env.ANTHROPIC_API_KEY) {
-      return process.env.ANTHROPIC_API_KEY;
-    }
-
-    // Try credential storage
-    try {
-      const credentialManager = getCredentialManager();
-      const stored = await credentialManager.retrieve('claude-api-key') ||
-                     await credentialManager.retrieve('anthropic-api-key');
-      return stored;
-    } catch (error) {
-      console.warn('Failed to retrieve Claude API key from credential storage:', error);
-      return null;
-    }
+  protected async getApiKey(): Promise<string | null> {
+    return await super.getApiKey('claude-api-key', ['ANTHROPIC_API_KEY', 'CLAUDE_API_KEY']);
   }
 
   /**
