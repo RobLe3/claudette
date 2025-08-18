@@ -163,7 +163,7 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}}
           
     - name: Build and test Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         platforms: ${{ matrix.platform }}
@@ -195,7 +195,7 @@ jobs:
         
     - name: Push Docker image
       if: github.event_name != 'pull_request' && (github.event_name == 'push' || github.event.inputs.push_to_registry == 'true')
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         platforms: ${{ matrix.platform }}
