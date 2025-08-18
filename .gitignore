@@ -115,13 +115,11 @@ test-results/
 test-output/
 calibration-report-*.json
 
-# Orphaned test files (prevent future accumulation)
-kpi-test-results.json
-performance_metrics.json
-qwen-code-quality-results.json
+# Test artifacts
 *-test-results.json
 *-performance-metrics.json
 *-code-quality-results.json
+test-report-*.json
 
 # Custom cache directories
 .cache/
