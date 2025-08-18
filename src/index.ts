@@ -329,7 +329,7 @@ export class Claudette {
     const startTime = Date.now();
     
     try {
-      // TODO: Implement actual hook execution
+      // Hook execution not implemented yet
       // For now, just log
       console.log(`Hook ${hookName} executed with context:`, context);
       

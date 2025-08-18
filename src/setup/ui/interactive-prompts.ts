@@ -88,6 +88,9 @@ export class InteractivePrompts {
       let inputBuffer = '';
       let processingTimeout: NodeJS.Timeout | null = null;
       
+      // Mutex to prevent race conditions in buffer processing
+      let processingMutex = false;
+      
       // State machine for input processing
       enum InputState {
         READY,      // Ready to process input
@@ -100,9 +103,10 @@ export class InteractivePrompts {
         // Add all incoming data to buffer
         inputBuffer += chunk.toString();
         
-        // If we're not already processing, start processing
-        if (state === InputState.READY) {
+        // Prevent race condition with mutex check
+        if (state === InputState.READY && !processingMutex) {
           state = InputState.PROCESSING;
+          processingMutex = true;
           
           // Clear any existing timeout
           if (processingTimeout) {
@@ -117,60 +121,72 @@ export class InteractivePrompts {
       };
       
       const processInputBuffer = () => {
-        if (!inputBuffer || state !== InputState.PROCESSING) return;
-        
-        // Process all characters in the buffer sequentially
-        for (let i = 0; i < inputBuffer.length; i++) {
-          const char = inputBuffer[i];
-          
-          switch (char) {
-            case '\n':
-            case '\r':
-            case '\u0004': // Ctrl-D
-              // Complete input - finish processing and return
-              cleanup();
-              process.stdout.write('\n');
-              
-              if (validator) {
-                const validation = validator(password);
-                if (validation !== true) {
-                  const errorMessage = typeof validation === 'string' ? validation : 'Invalid input';
-                  console.log(chalk.red(errorMessage));
-                  resolve(this.password(message, validator));
-                  return;
-                }
-              }
-              
-              resolve(password);
-              return;
-              
-            case '\u0003': // Ctrl-C
-              cleanup();
-              process.stdout.write('\n');
-              process.exit(1);
-              break;
-              
-            case '\u007f': // Backspace
-              if (password.length > 0) {
-                password = password.slice(0, -1);
-                process.stdout.write('\b \b');
-              }
-              break;
-              
-            default:
-              // Filter out control characters and ensure printable characters
-              if (char.charCodeAt(0) >= 32 && char.charCodeAt(0) <= 126) {
-                password += char;
-                process.stdout.write('*');
-              }
-              break;
-          }
+        // Additional mutex check to prevent concurrent execution
+        if (!inputBuffer || state !== InputState.PROCESSING || !processingMutex) {
+          return;
         }
         
-        // Clear the buffer and reset state for next input
-        inputBuffer = '';
-        state = InputState.READY;
-        processingTimeout = null;
+        try {
+          // Process all characters in the buffer sequentially
+          for (let i = 0; i < inputBuffer.length; i++) {
+            const char = inputBuffer[i];
+            
+            switch (char) {
+              case '\n':
+              case '\r':
+              case '\u0004': // Ctrl-D
+                // Complete input - finish processing and return
+                cleanup();
+                process.stdout.write('\n');
+                
+                if (validator) {
+                  const validation = validator(password);
+                  if (validation !== true) {
+                    const errorMessage = typeof validation === 'string' ? validation : 'Invalid input';
+                    console.log(chalk.red(errorMessage));
+                    resolve(this.password(message, validator));
+                    return;
+                  }
+                }
+                
+                resolve(password);
+                return;
+                
+              case '\u0003': // Ctrl-C
+                cleanup();
+                process.stdout.write('\n');
+                process.exit(1);
+                break;
+                
+              case '\u007f': // Backspace
+                if (password.length > 0) {
+                  password = password.slice(0, -1);
+                  process.stdout.write('\b \b');
+                }
+                break;
+                
+              default:
+                // Filter out control characters and ensure printable characters
+                if (char.charCodeAt(0) >= 32 && char.charCodeAt(0) <= 126) {
+                  password += char;
+                  process.stdout.write('*');
+                }
+                break;
+            }
+          }
+          
+          // Clear the buffer and reset state for next input
+          inputBuffer = '';
+          state = InputState.READY;
+          processingMutex = false;
+          processingTimeout = null;
+        } catch (error) {
+          // Ensure mutex is released even if processing fails
+          processingMutex = false;
+          state = InputState.READY;
+          processingTimeout = null;
+          throw error;
+        }
       };
       
       const cleanup = () => {
@@ -181,6 +197,7 @@ export class InteractivePrompts {
         process.stdin.setRawMode(false);
         process.stdin.removeListener('data', onData);
         state = InputState.READY;
+        processingMutex = false; // Ensure mutex is always released on cleanup
       };
       
       process.stdin.on('data', onData);

@@ -268,7 +268,7 @@ export class PluginManager extends EventEmitter {
       logger: new Logger(),
       config,
       events: this,
-      claudetteVersion: '2.1.6', // TODO: Get from package.json
+      claudetteVersion: process.env.CLAUDETTE_VERSION || '2.1.6', // Version from env or default
       environment: process.env.NODE_ENV as any || 'development'
     };
 
@@ -399,67 +399,6 @@ export namespace PluginTemplates {
 import { BackendPlugin, PluginMetadata, PluginContext, PluginConfig, PluginUtils } from 'claudette/plugins';
 import { ClaudetteRequest, ClaudetteResponse } from 'claudette/types';
 
-export class MyBackendPlugin extends BackendPlugin {
-  public readonly name = 'my-backend';
-
-  constructor() {
-    super(PluginUtils.createMetadata({
-      name: 'my-backend-plugin',
-      version: '1.0.0',
-      description: 'Custom backend provider',
-      author: 'Your Name',
-      category: PluginCategory.BACKEND
-    }));
-  }
-
-  protected async onInitialize(context: PluginContext): Promise<void> {
-    // Initialize your backend
-  }
-
-  protected async onCleanup(): Promise<void> {
-    // Cleanup resources
-  }
-
-  async validateConfig(config: PluginConfig): Promise<boolean> {
-    // Validate plugin configuration
-    return config.enabled !== undefined;
-  }
-
-  async isAvailable(): Promise<boolean> {
-    // Check if backend is available
-    return true;
-  }
-
-  estimateCost(tokens: number): number {
-    // Return cost estimate for tokens
-    return tokens * 0.00001;
-  }
-
-  async getInfo(): Promise<any> {
-    return {
-      name: this.name,
-      status: 'available',
-      version: this.metadata.version
-    };
-  }
-
-  async processRequest(request: ClaudetteRequest): Promise<ClaudetteResponse> {
-    // Process the request and return response
-    return {
-      content: 'Response from custom backend',
-      backend_used: this.name,
-      cost_eur: this.estimateCost(50),
-      latency_ms: 100,
-      tokens_used: 50,
-      success: true
-    };
-  }
-
-  async healthCheck(): Promise<boolean> {
-    // Check backend health
-    return true;
-  }
-}
   `;
 
   /**
@@ -469,59 +408,6 @@ export class MyBackendPlugin extends BackendPlugin {
 import { RAGPlugin, PluginMetadata, PluginContext, PluginConfig, PluginUtils } from 'claudette/plugins';
 import { RAGProvider } from 'claudette/types';
 
-export class MyRAGPlugin extends RAGPlugin {
-  constructor() {
-    super(PluginUtils.createMetadata({
-      name: 'my-rag-plugin',
-      version: '1.0.0',
-      description: 'Custom RAG provider',
-      author: 'Your Name',
-      category: PluginCategory.RAG
-    }));
-  }
-
-  protected async onInitialize(context: PluginContext): Promise<void> {
-    // Initialize your RAG system
-  }
-
-  protected async onCleanup(): Promise<void> {
-    // Cleanup resources
-  }
-
-  async validateConfig(config: PluginConfig): Promise<boolean> {
-    return config.enabled !== undefined;
-  }
-
-  async createProvider(config: any): Promise<RAGProvider> {
-    // Create and return RAG provider instance
-    return new MyCustomRAGProvider(config);
-  }
-
-  getSupportedVectorDBs(): string[] {
-    return ['my-vector-db'];
-  }
-
-  getSupportedDeployments(): string[] {
-    return ['local', 'remote'];
-  }
-}
-
-class MyCustomRAGProvider implements RAGProvider {
-  constructor(private config: any) {}
-
-  async initialize(): Promise<void> {
-    // Initialize RAG provider
-  }
-
-  async cleanup(): Promise<void> {
-    // Cleanup provider
-  }
-
-  async query(query: string, options?: any): Promise<any[]> {
-    // Implement RAG query logic
-    return [];
-  }
-}
   `;
 }
 

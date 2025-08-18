@@ -1,0 +1,103 @@
+{
+  "metadata": {
+    "testId": "54670b58",
+    "tool": "TestRunner",
+    "version": "1.0.0",
+    "timestamp": "2025-08-18T07:53:12.119Z"
+  },
+  "execution": {
+    "startTime": 1755503592066,
+    "endTime": 1755503592117,
+    "duration": 51,
+    "exitCode": 0
+  },
+  "results": {
+    "timestamp": "2025-08-18T07:53:12.118Z",
+    "testId": "54670b58",
+    "testSuite": "QwenCodeQualityConsolidated",
+    "duration": 51,
+    "success": true,
+    "summary": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "rawResults": {
+      "success": false,
+      "failed": 0,
+      "passed": 3,
+      "total": 3,
+      "summary": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "errors": []
+      },
+      "results": {
+        "timestamp": "2025-08-18T07:53:12.065Z",
+        "testId": "eaa68b77",
+        "testSuite": "QwenCodeQualityConsolidated",
+        "environment": {
+          "platform": "darwin",
+          "architecture": "x64",
+          "nodeVersion": "v24.6.0",
+          "npmVersion": "11.5.1",
+          "osVersion": "24.6.0",
+          "hostname": "brainmac.local",
+          "cpuCount": 8,
+          "totalMemory": "32GB",
+          "freeMemory": "6GB",
+          "timestamp": "2025-08-18T07:53:12.034Z"
+        },
+        "tests": [
+          {
+            "name": "Complexity threshold validation",
+            "group": "Code Complexity Metrics",
+            "startTime": 1755503592075,
+            "endTime": 1755503592076,
+            "duration": 1,
+            "success": true,
+            "error": null,
+            "skipped": false
+          },
+          {
+            "name": "API pattern consistency validation",
+            "group": "API Consistency Checks",
+            "startTime": 1755503592075,
+            "endTime": 1755503592076,
+            "duration": 1,
+            "success": true,
+            "error": null,
+            "skipped": false
+          },
+          {
+            "name": "Qwen backend file structure validation",
+            "group": "Code Structure Analysis",
+            "startTime": 1755503592074,
+            "endTime": 1755503592077,
+            "duration": 3,
+            "success": true,
+            "error": null,
+            "skipped": false
+          }
+        ],
+        "summary": {
+          "total": 3,
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0,
+          "errors": []
+        },
+        "metrics": {
+          "setupTime": 1,
+          "testTime": 3,
+          "cleanupTime": 0,
+          "totalTime": 4
+        },
+        "success": true
+      }
+    }
+  }
+}

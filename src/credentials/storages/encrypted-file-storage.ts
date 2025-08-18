@@ -1,6 +1,6 @@
 // Encrypted file credential storage implementation (fallback)
 
-import { createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync, scryptSync } from 'crypto';
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
@@ -319,22 +319,59 @@ export class EncryptedFileStorage implements CredentialStorage {
     }
   }
 
+  /**
+   * Security fix: Improved encryption key derivation with proper random salt
+   */
   private async getEncryptionKey(): Promise<string> {
     if (this.encryptionKey) {
       return this.encryptionKey;
     }
 
-    // Generate key from system info (not ideal but better than hardcoded)
+    // Security fix: Generate or load a unique salt per installation
+    const saltFile = join(this.storageDirectory, '.salt');
+    let salt: Buffer;
+    
+    try {
+      // Try to load existing salt
+      const saltData = await fs.readFile(saltFile);
+      salt = Buffer.from(saltData.toString('hex'), 'hex');
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        // Generate new cryptographically secure random salt
+        salt = randomBytes(32);
+        
+        // Save salt securely (only readable by owner)
+        await this.ensureStorageDirectory();
+        await fs.writeFile(saltFile, salt.toString('hex'), { mode: 0o600 });
+      } else {
+        throw new CredentialError(
+          `Failed to access salt file: ${error.message}`,
+          this.getCurrentPlatform(),
+          'encrypted-file',
+          false
+        );
+      }
+    }
+
+    // Generate key from system info with proper random salt
     const systemInfo = [
       process.platform,
       homedir(),
       process.arch,
-      'claudette-credentials'
+      'claudette-credentials',
+      // Add process-specific entropy
+      process.pid.toString(),
+      Date.now().toString()
     ].join('|');
 
-    // Use PBKDF2 to derive key
-    const salt = Buffer.from('claudette-salt-2024', 'utf8');
-    const key = pbkdf2Sync(systemInfo, salt, 100000, 32, 'sha256');
+    // Security fix: Use scrypt instead of PBKDF2 for better security
+    // and increased iterations for key derivation
+    const key = scryptSync(systemInfo, salt, 32, {
+      N: 32768,  // CPU/memory cost parameter (2^15)
+      r: 8,      // Block size parameter
+      p: 1,      // Parallelization parameter
+      maxmem: 64 * 1024 * 1024 // 64MB max memory
+    });
     
     return key.toString('hex');
   }

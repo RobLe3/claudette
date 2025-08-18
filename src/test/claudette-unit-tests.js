@@ -251,8 +251,8 @@ class ClaudetteUnitTests {
         this.expect(typesExist).toBeTruthy();
       });
 
-      this.it('should have base router implementation', () => {
-        const routerPath = path.join(__dirname, '../router/base-router.ts');
+      this.it('should have router implementation', () => {
+        const routerPath = path.join(__dirname, '../router/index.ts');
         const routerExists = fs.existsSync(routerPath);
         this.expect(routerExists).toBeTruthy();
       });

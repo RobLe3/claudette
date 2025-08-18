@@ -183,29 +183,65 @@ export class DockerRAGProvider extends BaseRAGProvider {
       const { exec } = await import('child_process');
       const dockerConn = this.connection as DockerConnection;
       
+      // Sanitize container name to prevent command injection
+      const containerName = this.sanitizeContainerName(dockerConn.containerName);
+      if (!containerName) {
+        throw new Error('Invalid container name provided');
+      }
+      
       return new Promise((resolve, reject) => {
-        exec(`docker ps --filter name=${dockerConn.containerName} --format "{{.Status}}"`, 
-          (error, stdout, stderr) => {
-            if (error) {
-              reject(new Error(`Docker command failed: ${error.message}`));
-              return;
-            }
-            
-            if (!stdout.trim()) {
-              reject(new Error(`Docker container ${dockerConn.containerName} is not running`));
-              return;
-            }
-            
-            console.log(`🐳 Docker container ${dockerConn.containerName} is running`);
-            resolve();
+        // Use safer command construction with proper escaping
+        const command = `docker ps --filter name=${containerName} --format "{{.Status}}"`;
+        
+        exec(command, { timeout: 10000 }, (error, stdout, stderr) => {
+          if (error) {
+            reject(new Error(`Docker command failed: ${error.message}`));
+            return;
           }
-        );
+          
+          if (stderr) {
+            console.warn(`⚠️ Docker command stderr: ${stderr}`);
+          }
+          
+          if (!stdout.trim()) {
+            reject(new Error(`Docker container ${containerName} is not running`));
+            return;
+          }
+          
+          console.log(`🐳 Docker container ${containerName} is running`);
+          resolve();
+        });
       });
       
     } catch (error: any) {
       // If Docker command fails, we'll still try to connect
       console.warn(`⚠️ Could not verify Docker container status: ${error.message}`);
     }
+  }
+
+  /**
+   * Sanitize container name to prevent command injection
+   */
+  private sanitizeContainerName(containerName: string): string | null {
+    if (!containerName || typeof containerName !== 'string') {
+      return null;
+    }
+    
+    // Remove any characters that could be used for command injection
+    // Allow only alphanumeric characters, hyphens, underscores, and dots
+    const sanitized = containerName.replace(/[^a-zA-Z0-9\-_.]/g, '');
+    
+    // Validate length and basic format
+    if (sanitized.length === 0 || sanitized.length > 255) {
+      return null;
+    }
+    
+    // Ensure it doesn't start with special characters
+    if (!/^[a-zA-Z0-9]/.test(sanitized)) {
+      return null;
+    }
+    
+    return sanitized;
   }
 
   private async makeRequest(

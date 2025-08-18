@@ -52,31 +52,57 @@ export class BackendRouter {
    * Select the best backend for a request
    */
   async selectBackend(request: ClaudetteRequest, excludeBackends: string[] = []): Promise<Backend> {
-    // If specific backend requested, use it (if available)
-    if (request.backend) {
-      const backend = this.backends.get(request.backend);
-      if (backend && await backend.isAvailable() && !excludeBackends.includes(backend.name)) {
-        return backend;
+    try {
+      // If specific backend requested, use it (if available)
+      if (request.backend) {
+        const backend = this.backends.get(request.backend);
+        if (backend) {
+          try {
+            const isAvailable = await backend.isAvailable();
+            if (isAvailable && !excludeBackends.includes(backend.name)) {
+              return backend;
+            }
+          } catch (availabilityError) {
+            console.error(`Error checking backend availability for ${request.backend}:`, availabilityError);
+            throw new BackendError(
+              `Failed to check availability for backend '${request.backend}': ${(availabilityError as Error).message}`, 
+              request.backend
+            );
+          }
+        }
+        throw new BackendError(`Requested backend '${request.backend}' is not available`, request.backend);
       }
-      throw new BackendError(`Requested backend '${request.backend}' is not available`, request.backend);
-    }
 
-    // Score all available backends
-    const scores = await this.scoreBackends(request, excludeBackends);
-    
-    if (scores.length === 0) {
-      throw new BackendError('No available backends', 'router');
-    }
+      // Score all available backends
+      const scores = await this.scoreBackends(request, excludeBackends);
+      
+      if (scores.length === 0) {
+        throw new BackendError('No available backends', 'router');
+      }
 
-    // Sort by score (lower is better)
-    scores.sort((a, b) => a.score - b.score);
-    
-    const selectedBackend = this.backends.get(scores[0]!.backend);
-    if (!selectedBackend) {
-      throw new BackendError('Selected backend not found', scores[0]!.backend);
-    }
+      // Sort by score (lower is better)
+      scores.sort((a, b) => a.score - b.score);
+      
+      const selectedBackend = this.backends.get(scores[0]!.backend);
+      if (!selectedBackend) {
+        throw new BackendError('Selected backend not found', scores[0]!.backend);
+      }
 
-    return selectedBackend;
+      return selectedBackend;
+    } catch (error) {
+      // Log the error for debugging
+      console.error('Error in selectBackend:', error);
+      
+      // Re-throw if it's already a BackendError, otherwise wrap it
+      if (error instanceof BackendError) {
+        throw error;
+      }
+      
+      throw new BackendError(
+        `Backend selection failed: ${(error as Error).message}`, 
+        'router'
+      );
+    }
   }
 
   /**
@@ -86,45 +112,75 @@ export class BackendRouter {
     const excludeBackends: string[] = [];
     let lastError: Error | null = null;
 
-    // Try up to 3 different backends
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const backend = await this.selectBackend(request, excludeBackends);
-        
-        // Check circuit breaker
-        if (this.isCircuitBreakerOpen(backend.name)) {
-          excludeBackends.push(backend.name);
-          continue;
-        }
-
-        const response = await backend.send(request);
-        
-        // Reset failure count on success
-        this.failureCount.set(backend.name, 0);
-        
-        return response;
-        
-      } catch (error) {
-        lastError = error as Error;
-        
-        if (error instanceof BackendError) {
-          // Record failure
-          this.recordFailure(error.backend || 'unknown');
+    try {
+      // Try up to 3 different backends
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const backend = await this.selectBackend(request, excludeBackends);
           
-          // Add to exclude list if retryable
-          if (error.retryable && error.backend) {
-            excludeBackends.push(error.backend);
+          // Check circuit breaker
+          if (this.isCircuitBreakerOpen(backend.name)) {
+            excludeBackends.push(backend.name);
             continue;
           }
-        }
-        
-        // Non-retryable error, stop trying
-        break;
-      }
-    }
 
-    // All backends failed
-    throw lastError || new BackendError('All backends failed', 'router');
+          // Wrap backend.send in error handling
+          let response: ClaudetteResponse;
+          try {
+            response = await backend.send(request);
+          } catch (sendError) {
+            console.error(`Backend send error for ${backend.name}:`, sendError);
+            
+            // Create a BackendError for send failures
+            const backendError = new BackendError(
+              `Backend send failed: ${(sendError as Error).message}`,
+              backend.name,
+              true // retryable
+            );
+            
+            throw backendError;
+          }
+          
+          // Reset failure count on success
+          this.failureCount.set(backend.name, 0);
+          
+          return response;
+          
+        } catch (error) {
+          lastError = error as Error;
+          
+          if (error instanceof BackendError) {
+            // Record failure
+            this.recordFailure(error.backend || 'unknown');
+            
+            // Add to exclude list if retryable
+            if (error.retryable && error.backend) {
+              excludeBackends.push(error.backend);
+              continue;
+            }
+          }
+          
+          // Non-retryable error, stop trying
+          break;
+        }
+      }
+
+      // All backends failed
+      throw lastError || new BackendError('All backends failed', 'router');
+      
+    } catch (error) {
+      // Top-level error handling for the entire routing process
+      console.error('Critical error in routeRequest:', error);
+      
+      if (error instanceof BackendError) {
+        throw error;
+      }
+      
+      throw new BackendError(
+        `Routing failed: ${(error as Error).message}`,
+        'router'
+      );
+    }
   }
 
   /**
@@ -134,39 +190,83 @@ export class BackendRouter {
     const scores: BackendScore[] = [];
     const estimatedTokens = this.estimateRequestTokens(request);
 
-    for (const [name, backend] of this.backends) {
-      // Skip if excluded or not available
-      if (excludeBackends.includes(name) || !await backend.isAvailable()) {
-        continue;
+    try {
+      for (const [name, backend] of this.backends) {
+        try {
+          // Skip if excluded
+          if (excludeBackends.includes(name)) {
+            continue;
+          }
+
+          // Check availability with error handling
+          let isAvailable: boolean;
+          try {
+            isAvailable = await backend.isAvailable();
+          } catch (availabilityError) {
+            console.warn(`Error checking availability for backend ${name}:`, availabilityError);
+            continue; // Skip this backend if availability check fails
+          }
+
+          if (!isAvailable) {
+            continue;
+          }
+
+          // Skip if circuit breaker is open
+          if (this.isCircuitBreakerOpen(name)) {
+            continue;
+          }
+
+          // Get scores with error handling
+          let costScore: number;
+          let latencyScore: number;
+          
+          try {
+            costScore = backend.estimateCost(estimatedTokens);
+          } catch (costError) {
+            console.warn(`Error estimating cost for backend ${name}:`, costError);
+            continue; // Skip this backend if cost estimation fails
+          }
+
+          try {
+            latencyScore = await backend.getLatencyScore();
+          } catch (latencyError) {
+            console.warn(`Error getting latency score for backend ${name}:`, latencyError);
+            continue; // Skip this backend if latency score fails
+          }
+
+          const availabilityScore = this.getAvailabilityScore(name);
+
+          // Weighted composite score (lower is better)
+          const totalScore = 
+            (costScore * this.options.cost_weight) +
+            (latencyScore * this.options.latency_weight) +
+            (availabilityScore * this.options.availability_weight);
+
+          scores.push({
+            backend: name,
+            score: totalScore,
+            cost_score: costScore,
+            latency_score: latencyScore,
+            availability: availabilityScore < 0.5, // True if score is low (good)
+            estimated_cost: costScore,
+            estimated_latency: latencyScore * 1000 // Convert to ms
+          });
+          
+        } catch (backendError) {
+          console.warn(`Error processing backend ${name} during scoring:`, backendError);
+          continue; // Skip this backend and continue with others
+        }
       }
 
-      // Skip if circuit breaker is open
-      if (this.isCircuitBreakerOpen(name)) {
-        continue;
-      }
-
-      const costScore = backend.estimateCost(estimatedTokens);
-      const latencyScore = await backend.getLatencyScore();
-      const availabilityScore = this.getAvailabilityScore(name);
-
-      // Weighted composite score (lower is better)
-      const totalScore = 
-        (costScore * this.options.cost_weight) +
-        (latencyScore * this.options.latency_weight) +
-        (availabilityScore * this.options.availability_weight);
-
-      scores.push({
-        backend: name,
-        score: totalScore,
-        cost_score: costScore,
-        latency_score: latencyScore,
-        availability: availabilityScore < 0.5, // True if score is low (good)
-        estimated_cost: costScore,
-        estimated_latency: latencyScore * 1000 // Convert to ms
-      });
+      return scores;
+      
+    } catch (error) {
+      console.error('Error in scoreBackends:', error);
+      throw new BackendError(
+        `Backend scoring failed: ${(error as Error).message}`,
+        'router'
+      );
     }
-
-    return scores;
   }
 
   /**
@@ -270,12 +370,21 @@ export class BackendRouter {
   /**
    * Health check for all backends
    */
-  async healthCheckAll(): Promise<{ name: string; healthy: boolean }[]> {
+  async healthCheckAll(): Promise<{ name: string; healthy: boolean; error?: string }[]> {
     const results = [];
     
     for (const [name, backend] of this.backends) {
-      const healthy = await backend.isAvailable();
-      results.push({ name, healthy });
+      try {
+        const healthy = await backend.isAvailable();
+        results.push({ name, healthy });
+      } catch (error) {
+        console.warn(`Health check failed for backend ${name}:`, error);
+        results.push({ 
+          name, 
+          healthy: false, 
+          error: (error as Error).message 
+        });
+      }
     }
     
     return results;

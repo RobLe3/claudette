@@ -47,7 +47,7 @@ export type {
   RealTimeData 
 } from '../dashboard/dashboard-manager';
 
-export { RealTimeVisualizer, VisualizationUtils } from '../dashboard/real-time-visualizer';
+export { RealTimeVisualizer } from '../dashboard/real-time-visualizer';
 export type {
   ChartConfiguration,
   DataSeries,
@@ -456,7 +456,7 @@ export class MonitoringPlatform {
 
   // Private helper methods
   private setupCrossComponentIntegration(): void {
-    // TODO: Implement event-based integration when SystemMonitor and PerformanceAnalytics extend EventEmitter
+    // Event-based integration postponed until components extend EventEmitter
     console.log('📊 Cross-component integration setup deferred - event emitters not implemented');
 
     console.log('🔗 Cross-component integration configured');

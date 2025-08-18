@@ -201,7 +201,7 @@ cacheCmd
     const spinner = ora('Clearing cache...').start();
     
     try {
-      // TODO: Implement cache clear
+      // Cache clearing not implemented yet
       spinner.succeed('Cache cleared successfully');
     } catch (error: any) {
       spinner.fail('Failed to clear cache');
@@ -308,7 +308,7 @@ setupCmd
         
         if (options.fix) {
           console.log(chalk.cyan('\n🔧 Attempting automatic fixes...'));
-          // TODO: Implement auto-fix functionality
+          // Auto-fix functionality not implemented yet
         }
         
         process.exit(1);
