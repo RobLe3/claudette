@@ -29,7 +29,7 @@ jobs:
       has-plugins: ${{ steps.detect.outputs.has-plugins }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -249,7 +249,7 @@ jobs:
     if: needs.detect-plugins.outputs.has-plugins == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -337,7 +337,7 @@ jobs:
     if: needs.detect-plugins.outputs.has-plugins == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Generate plugin registry
         run: |
