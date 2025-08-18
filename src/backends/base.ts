@@ -8,7 +8,13 @@ import {
   ClaudetteResponse, 
   BackendError 
 } from '../types/index';
-import { getCredentialManager } from '../credentials';
+import {
+  retrieveApiKey,
+  createErrorResponse,
+  determineRetryability,
+  estimateTokens as sharedEstimateTokens,
+  prepareStandardRequest
+} from './shared-utils';
 
 export abstract class BaseBackend implements Backend {
   public readonly name: string;
@@ -125,34 +131,22 @@ export abstract class BaseBackend implements Backend {
 
   /**
    * Utility method to create standardized error responses
+   * Uses shared utilities for consistent error handling
    */
   protected createErrorResponse(
     error: Error, 
     request: ClaudetteRequest,
     latencyMs: number = 0
   ): never {
-    throw new BackendError(
-      `${this.name} backend error: ${error.message}`,
-      this.name,
-      this.isRetryableError(error)
-    );
+    createErrorResponse(error, this.name, request, latencyMs);
   }
 
   /**
    * Determine if an error is retryable
+   * Uses shared utilities for consistent retryability logic
    */
   protected isRetryableError(error: Error): boolean {
-    const retryableErrors = [
-      'ECONNRESET',
-      'ENOTFOUND', 
-      'ETIMEDOUT',
-      'rate_limited',
-      'server_error',
-      'timeout'
-    ];
-
-    const errorMessage = error.message.toLowerCase();
-    return retryableErrors.some(retryable => errorMessage.includes(retryable));
+    return determineRetryability(error);
   }
 
   /**
@@ -181,46 +175,34 @@ export abstract class BaseBackend implements Backend {
 
   /**
    * Utility to count tokens (rough estimate)
+   * Uses shared utilities for consistent token estimation
    */
   protected estimateTokens(text: string): number {
-    // Rough estimation: ~4 characters per token for English text
-    return Math.ceil(text.length / 4);
+    return sharedEstimateTokens(text);
   }
 
   /**
    * Unified API key retrieval method for all backends
+   * Uses shared utilities for consistent API key retrieval
    * Follows standardized fallback hierarchy:
    * 1. Configuration file
    * 2. Environment variables
    * 3. Credential storage
    */
   protected async getApiKey(keyName: string, envVars: string[] = []): Promise<string | null> {
-    // Try config first
-    if (this.config.api_key) {
-      return this.config.api_key;
-    }
-
-    // Try environment variables
-    for (const envVar of envVars) {
-      if (process.env[envVar]) {
-        return process.env[envVar];
-      }
-    }
-
-    // Try credential storage with standardized naming
-    try {
-      const credentialManager = getCredentialManager();
-      const stored = await credentialManager.retrieve(`claudette-${this.name}`) ||
-                     await credentialManager.retrieve(keyName);
-      return stored;
-    } catch (error) {
-      console.warn(`Failed to retrieve ${this.name} API key from credential storage:`, error);
-      return null;
-    }
+    return await retrieveApiKey(
+      {
+        credentialKey: keyName,
+        environmentKeys: envVars,
+        backendName: this.name
+      },
+      this.config.api_key
+    );
   }
 
   /**
    * Prepare request with backend-specific options
+   * Uses shared utilities for consistent request preparation
    */
   protected prepareRequest(request: ClaudetteRequest): {
     prompt: string;
@@ -228,11 +210,6 @@ export abstract class BaseBackend implements Backend {
     temperature: number;
     model: string;
   } {
-    return {
-      prompt: request.prompt,
-      maxTokens: request.options?.max_tokens || this.config.max_tokens || 4000,
-      temperature: request.options?.temperature || this.config.temperature || 0.7,
-      model: request.options?.model || this.config.model || 'default'
-    };
+    return prepareStandardRequest(request, this.config, 'default');
   }
 }

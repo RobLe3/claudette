@@ -1,7 +1,16 @@
 // Qwen (CodeLLM) backend implementation
 
 import { BaseBackend } from './base';
-import { getCredentialManager } from '../credentials';
+import {
+  retrieveApiKey,
+  performStandardHealthCheck,
+  HealthCheckPatterns,
+  isRateLimitError,
+  isContextLengthError,
+  createRateLimitError,
+  createContextLengthError,
+  createErrorResponse
+} from './shared-utils';
 import { 
   BackendSettings, 
   ClaudetteRequest, 
@@ -29,20 +38,26 @@ export class QwenBackend extends BaseBackend {
    * Get API key using unified retrieval method
    */
   protected async getApiKey(): Promise<string | null> {
-    return await super.getApiKey('codellm-api-key', ['CODELLM_API_KEY', 'QWEN_API_KEY']);
+    return await retrieveApiKey(
+      {
+        credentialKey: 'codellm-api-key',
+        environmentKeys: ['CODELLM_API_KEY', 'QWEN_API_KEY'],
+        backendName: 'qwen'
+      },
+      this.config.api_key
+    );
   }
 
   protected async healthCheck(): Promise<boolean> {
-    try {
-      // Simple health check - try to make a basic request
-      const response = await this.makeRequest('/v1/models', 'GET');
-      return response.ok;
-    } catch (error: any) {
-      if (!error.message?.includes('authentication')) {
-        console.warn(`Qwen health check failed: ${error.message}`);
-      }
-      return false;
-    }
+    const healthCheckFunction = HealthCheckPatterns.createModelListHealthCheck(
+      (endpoint: string, method?: string) => this.makeRequest(endpoint, method)
+    );
+
+    return await performStandardHealthCheck({
+      backendName: 'Qwen',
+      checkFunction: healthCheckFunction,
+      suppressAuthErrors: true
+    });
   }
 
   private async makeRequest(endpoint: string, method: string = 'POST', body?: any): Promise<Response> {
@@ -137,24 +152,16 @@ export class QwenBackend extends BaseBackend {
       const latencyMs = Date.now() - startTime;
       
       // Handle rate limiting
-      if (error.message?.includes('429') || error.message?.includes('rate limit')) {
-        throw new BackendError(
-          `Qwen rate limited: ${error.message}`, 
-          'qwen', 
-          true
-        );
+      if (isRateLimitError(error)) {
+        throw createRateLimitError('Qwen', error);
       }
       
       // Handle context length errors
-      if (error.message?.includes('context') || error.message?.includes('token limit')) {
-        throw new BackendError(
-          'Qwen context length exceeded - consider using compression',
-          'qwen',
-          false
-        );
+      if (isContextLengthError(error)) {
+        throw createContextLengthError('Qwen');
       }
       
-      this.createErrorResponse(error, request, latencyMs);
+      createErrorResponse(error, 'qwen', request, latencyMs);
     }
   }
 
@@ -223,7 +230,7 @@ export class QwenBackend extends BaseBackend {
 
       return this.processStream(response);
     } catch (error: any) {
-      this.createErrorResponse(error, request);
+      createErrorResponse(error, 'qwen', request);
     }
   }
 

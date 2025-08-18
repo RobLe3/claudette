@@ -9,6 +9,12 @@ import {
   ClaudetteResponse, 
   BackendError 
 } from '../types/index';
+import {
+  createErrorResponse,
+  determineRetryability,
+  estimateTokens as sharedEstimateTokens,
+  prepareStandardRequest
+} from './shared-utils';
 
 export interface AdaptiveBackendSettings extends BackendSettings {
   // Timeout configuration
@@ -58,6 +64,11 @@ export abstract class AdaptiveBaseBackend implements Backend {
   protected healthHistory: HealthCheckResult[] = [];
   protected asyncContributions: Map<string, AsyncContribution> = new Map();
   
+  // Memory management for async contributions
+  private readonly MAX_ASYNC_CONTRIBUTIONS = 1000;
+  private readonly CONTRIBUTION_CLEANUP_INTERVAL = 60000; // 1 minute
+  private contributionCleanupTimer?: NodeJS.Timeout;
+  
   // Health tracking
   protected lastHealthCheck: number = 0;
   protected isHealthy: boolean = true;
@@ -87,6 +98,9 @@ export abstract class AdaptiveBaseBackend implements Backend {
     };
     
     this.currentTimeoutMs = this.config.base_timeout_ms!;
+    
+    // Start periodic cleanup of stale async contributions
+    this.startContributionCleanup();
   }
 
   /**
@@ -245,6 +259,11 @@ export abstract class AdaptiveBaseBackend implements Backend {
     const contributionTimeout = this.config.contribution_timeout_ms!;
     const requestPromise = this.sendRequest(request);
     
+    // Security fix: Enforce memory limits on async contributions
+    if (this.asyncContributions.size >= this.MAX_ASYNC_CONTRIBUTIONS) {
+      this.cleanupStaleContributions();
+    }
+    
     const contribution: AsyncContribution = {
       request_id: requestId,
       backend_name: this.name,
@@ -319,6 +338,62 @@ export abstract class AdaptiveBaseBackend implements Backend {
   protected cleanupAsyncContribution(requestId: string): void {
     this.asyncContributions.delete(requestId);
   }
+  
+  /**
+   * Security fix: Start periodic cleanup of stale async contributions
+   */
+  private startContributionCleanup(): void {
+    this.contributionCleanupTimer = setInterval(() => {
+      this.cleanupStaleContributions();
+    }, this.CONTRIBUTION_CLEANUP_INTERVAL);
+    
+    // Ensure cleanup happens on process exit
+    process.on('exit', () => this.stopContributionCleanup());
+    process.on('SIGINT', () => this.stopContributionCleanup());
+    process.on('SIGTERM', () => this.stopContributionCleanup());
+  }
+  
+  /**
+   * Security fix: Clean up stale async contributions to prevent memory leaks
+   */
+  private cleanupStaleContributions(): void {
+    const now = Date.now();
+    const stalledContributions: string[] = [];
+    
+    for (const [requestId, contribution] of this.asyncContributions.entries()) {
+      const age = now - contribution.start_time;
+      // Remove contributions older than their timeout + 30 seconds grace period
+      if (age > contribution.timeout_ms + 30000) {
+        stalledContributions.push(requestId);
+      }
+    }
+    
+    // Remove stalled contributions
+    stalledContributions.forEach(requestId => {
+      this.asyncContributions.delete(requestId);
+    });
+    
+    // If we still have too many, remove oldest ones
+    if (this.asyncContributions.size >= this.MAX_ASYNC_CONTRIBUTIONS) {
+      const sortedByAge = Array.from(this.asyncContributions.entries())
+        .sort(([, a], [, b]) => a.start_time - b.start_time);
+      
+      const toRemove = sortedByAge.slice(0, Math.floor(this.MAX_ASYNC_CONTRIBUTIONS * 0.1));
+      toRemove.forEach(([requestId]) => {
+        this.asyncContributions.delete(requestId);
+      });
+    }
+  }
+  
+  /**
+   * Security fix: Stop contribution cleanup timer
+   */
+  private stopContributionCleanup(): void {
+    if (this.contributionCleanupTimer) {
+      clearInterval(this.contributionCleanupTimer);
+      this.contributionCleanupTimer = undefined;
+    }
+  }
 
   /**
    * Generate unique request ID
@@ -356,7 +431,11 @@ export abstract class AdaptiveBaseBackend implements Backend {
     this.consecutiveFailures = 0;
     this.currentTimeoutMs = this.config.base_timeout_ms!;
     this.healthHistory = [];
+    
+    // Security fix: Properly cleanup async contributions and timers
     this.asyncContributions.clear();
+    this.stopContributionCleanup();
+    this.startContributionCleanup();
   }
 
   // Abstract methods to be implemented by concrete backends
@@ -424,40 +503,36 @@ export abstract class AdaptiveBaseBackend implements Backend {
     };
   }
 
+  /**
+   * Create standardized error response using shared utilities
+   */
   protected createErrorResponse(error: Error, request: ClaudetteRequest, latencyMs: number = 0): never {
-    throw new BackendError(
-      `${this.name} backend error: ${error.message}`,
-      this.name,
-      this.isRetryableError(error)
-    );
+    createErrorResponse(error, this.name, request, latencyMs);
   }
 
+  /**
+   * Determine error retryability using shared utilities
+   */
   protected isRetryableError(error: Error): boolean {
-    const retryableErrors = [
-      'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'ECONNREFUSED',
-      'rate_limited', 'server_error', 'timeout', 'network_error',
-      'connection_error', 'service_unavailable'
-    ];
-
-    const errorMessage = error.message.toLowerCase();
-    return retryableErrors.some(retryable => errorMessage.includes(retryable));
+    return determineRetryability(error);
   }
 
+  /**
+   * Estimate tokens using shared utilities
+   */
   protected estimateTokens(text: string): number {
-    return Math.ceil(text.length / 4);
+    return sharedEstimateTokens(text);
   }
 
+  /**
+   * Prepare request using shared utilities for consistency
+   */
   protected prepareRequest(request: ClaudetteRequest): {
     prompt: string;
     maxTokens: number;
     temperature: number;
     model: string;
   } {
-    return {
-      prompt: request.prompt,
-      maxTokens: request.options?.max_tokens || this.config.max_tokens || 4000,
-      temperature: request.options?.temperature || this.config.temperature || 0.7,
-      model: request.options?.model || this.config.model || 'default'
-    };
+    return prepareStandardRequest(request, this.config, 'default');
   }
 }

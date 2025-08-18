@@ -2,7 +2,16 @@
 
 import OpenAI from 'openai';
 import { BaseBackend } from './base';
-import { getCredentialManager } from '../credentials';
+import {
+  retrieveApiKey,
+  performStandardHealthCheck,
+  HealthCheckPatterns,
+  isRateLimitError,
+  isContextLengthError,
+  createRateLimitError,
+  createContextLengthError,
+  createErrorResponse
+} from './shared-utils';
 import { 
   BackendSettings, 
   ClaudetteRequest, 
@@ -30,7 +39,14 @@ export class OpenAIBackend extends BaseBackend {
    * Get API key using unified retrieval method
    */
   protected async getApiKey(): Promise<string | null> {
-    return await super.getApiKey('openai-api-key', ['OPENAI_API_KEY']);
+    return await retrieveApiKey(
+      {
+        credentialKey: 'openai-api-key',
+        environmentKeys: ['OPENAI_API_KEY'],
+        backendName: 'openai'
+      },
+      this.config.api_key
+    );
   }
 
   /**
@@ -54,18 +70,21 @@ export class OpenAIBackend extends BaseBackend {
   }
 
   protected async healthCheck(): Promise<boolean> {
-    try {
-      await this.initializeClient();
-      
-      // Simple health check - try to list models
-      await this.client.models.list();
-      return true;
-    } catch (error: any) {
-      if (!error.message?.includes('authentication')) {
-        console.warn(`OpenAI health check failed: ${error.message}`);
+    const healthCheckFunction = HealthCheckPatterns.createMinimalCallHealthCheck(
+      this.client,
+      async (client) => {
+        await this.initializeClient();
+        
+        // Simple health check - try to list models
+        await client.models.list();
       }
-      return false;
-    }
+    );
+
+    return await performStandardHealthCheck({
+      backendName: 'OpenAI',
+      checkFunction: healthCheckFunction,
+      suppressAuthErrors: true
+    });
   }
 
   async send(request: ClaudetteRequest): Promise<ClaudetteResponse> {
@@ -128,24 +147,16 @@ export class OpenAIBackend extends BaseBackend {
       const latencyMs = Date.now() - startTime;
       
       // Handle rate limiting
-      if (error.status === 429) {
-        throw new BackendError(
-          `OpenAI rate limited: ${error.message}`, 
-          'openai', 
-          true
-        );
+      if (isRateLimitError(error)) {
+        throw createRateLimitError('OpenAI', error);
       }
       
       // Handle context length errors
-      if (error.message?.includes('maximum context length') || error.message?.includes('token limit')) {
-        throw new BackendError(
-          'OpenAI context length exceeded - consider using compression',
-          'openai',
-          false
-        );
+      if (isContextLengthError(error)) {
+        throw createContextLengthError('OpenAI');
       }
       
-      this.createErrorResponse(error, request, latencyMs);
+      createErrorResponse(error, 'openai', request, latencyMs);
     }
   }
 
@@ -215,7 +226,7 @@ export class OpenAIBackend extends BaseBackend {
 
       return this.processStream(stream);
     } catch (error: any) {
-      this.createErrorResponse(error, request);
+      createErrorResponse(error, 'openai', request);
     }
   }
 

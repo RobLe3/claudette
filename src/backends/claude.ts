@@ -2,7 +2,16 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { BaseBackend } from './base';
-import { getCredentialManager } from '../credentials';
+import {
+  retrieveApiKey,
+  performStandardHealthCheck,
+  HealthCheckPatterns,
+  isRateLimitError,
+  isContextLengthError,
+  createRateLimitError,
+  createContextLengthError,
+  createErrorResponse
+} from './shared-utils';
 import { 
   BackendSettings, 
   ClaudetteRequest, 
@@ -30,7 +39,14 @@ export class ClaudeBackend extends BaseBackend {
    * Get API key using unified retrieval method
    */
   protected async getApiKey(): Promise<string | null> {
-    return await super.getApiKey('claude-api-key', ['ANTHROPIC_API_KEY', 'CLAUDE_API_KEY']);
+    return await retrieveApiKey(
+      {
+        credentialKey: 'claude-api-key',
+        environmentKeys: ['ANTHROPIC_API_KEY', 'CLAUDE_API_KEY'],
+        backendName: 'claude'
+      },
+      this.config.api_key
+    );
   }
 
   /**
@@ -53,23 +69,25 @@ export class ClaudeBackend extends BaseBackend {
   }
 
   protected async healthCheck(): Promise<boolean> {
-    try {
-      await this.initializeClient();
-      
-      // Simple health check - try to get model info
-      await this.client.messages.create({
-        model: this.config.model || this.defaultModel,
-        max_tokens: 1,
-        messages: [{ role: 'user', content: 'Hi' }]
-      });
-      return true;
-    } catch (error: any) {
-      // Don't log auth errors as they're expected during setup
-      if (!error.message?.includes('authentication')) {
-        console.warn(`Claude health check failed: ${error.message}`);
+    const healthCheckFunction = HealthCheckPatterns.createMinimalCallHealthCheck(
+      this.client,
+      async (client) => {
+        await this.initializeClient();
+        
+        // Simple health check - try to get model info
+        await client.messages.create({
+          model: this.config.model || this.defaultModel,
+          max_tokens: 1,
+          messages: [{ role: 'user', content: 'Hi' }]
+        });
       }
-      return false;
-    }
+    );
+
+    return await performStandardHealthCheck({
+      backendName: 'Claude',
+      checkFunction: healthCheckFunction,
+      suppressAuthErrors: true
+    });
   }
 
   async send(request: ClaudetteRequest): Promise<ClaudetteResponse> {
@@ -127,24 +145,16 @@ export class ClaudeBackend extends BaseBackend {
       const latencyMs = Date.now() - startTime;
       
       // Handle rate limiting
-      if (error.status === 429) {
-        throw new BackendError(
-          `Claude rate limited: ${error.message}`, 
-          'claude', 
-          true
-        );
+      if (isRateLimitError(error)) {
+        throw createRateLimitError('Claude', error);
       }
       
       // Handle context length errors
-      if (error.message?.includes('maximum context length')) {
-        throw new BackendError(
-          'Claude context length exceeded - consider using compression',
-          'claude',
-          false
-        );
+      if (isContextLengthError(error)) {
+        throw createContextLengthError('Claude');
       }
       
-      this.createErrorResponse(error, request, latencyMs);
+      createErrorResponse(error, 'claude', request, latencyMs);
     }
   }
 
