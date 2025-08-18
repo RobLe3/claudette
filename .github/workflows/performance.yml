@@ -381,7 +381,7 @@ jobs:
     - name: Download baseline (if available)
       id: download-baseline
       continue-on-error: true
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: performance-baseline-${{ runner.os }}-node${{ matrix.node-version }}
         path: baseline/
@@ -632,7 +632,7 @@ jobs:
     
     steps:
     - name: Download all benchmark results
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: performance-results-*
         merge-multiple: true

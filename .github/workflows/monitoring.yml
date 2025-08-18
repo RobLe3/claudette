@@ -589,20 +589,20 @@ jobs:
     
     steps:
     - name: Download all monitoring artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: '*-monitoring-*'
         merge-multiple: true
         
     - name: Download performance and adoption data
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: 'performance-metrics'
         merge-multiple: true
       continue-on-error: true
       
     - name: Download adoption analytics
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: 'adoption-analytics'
         merge-multiple: true
