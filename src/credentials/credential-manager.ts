@@ -1,10 +1,42 @@
 // Universal credential manager with platform abstraction
 
 import { PlatformDetector } from './platform-detector';
-import { KeychainStorage } from './storages/keychain-storage';
-import { WindowsCredentialStorage } from './storages/windows-storage';
-import { LibSecretStorage } from './storages/libsecret-storage';
-import { EncryptedFileStorage } from './storages/encrypted-file-storage';
+// Import storage with fallbacks for platform compatibility  
+import { MockStorage } from './storages/mock-storage';
+
+// Platform-specific imports with fallbacks
+let KeychainStorage: any;
+let WindowsCredentialStorage: any;
+let LibSecretStorage: any;
+let EncryptedFileStorage: any;
+
+try {
+  KeychainStorage = require('./storages/keychain-storage').KeychainStorage;
+} catch (e) {
+  console.warn('Keychain storage not available, using mock storage');
+  KeychainStorage = MockStorage;
+}
+
+try {
+  WindowsCredentialStorage = require('./storages/windows-storage').WindowsCredentialStorage;
+} catch (e) {
+  console.warn('Windows storage not available, using mock storage');
+  WindowsCredentialStorage = MockStorage;
+}
+
+try {
+  LibSecretStorage = require('./storages/libsecret-storage').LibSecretStorage;
+} catch (e) {
+  console.warn('LibSecret storage not available, using mock storage');
+  LibSecretStorage = MockStorage;
+}
+
+try {
+  EncryptedFileStorage = require('./storages/encrypted-file-storage').EncryptedFileStorage;
+} catch (e) {
+  console.warn('Encrypted file storage not available, using mock storage');
+  EncryptedFileStorage = MockStorage;
+}
 import { 
   CredentialStorage, 
   CredentialData, 

@@ -1,0 +1,158 @@
+{
+  "timestamp": "2025-09-06T12:18:37.711Z",
+  "results": {
+    "system": {
+      "cpu": {
+        "model": "Intel(R) Core(TM) i7-1068NG7 CPU @ 2.30GHz",
+        "cores": 8,
+        "speed": 2300
+      },
+      "memory": {
+        "total": 32768,
+        "free": 70,
+        "used": 32698,
+        "usage": 100
+      },
+      "platform": {
+        "os": "darwin",
+        "arch": "x64",
+        "version": "24.6.0",
+        "hostname": "brainmac.local",
+        "uptime": 142916
+      },
+      "node": {
+        "version": "v24.7.0",
+        "memoryUsage": {
+          "rss": 33669120,
+          "heapTotal": 6094848,
+          "heapUsed": 4508672,
+          "external": 1593251,
+          "arrayBuffers": 10515
+        },
+        "pid": 99196
+      }
+    },
+    "core": {
+      "fileIO": {
+        "iterations": 1000,
+        "totalTime": 5977,
+        "avgTime": 5.977,
+        "throughput": 167.30801405387317
+      },
+      "jsonProcessing": {
+        "iterations": 1000,
+        "totalTime": 702,
+        "avgTime": 0.702,
+        "throughput": 1424.5014245014245
+      },
+      "configLoading": {
+        "iterations": 500,
+        "totalTime": 269,
+        "avgTime": 0.538,
+        "throughput": 1858.736059479554
+      },
+      "memoryAllocation": {
+        "iterations": 1000,
+        "totalTime": 12,
+        "avgTime": 0.012,
+        "throughput": 83333.33333333333
+      }
+    },
+    "features": {
+      "stringProcessing": {
+        "iterations": 10000,
+        "totalTime": 57,
+        "avgTime": 0.0057,
+        "throughput": 175438.59649122806
+      },
+      "hashGeneration": {
+        "iterations": 5000,
+        "totalTime": 22,
+        "avgTime": 0.0044,
+        "throughput": 227272.7272727273
+      },
+      "arrayProcessing": {
+        "iterations": 1000,
+        "totalTime": 3,
+        "avgTime": 0.003,
+        "throughput": 333333.3333333333
+      },
+      "promiseHandling": {
+        "iterations": 100,
+        "totalTime": 9,
+        "avgTime": 0.09,
+        "throughput": 11111.111111111111
+      }
+    },
+    "scalability": {
+      "small": {
+        "tasks": 100,
+        "totalTime": 5,
+        "avgTime": 0.05,
+        "throughput": 20000
+      },
+      "medium": {
+        "tasks": 500,
+        "totalTime": 9,
+        "avgTime": 0.018,
+        "throughput": 55555.55555555556
+      },
+      "memoryPressure": {
+        "objects": 1000,
+        "totalTime": 46,
+        "avgTime": 0.046,
+        "throughput": 21739.130434782608
+      }
+    },
+    "comparison": {
+      "baseline": {
+        "fileIO": {
+          "avgTime": 1.2,
+          "throughput": 800
+        },
+        "jsonProcessing": {
+          "avgTime": 0.8,
+          "throughput": 1200
+        },
+        "configLoading": {
+          "avgTime": 2.5,
+          "throughput": 400
+        },
+        "stringProcessing": {
+          "avgTime": 0.05,
+          "throughput": 18000
+        }
+      },
+      "improvements": {
+        "fileIO": {
+          "timeImprovement": -398.08333333333337,
+          "throughputImprovement": -79.08649824326585
+        },
+        "jsonProcessing": {
+          "timeImprovement": 12.25000000000001,
+          "throughputImprovement": 18.70845204178537
+        },
+        "configLoading": {
+          "timeImprovement": 78.47999999999999,
+          "throughputImprovement": 364.6840148698885
+        },
+        "stringProcessing": {
+          "timeImprovement": 88.60000000000001,
+          "throughputImprovement": 874.6588693957115
+        }
+      }
+    }
+  },
+  "summary": {
+    "avgImprovement": 294.74120951602987,
+    "bestMetric": "stringProcessing: 874.7",
+    "totalTime": 7124,
+    "grades": {
+      "File I/O": "C",
+      "JSON Processing": "A",
+      "String Processing": "A+",
+      "Scalability": "A+"
+    }
+  },
+  "recommendation": "MAJOR_VERSION_BUMP"
+}

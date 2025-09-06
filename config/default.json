@@ -1,0 +1,123 @@
+{
+  "backends": {
+    "claude": {
+      "enabled": false,
+      "priority": 1,
+      "cost_per_token": 0.0003,
+      "model": "claude-3-sonnet-20240229",
+      "max_tokens": 100000,
+      "temperature": 0.1
+    },
+    "openai": {
+      "enabled": false,
+      "priority": 2,
+      "cost_per_token": 0.0001,
+      "model": "gpt-4o-mini",
+      "max_tokens": 128000,
+      "temperature": 0.1
+    },
+    "mistral": {
+      "enabled": false,
+      "priority": 3,
+      "cost_per_token": 0.0002,
+      "model": "mistral-large-latest",
+      "max_tokens": 32000,
+      "temperature": 0.1
+    },
+    "ollama": {
+      "enabled": false,
+      "priority": 4,
+      "cost_per_token": 0,
+      "base_url": "http://localhost:11434",
+      "model": "llama2",
+      "max_tokens": 4096,
+      "temperature": 0.1
+    },
+    "qwen": {
+      "enabled": false,
+      "priority": 5,
+      "cost_per_token": 0.0001,
+      "model": "qwen-max",
+      "max_tokens": 32000,
+      "temperature": 0.1
+    }
+  },
+  "features": {
+    "caching": true,
+    "cost_optimization": true,
+    "performance_monitoring": true,
+    "smart_routing": true,
+    "mcp_integration": true,
+    "compression": true,
+    "summarization": true,
+    "rag_integration": true,
+    "graph_database": true,
+    "meta_cognitive": true,
+    "predictive_analytics": true,
+    "adaptive_learning": true
+  },
+  "thresholds": {
+    "cache_ttl": 3600,
+    "max_cache_size": 10000,
+    "cost_warning": 0.1,
+    "max_context_tokens": 32000,
+    "compression_threshold": 50000,
+    "performance_threshold": 500,
+    "memory_threshold": 1024,
+    "latency_threshold": 2000
+  },
+  "database": {
+    "path": "./data/claudette.db",
+    "cache_path": "./cache/",
+    "backup_enabled": true,
+    "auto_vacuum": true,
+    "wal_mode": true,
+    "journal_mode": "WAL"
+  },
+  "monitoring": {
+    "enabled": true,
+    "metrics_interval": 10000,
+    "alerts_enabled": true,
+    "logging_level": "info",
+    "performance_tracking": true,
+    "usage_analytics": true
+  },
+  "rag": {
+    "enabled": true,
+    "providers": ["mcp", "docker", "remote"],
+    "vector_db": {
+      "provider": "chroma",
+      "collection": "claudette_default",
+      "dimensions": 1536
+    },
+    "graph_db": {
+      "provider": "ultipa",
+      "host": "your-instance.cloud.ultipa.com",
+      "port": 8443,
+      "username": "your_username",
+      "database": "default", 
+      "graph": "claudette_graph"
+    },
+    "hybrid_search": true,
+    "semantic_similarity_threshold": 0.7,
+    "context_window": 8000
+  },
+  "optimization": {
+    "auto_scaling": true,
+    "resource_monitoring": true,
+    "predictive_scaling": true,
+    "cache_warming": true,
+    "compression_enabled": true,
+    "batch_processing": true,
+    "parallel_execution": true
+  },
+  "security": {
+    "api_key_encryption": true,
+    "request_logging": false,
+    "rate_limiting": true,
+    "input_validation": true,
+    "output_sanitization": true
+  },
+  "version": "3.0.0",
+  "last_updated": "2025-09-06T10:25:00.000Z"
+}

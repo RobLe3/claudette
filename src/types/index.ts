@@ -90,6 +90,8 @@ export interface ClaudetteResponse {
     completion_tokens: number;
   };
   error?: string;
+  cache_layer?: string;
+  _compressed_data?: string;
 }
 
 // Database schema types
@@ -105,24 +107,7 @@ export interface QuotaLedgerEntry {
   latency_ms: number;
 }
 
-export interface CacheEntry {
-  cache_key: string;
-  prompt_hash: string;
-  response: ClaudetteResponse;
-  created_at: string;
-  expires_at: string;
-  access_count: number;
-  last_accessed: string;
-}
-
-export interface CacheStats {
-  total_requests: number;
-  cache_hits: number;
-  cache_misses: number;
-  hit_rate: number;
-  size_mb: number;
-  entries_count: number;
-}
+// Cache types are exported from cache/index.ts to avoid duplication
 
 // Backend interface
 export interface Backend {

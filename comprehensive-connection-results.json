@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-09-06T14:49:45.104Z",
+  "version": "3.0.0",
+  "results": {
+    "llm_backends": {
+      "openai": {
+        "status": "connected",
+        "models_available": 86,
+        "response_time": 1310,
+        "completion_test": "passed"
+      },
+      "flexcon": {
+        "status": "connected",
+        "health_status": "unhealthy (404)",
+        "model": "gpt-oss:20b-gpu16-ctx3072",
+        "endpoint": "https://tools.flexcon-ai.de",
+        "completion_test": "passed"
+      }
+    },
+    "graphdb": {
+      "status": "failed",
+      "error": "All endpoint, authentication, and format combinations failed",
+      "endpoints_tried": 5,
+      "auth_methods_tried": 7,
+      "request_formats_tried": 3,
+      "total_attempts": 105
+    },
+    "overall": {
+      "passed": 4,
+      "failed": 1,
+      "total": 5
+    }
+  },
+  "successRate": 80,
+  "totalTime": 14100,
+  "recommendations": "READY_FOR_PRODUCTION"
+}

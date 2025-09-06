@@ -4,7 +4,7 @@
 import { AdvancedRAGRequest, AdvancedRAGResponse, AdvancedRAGResult } from '../advanced/types';
 import { RAGRequest, RAGResponse } from '../types';
 
-export interface CacheConfig {
+export interface RAGCacheConfig {
   enabled: boolean;
   maxSize: number;
   ttl: number; // Time to live in milliseconds
@@ -32,7 +32,7 @@ export interface MemoryOptimizationConfig {
 }
 
 export interface PerformanceConfig {
-  cache: CacheConfig;
+  cache: RAGCacheConfig;
   parallelization: ParallelizationConfig;
   memory: MemoryOptimizationConfig;
   monitoring: {
@@ -81,7 +81,7 @@ export interface PerformanceMetrics {
   };
 }
 
-export interface CacheEntry {
+export interface RAGCacheEntry {
   key: string;
   data: AdvancedRAGResponse;
   timestamp: number;
@@ -93,7 +93,7 @@ export interface CacheEntry {
 
 export class RAGPerformanceOptimizer {
   private config: PerformanceConfig;
-  private cache: Map<string, CacheEntry>;
+  private cache: Map<string, RAGCacheEntry>;
   private metrics: PerformanceMetrics;
   private parallelExecutor: ParallelExecutor;
   private memoryManager: MemoryManager;
@@ -323,7 +323,7 @@ export class RAGPerformanceOptimizer {
     }
     
     const key = this.hashQuery(request);
-    const entry: CacheEntry = {
+    const entry: RAGCacheEntry = {
       key,
       data: response,
       timestamp: Date.now(),
@@ -340,7 +340,7 @@ export class RAGPerformanceOptimizer {
     const strategy = this.config.cache.strategy;
     const entries = Array.from(this.cache.entries());
     
-    let entryToEvict: [string, CacheEntry];
+    let entryToEvict: [string, RAGCacheEntry];
     
     switch (strategy) {
       case 'lru':
@@ -369,7 +369,7 @@ export class RAGPerformanceOptimizer {
     console.log(`🗑️ Evicted cache entry: ${entryToEvict[0]}`);
   }
 
-  private adaptiveEviction(entries: [string, CacheEntry][]): [string, CacheEntry] {
+  private adaptiveEviction(entries: [string, RAGCacheEntry][]): [string, RAGCacheEntry] {
     // Adaptive eviction based on multiple factors
     return entries.reduce((candidate, current) => {
       const candidateScore = this.calculateEvictionScore(candidate[1]);
@@ -378,7 +378,7 @@ export class RAGPerformanceOptimizer {
     });
   }
 
-  private calculateEvictionScore(entry: CacheEntry): number {
+  private calculateEvictionScore(entry: RAGCacheEntry): number {
     const timeFactor = (Date.now() - entry.lastAccessed) / 3600000; // Hours since last access
     const frequencyFactor = 1 / (entry.accessCount + 1);
     const sizeFactor = entry.size / 1024; // KB
