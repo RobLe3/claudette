@@ -151,9 +151,19 @@ __pycache__/
 .claude/current_session.txt
 .claude/cache/
 
-# Development artifacts
+# Development artifacts - Claudette specific
+dev-artifacts/
 experiments/temp/
 scripts/temp/
+
+# Test artifacts and reports
+*-test-results.json
+*-results.json
+*-report.json
+benchmark-*.json
+performance-*.json
+test-install-local-*/
+
 # Backup directories
 aneos-project-backup-*/
 *.tar.bz2
@@ -161,9 +171,14 @@ aneos-project-backup-*/
 # Development tools
 .hive-mind/
 
-# Test artifacts  
-test-install-local-*/
+# Environment files (specific patterns)
+.env.*
+!.env.example
 
 # Embedded repositories and test clones
 aneos-project/
 test-clone/
+
+# Ultipa specific files
+.env.ultipa
+ultipa-*-results.json
