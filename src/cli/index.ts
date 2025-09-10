@@ -18,8 +18,8 @@ const claudette = new Claudette();
 
 program
   .name('claudette')
-  .description('Multi-backend AI CLI with intelligent caching and cost optimization')
-  .version('2.1.6');
+  .description('Enterprise AI middleware with intelligent routing, advanced polishing, and comprehensive monitoring')
+  .version('3.0.0');
 
 // Main command - analyze/process text
 program

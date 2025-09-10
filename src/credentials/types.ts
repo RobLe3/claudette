@@ -44,6 +44,22 @@ export interface CredentialStorage {
   getStorageName(): string;
 }
 
+export interface StoredCredential {
+  service: string;
+  account?: string;
+  key: string;
+  metadata?: CredentialMetadata;
+  created?: Date;
+  accessed?: Date;
+}
+
+export interface CredentialMetadata {
+  created: Date;
+  accessed: Date;
+  description?: string;
+  tags?: string[];
+}
+
 export enum Platform {
   MACOS = 'darwin',
   WINDOWS = 'win32',

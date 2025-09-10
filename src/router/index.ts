@@ -8,14 +8,26 @@ import {
   ClaudetteResponse, 
   BackendError 
 } from '../types/index';
+import { secureLogger, logBackendSelection, logCircuitBreaker } from '../utils/secure-logger';
+import { AdvancedCircuitBreaker, CircuitBreakerConfig, CircuitState } from './advanced-circuit-breaker';
 
 export class BackendRouter {
   private backends: Map<string, Backend> = new Map();
   private options: RouterOptions;
   private failureCount: Map<string, number> = new Map();
   private lastFailure: Map<string, number> = new Map();
+  private healthCache: Map<string, { healthy: boolean; expiry: number }> = new Map();
+  private circuitBreakers: Map<string, AdvancedCircuitBreaker> = new Map();
   private circuitBreakerThreshold = 5;
   private circuitBreakerResetTime = 300000; // 5 minutes
+  private readonly HEALTH_CACHE_TTL = 30000; // 30 seconds cache for health checks (reduced from 2 minutes to prevent timeouts) (increased for better performance)
+  private readonly HEALTH_CHECK_TIMEOUT = 800; // 800ms (reduced from 1.5s for faster checks)
+  private readonly AVAILABILITY_CHECK_TIMEOUT = 1000; // 1 second (reduced from 2s)
+  private readonly BACKGROUND_HEALTH_CHECK_TIMEOUT = 1500; // 1.5 seconds (reduced from 3s)
+  private backgroundHealthCheckInterval: NodeJS.Timeout | null = null;
+  
+  // Performance optimization: Circuit breaker state cache
+  private circuitBreakerCache = new Map<string, { open: boolean, lastCheck: number }>();
 
   constructor(options: RouterOptions = {
     cost_weight: 0.4,
@@ -24,6 +36,9 @@ export class BackendRouter {
     fallback_enabled: true
   }) {
     this.options = options;
+    
+    // Start background health checking to warm cache
+    this.startBackgroundHealthChecks();
   }
 
   /**
@@ -32,6 +47,29 @@ export class BackendRouter {
   registerBackend(backend: Backend): void {
     this.backends.set(backend.name, backend);
     this.failureCount.set(backend.name, 0);
+    
+    // Initialize advanced circuit breaker for this backend
+    const circuitBreakerConfig: CircuitBreakerConfig = {
+      failureThreshold: 5,
+      resetTimeout: 30000, // 30 seconds
+      halfOpenMaxCalls: 3,
+      failureRateThreshold: 50, // 50% failure rate
+      slowCallThreshold: 5000, // 5 seconds
+      slowCallRateThreshold: 80, // 80% slow calls
+      slidingWindowSize: 20
+    };
+    
+    const circuitBreaker = new AdvancedCircuitBreaker(backend.name, circuitBreakerConfig);
+    
+    // Log circuit breaker state changes
+    circuitBreaker.onStateChange((state, reason) => {
+      // Map CircuitState to logger expected type
+      const loggerState = state === CircuitState.CLOSED ? 'closed' : 
+                         state === CircuitState.OPEN ? 'opened' : 'half_open';
+      logCircuitBreaker(backend.name, loggerState);
+    });
+    
+    this.circuitBreakers.set(backend.name, circuitBreaker);
   }
 
   /**
@@ -58,12 +96,27 @@ export class BackendRouter {
         const backend = this.backends.get(request.backend);
         if (backend) {
           try {
-            const isAvailable = await backend.isAvailable();
+            // Use cached health data if available for faster response
+            let isAvailable: boolean;
+            const cached = this.getHealthFromCache(request.backend);
+            if (cached !== null) {
+              isAvailable = cached;
+            } else {
+              isAvailable = await Promise.race([
+                backend.isAvailable(),
+                new Promise<boolean>((_, reject) => 
+                  setTimeout(() => reject(new Error('Backend availability timeout')), this.AVAILABILITY_CHECK_TIMEOUT)
+                )
+              ]);
+              this.cacheHealth(request.backend, isAvailable);
+            }
+            
             if (isAvailable && !excludeBackends.includes(backend.name)) {
               return backend;
             }
           } catch (availabilityError) {
             console.error(`Error checking backend availability for ${request.backend}:`, availabilityError);
+            this.cacheHealth(request.backend, false);
             throw new BackendError(
               `Failed to check availability for backend '${request.backend}': ${(availabilityError as Error).message}`, 
               request.backend
@@ -88,10 +141,26 @@ export class BackendRouter {
         throw new BackendError('Selected backend not found', scores[0]!.backend);
       }
 
+      // Log backend selection decision
+      logBackendSelection(
+        scores[0]!.backend,
+        scores.map(s => s.backend),
+        scores.map(s => ({
+          backend: s.backend,
+          score: s.score,
+          reason: `cost: ${s.cost_score}, latency: ${s.latency_score}, availability: ${s.availability ? 'good' : 'poor'}`
+        }))
+      );
+
       return selectedBackend;
     } catch (error) {
-      // Log the error for debugging
-      console.error('Error in selectBackend:', error);
+      // Log the error with secure logging
+      secureLogger.error('Backend selection failed', {
+        operation: 'selectBackend',
+        error_message: (error as Error).message,
+        excluded_backends: excludeBackends,
+        request_backend: request.backend
+      });
       
       // Re-throw if it's already a BackendError, otherwise wrap it
       if (error instanceof BackendError) {
@@ -118,16 +187,20 @@ export class BackendRouter {
         try {
           const backend = await this.selectBackend(request, excludeBackends);
           
-          // Check circuit breaker
-          if (this.isCircuitBreakerOpen(backend.name)) {
+          // Use advanced circuit breaker
+          const circuitBreaker = this.circuitBreakers.get(backend.name);
+          if (!circuitBreaker || !circuitBreaker.isCallAllowed()) {
             excludeBackends.push(backend.name);
             continue;
           }
 
-          // Wrap backend.send in error handling
+          // Execute request through circuit breaker
           let response: ClaudetteResponse;
           try {
-            response = await backend.send(request);
+            response = await circuitBreaker.execute(
+              () => backend.send(request),
+              `send_request_${request.prompt?.substring(0, 50) || 'unknown'}`
+            );
           } catch (sendError) {
             console.error(`Backend send error for ${backend.name}:`, sendError);
             
@@ -198,13 +271,25 @@ export class BackendRouter {
             continue;
           }
 
-          // Check availability with error handling
+          // Check availability using cache first for better performance
           let isAvailable: boolean;
-          try {
-            isAvailable = await backend.isAvailable();
-          } catch (availabilityError) {
-            console.warn(`Error checking availability for backend ${name}:`, availabilityError);
-            continue; // Skip this backend if availability check fails
+          const cached = this.getHealthFromCache(name);
+          if (cached !== null) {
+            isAvailable = cached;
+          } else {
+            try {
+              isAvailable = await Promise.race([
+                backend.isAvailable(),
+                new Promise<boolean>((_, reject) => 
+                  setTimeout(() => reject(new Error('Availability timeout')), this.HEALTH_CHECK_TIMEOUT)
+                )
+              ]);
+              this.cacheHealth(name, isAvailable);
+            } catch (availabilityError) {
+              console.warn(`Error checking availability for backend ${name}:`, availabilityError);
+              this.cacheHealth(name, false);
+              continue; // Skip this backend if availability check fails
+            }
           }
 
           if (!isAvailable) {
@@ -308,29 +393,59 @@ export class BackendRouter {
    */
   private recordFailure(backendName: string): void {
     const currentCount = this.failureCount.get(backendName) || 0;
-    this.failureCount.set(backendName, currentCount + 1);
+    const newCount = currentCount + 1;
+    this.failureCount.set(backendName, newCount);
     this.lastFailure.set(backendName, Date.now());
+
+    // Log circuit breaker opening
+    if (newCount >= this.circuitBreakerThreshold) {
+      logCircuitBreaker(backendName, 'opened', newCount);
+    }
   }
 
   /**
-   * Check if circuit breaker is open for a backend
+   * Check if circuit breaker is open for a backend with progressive recovery
    */
   private isCircuitBreakerOpen(backendName: string): boolean {
+    // Performance optimization: Use cached circuit breaker state
+    const cached = this.circuitBreakerCache.get(backendName);
+    const now = Date.now();
+    
+    // Use cache if recent (within 10 seconds for performance)
+    if (cached && (now - cached.lastCheck) < 10000) {
+      return cached.open;
+    }
+    
     const failures = this.failureCount.get(backendName) || 0;
     const lastFailureTime = this.lastFailure.get(backendName) || 0;
     
     if (failures < this.circuitBreakerThreshold) {
+      this.circuitBreakerCache.set(backendName, { open: false, lastCheck: now });
       return false;
     }
     
-    // Check if enough time has passed to reset
-    const timeSinceFailure = Date.now() - lastFailureTime;
-    if (timeSinceFailure > this.circuitBreakerResetTime) {
-      this.failureCount.set(backendName, 0);
-      return false;
+    // Progressive recovery: longer wait times for more failures
+    const timeSinceFailure = now - lastFailureTime;
+    const progressiveResetTime = Math.min(
+      this.circuitBreakerResetTime * Math.pow(1.5, failures - this.circuitBreakerThreshold),
+      30 * 60 * 1000 // Max 30 minutes
+    );
+    
+    const isOpen = timeSinceFailure <= progressiveResetTime;
+    
+    if (!isOpen) {
+      // Gradual recovery: reduce failure count instead of complete reset
+      const newFailureCount = Math.max(0, failures - 1);
+      this.failureCount.set(backendName, newFailureCount);
+      
+      if (newFailureCount < this.circuitBreakerThreshold) {
+        logCircuitBreaker(backendName, 'closed', newFailureCount);
+      }
     }
     
-    return true;
+    // Cache the result
+    this.circuitBreakerCache.set(backendName, { open: isOpen, lastCheck: now });
+    return isOpen;
   }
 
   /**
@@ -358,6 +473,79 @@ export class BackendRouter {
   resetFailures(): void {
     this.failureCount.clear();
     this.lastFailure.clear();
+    this.healthCache.clear();
+  }
+
+  /**
+   * Force recovery test for a specific backend (useful for manual intervention)
+   */
+  async forceRecoveryTest(backendName: string): Promise<boolean> {
+    const backend = this.backends.get(backendName);
+    if (!backend) {
+      console.warn(`Backend ${backendName} not found for recovery test`);
+      return false;
+    }
+
+    console.log(`🔄 Forcing recovery test for ${backendName}...`);
+    
+    try {
+      const isHealthy = await Promise.race([
+        backend.isAvailable(),
+        new Promise<boolean>((_, reject) => 
+          setTimeout(() => reject(new Error('Recovery test timeout')), this.AVAILABILITY_CHECK_TIMEOUT * 2)
+        )
+      ]);
+
+      if (isHealthy) {
+        // Reset failure count on successful recovery
+        this.failureCount.set(backendName, 0);
+        this.cacheHealth(backendName, true);
+        console.log(`✅ ${backendName} backend recovery successful`);
+        return true;
+      } else {
+        console.log(`❌ ${backendName} backend still unhealthy`);
+        this.cacheHealth(backendName, false);
+        return false;
+      }
+    } catch (error) {
+      console.log(`❌ ${backendName} recovery test failed: ${(error as Error).message}`);
+      this.cacheHealth(backendName, false);
+      return false;
+    }
+  }
+
+  /**
+   * Get circuit breaker status for all backends
+   */
+  getCircuitBreakerStatus(): Array<{
+    name: string;
+    failures: number;
+    circuitOpen: boolean;
+    lastFailure?: Date;
+    nextRetryTime?: Date;
+  }> {
+    return Array.from(this.backends.keys()).map(name => {
+      const failures = this.failureCount.get(name) || 0;
+      const lastFailureTime = this.lastFailure.get(name);
+      const circuitOpen = this.isCircuitBreakerOpen(name);
+      
+      let nextRetryTime: Date | undefined;
+      if (circuitOpen && lastFailureTime) {
+        const progressiveResetTime = Math.min(
+          this.circuitBreakerResetTime * Math.pow(1.5, failures - this.circuitBreakerThreshold),
+          30 * 60 * 1000
+        );
+        nextRetryTime = new Date(lastFailureTime + progressiveResetTime);
+      }
+
+      return {
+        name,
+        failures,
+        circuitOpen,
+        lastFailure: lastFailureTime ? new Date(lastFailureTime) : undefined,
+        nextRetryTime
+      };
+    });
   }
 
   /**
@@ -368,25 +556,114 @@ export class BackendRouter {
   }
 
   /**
-   * Health check for all backends
+   * Start background health checks to warm cache and reduce startup latency
+   */
+  private startBackgroundHealthChecks(): void {
+    // Run immediately
+    this.backgroundHealthCheckAll();
+    
+    // Schedule periodic background checks
+    this.backgroundHealthCheckInterval = setInterval(() => {
+      this.backgroundHealthCheckAll();
+    }, this.HEALTH_CACHE_TTL);
+  }
+
+  /**
+   * Stop background health checks
+   */
+  stopBackgroundHealthChecks(): void {
+    if (this.backgroundHealthCheckInterval) {
+      clearInterval(this.backgroundHealthCheckInterval);
+      this.backgroundHealthCheckInterval = null;
+    }
+  }
+
+  /**
+   * Background health check for all backends (non-blocking)
+   */
+  private async backgroundHealthCheckAll(): Promise<void> {
+    const healthPromises = Array.from(this.backends.entries()).map(async ([name, backend]) => {
+      try {
+        // Use cached result if available and fresh
+        const cached = this.getHealthFromCache(name);
+        if (cached !== null) {
+          return;
+        }
+
+        // Perform health check with timeout
+        const healthy = await Promise.race([
+          backend.isAvailable(),
+          new Promise<boolean>((_, reject) => 
+            setTimeout(() => reject(new Error('Health check timeout')), this.BACKGROUND_HEALTH_CHECK_TIMEOUT)
+          )
+        ]);
+
+        this.cacheHealth(name, healthy);
+      } catch (error) {
+        this.cacheHealth(name, false);
+      }
+    });
+
+    // Run all health checks in parallel
+    await Promise.allSettled(healthPromises);
+  }
+
+  /**
+   * Get health status from cache if available and fresh
+   */
+  private getHealthFromCache(backendName: string): boolean | null {
+    const cached = this.healthCache.get(backendName);
+    if (cached && Date.now() < cached.expiry) {
+      return cached.healthy;
+    }
+    return null;
+  }
+
+  /**
+   * Cache health status for a backend
+   */
+  private cacheHealth(backendName: string, healthy: boolean): void {
+    this.healthCache.set(backendName, {
+      healthy,
+      expiry: Date.now() + this.HEALTH_CACHE_TTL
+    });
+  }
+
+  /**
+   * Health check for all backends with parallel execution and caching
    */
   async healthCheckAll(): Promise<{ name: string; healthy: boolean; error?: string }[]> {
-    const results = [];
-    
-    for (const [name, backend] of this.backends) {
+    const healthPromises = Array.from(this.backends.entries()).map(async ([name, backend]) => {
       try {
-        const healthy = await backend.isAvailable();
-        results.push({ name, healthy });
+        // Try cache first for faster response
+        const cached = this.getHealthFromCache(name);
+        if (cached !== null) {
+          return { name, healthy: cached };
+        }
+
+        // Perform health check with timeout
+        const healthy = await Promise.race([
+          backend.isAvailable(),
+          new Promise<boolean>((_, reject) => 
+            setTimeout(() => reject(new Error('Health check timeout')), this.AVAILABILITY_CHECK_TIMEOUT)
+          )
+        ]);
+
+        this.cacheHealth(name, healthy);
+        return { name, healthy };
       } catch (error) {
-        console.warn(`Health check failed for backend ${name}:`, error);
-        results.push({ 
+        const errorMessage = (error as Error).message;
+        this.cacheHealth(name, false);
+        return { 
           name, 
           healthy: false, 
-          error: (error as Error).message 
-        });
+          error: errorMessage
+        };
       }
-    }
-    
+    });
+
+    // Execute all health checks in parallel
+    const results = await Promise.all(healthPromises);
     return results;
   }
 }

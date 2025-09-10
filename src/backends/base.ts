@@ -15,6 +15,7 @@ import {
   estimateTokens as sharedEstimateTokens,
   prepareStandardRequest
 } from './shared-utils';
+import { secureLogger, logHealthCheck, logBackendRequest } from '../utils/secure-logger';
 
 export abstract class BaseBackend implements Backend {
   public readonly name: string;
@@ -35,6 +36,8 @@ export abstract class BaseBackend implements Backend {
   async isAvailable(): Promise<boolean> {
     // Cache health checks to avoid excessive API calls
     const now = Date.now();
+    const startTime = Date.now();
+    
     if (now - this.lastHealthCheck < this.healthCheckInterval) {
       return this.isHealthy;
     }
@@ -42,10 +45,20 @@ export abstract class BaseBackend implements Backend {
     try {
       this.isHealthy = this.config.enabled && await this.validateConfig() && await this.healthCheck();
       this.lastHealthCheck = now;
+      
+      // Log health check result
+      const latency = Date.now() - startTime;
+      logHealthCheck(this.name, this.isHealthy, undefined, latency);
+      
       return this.isHealthy;
     } catch (error) {
       this.isHealthy = false;
       this.lastHealthCheck = now;
+      
+      // Log health check failure
+      const latency = Date.now() - startTime;
+      logHealthCheck(this.name, false, error as Error, latency);
+      
       return false;
     }
   }
@@ -161,12 +174,23 @@ export abstract class BaseBackend implements Backend {
   ): ClaudetteResponse {
     this.recordLatency(latencyMs);
 
+    const cost = this.estimateCost(tokensInput + tokensOutput);
+    
+    // Log successful backend request
+    logBackendRequest(
+      this.name,
+      true,
+      latencyMs,
+      { input: tokensInput, output: tokensOutput },
+      cost
+    );
+
     return {
       content,
       backend_used: this.name,
       tokens_input: tokensInput,
       tokens_output: tokensOutput,
-      cost_eur: this.estimateCost(tokensInput + tokensOutput),
+      cost_eur: cost,
       latency_ms: latencyMs,
       cache_hit: false,
       metadata
@@ -210,6 +234,15 @@ export abstract class BaseBackend implements Backend {
     temperature: number;
     model: string;
   } {
-    return prepareStandardRequest(request, this.config, 'default');
+    // Use backend-specific default model instead of 'default'
+    const defaultModel = this.config.model || this.getDefaultModel();
+    return prepareStandardRequest(request, this.config, defaultModel);
+  }
+
+  /**
+   * Get the default model for this backend - to be overridden by concrete implementations
+   */
+  protected getDefaultModel(): string {
+    return 'unknown'; // Safe fallback
   }
 }

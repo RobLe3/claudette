@@ -37,6 +37,27 @@ export {
   CacheEntry
 };
 
+// Basic Plugin interface
+export interface Plugin {
+  name: string;
+  version: string;
+  initialize(context: PluginContext): Promise<void>;
+  cleanup?(): Promise<void>;
+}
+
+export interface PluginContext {
+  logger: any;
+  config: any;
+  events?: any;
+  claudetteVersion?: string;
+  environment?: string;
+}
+
+export interface PluginConfig {
+  enabled?: boolean;
+  settings?: Record<string, any>;
+}
+
 // Plugin-specific types
 export interface PluginManifest {
   name: string;

@@ -34,14 +34,14 @@ export class DockerRAGProvider extends BaseRAGProvider {
       this.baseURL = `http://${host}:${dockerConn.port}`;
       this.headers = {
         'Content-Type': 'application/json',
-        'User-Agent': 'Claudette-RAG/2.1.6'
+        'User-Agent': 'Claudette-RAG/3.0.0'
       };
     } else {
       const remoteConn = this.connection as RemoteConnection;
       this.baseURL = remoteConn.baseURL;
       this.headers = {
         'Content-Type': 'application/json',
-        'User-Agent': 'Claudette-RAG/2.1.6',
+        'User-Agent': 'Claudette-RAG/3.0.0',
         ...remoteConn.headers
       };
       

@@ -30,6 +30,13 @@ export class OpenAIBackend extends BaseBackend {
     this.client = null as any;
   }
 
+  /**
+   * Get the default model for OpenAI backend
+   */
+  protected getDefaultModel(): string {
+    return this.defaultModel;
+  }
+
   async validateConfig(): Promise<boolean> {
     const apiKey = await this.getApiKey();
     return await super.validateConfig() && !!apiKey;
@@ -70,15 +77,19 @@ export class OpenAIBackend extends BaseBackend {
   }
 
   protected async healthCheck(): Promise<boolean> {
-    const healthCheckFunction = HealthCheckPatterns.createMinimalCallHealthCheck(
-      this.client,
-      async (client) => {
+    const healthCheckFunction = async () => {
+      try {
+        // Initialize client first before attempting health check
         await this.initializeClient();
         
         // Simple health check - try to list models
-        await client.models.list();
+        await this.client.models.list();
+        
+        return true;
+      } catch (error) {
+        throw error;
       }
-    );
+    };
 
     return await performStandardHealthCheck({
       backendName: 'OpenAI',

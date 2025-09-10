@@ -15,9 +15,9 @@ class DefaultConfigurationProvider {
    * Load all default configurations
    */
   loadDefaultConfigurations() {
-    // Backend default settings
+    // Backend default settings - harmonized with MCP server timeout (60s)
     this.configurations.set('backend.defaults', {
-      timeout: 30000,           // 30 seconds
+      timeout: 45000,           // 45 seconds (15s buffer under MCP timeout)
       retryCount: 3,
       retryDelay: 1000,         // 1 second
       healthCheckInterval: 60000, // 1 minute
@@ -28,14 +28,18 @@ class DefaultConfigurationProvider {
       }
     });
 
-    // OpenAI specific settings
+    // OpenAI specific settings - ENABLED with adaptive behavior
     this.configurations.set('backend.openai', {
       ...this.get('backend.defaults'),
+      enabled: true,              // Enable OpenAI backend
       baseURL: 'https://api.openai.com/v1',
-      defaultModel: 'gpt-4',
-      costPerToken: 0.00003,    // GPT-4 pricing
+      defaultModel: 'gpt-4o-mini',  // More cost-effective model
+      cost_per_token: 0.00015,    // GPT-4o-mini pricing
       contextLimit: 8192,
-      timeout: 60000            // OpenAI can be slower
+      timeout: 50000,             // Initial timeout - will be dynamically adjusted
+      adaptive_timeout: true,     // Enable dynamic timeout calibration
+      quality_tier: 'good',       // Expected quality tier
+      specialization: ['general', 'reasoning', 'analysis']
     });
 
     // Claude/Anthropic specific settings  
@@ -43,19 +47,29 @@ class DefaultConfigurationProvider {
       ...this.get('backend.defaults'),
       baseURL: 'https://api.anthropic.com',
       defaultModel: 'claude-3-sonnet-20240229',
-      costPerToken: 0.000015,   // Claude pricing
+      cost_per_token: 0.000015,   // Claude pricing
       contextLimit: 200000,     // Claude's large context
       timeout: 45000
     });
 
-    // Qwen specific settings
+    // Custom Backend #1 (Qwen/Flexcon) - ENABLED with adaptive behavior
     this.configurations.set('backend.qwen', {
       ...this.get('backend.defaults'),
+      enabled: true,              // Enable custom backend
       baseURL: 'https://tools.flexcon-ai.de',
-      defaultModel: 'qwen-turbo',
-      costPerToken: 0.00001,    // Lower cost
-      contextLimit: 32768,
-      timeout: 90000            // May be slower
+      defaultModel: 'gpt-oss:20b-gpu16-ctx3072',  // Full model specification
+      cost_per_token: 0.001,      // Cost per 1K tokens
+      contextLimit: 3072,         // Context window from model spec
+      timeout: 45000,             // Initial timeout - will be dynamically adjusted
+      adaptive_timeout: true,     // Enable dynamic timeout calibration
+      quality_tier: 'fair',       // Expected quality tier (fine-tunable)
+      specialization: ['coding', 'technical', 'cost-effective'],
+      hardware_acceleration: true, // 16x GPU acceleration
+      streaming_support: true,    // Real-time responses
+      custom_headers: {
+        'User-Agent': 'Claudette/3.0.0',
+        'X-Request-Priority': 'high'
+      }
     });
 
     // Database settings

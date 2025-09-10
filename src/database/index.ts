@@ -15,9 +15,17 @@ import {
 import { 
   DatabaseError, 
   QuotaLedgerEntry, 
-  CacheEntry, 
   CacheStats 
 } from '../types/index';
+
+interface DatabaseCacheEntry {
+  cache_key: string;
+  prompt_hash: string;
+  response: any;
+  created_at: number;
+  expires_at: number;
+  size_bytes: number;
+}
 
 export class DatabaseManager {
   private db: Database.Database;
@@ -146,7 +154,7 @@ export class DatabaseManager {
   }
 
   // Cache operations
-  setCacheEntry(entry: Omit<CacheEntry, 'access_count' | 'last_accessed'>): void {
+  setCacheEntry(entry: DatabaseCacheEntry): void {
     try {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO cache_entries (
@@ -169,7 +177,7 @@ export class DatabaseManager {
     }
   }
 
-  getCacheEntry(cacheKey: string): CacheEntry | null {
+  getCacheEntry(cacheKey: string): DatabaseCacheEntry | null {
     try {
       const stmt = this.db.prepare(`
         SELECT * FROM cache_entries 
@@ -185,7 +193,7 @@ export class DatabaseManager {
       return {
         ...result,
         response: JSON.parse(result.response)
-      } as CacheEntry;
+      } as DatabaseCacheEntry;
     } catch (error) {
       throw new DatabaseError(`Failed to get cache entry: ${error}`);
     }
@@ -230,6 +238,8 @@ export class DatabaseManager {
         cache_hits: recentRequests.cache_hits || 0,
         cache_misses: (recentRequests.total_requests || 0) - (recentRequests.cache_hits || 0),
         hit_rate: hitRate,
+        memory_usage: 0, // Not applicable for database cache
+        persistent_entries: stats.entries_count || 0,
         size_mb: stats.size_mb || 0,
         entries_count: stats.entries_count || 0
       };

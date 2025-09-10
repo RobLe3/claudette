@@ -17,6 +17,7 @@ import {
   ClaudetteResponse, 
   BackendError 
 } from '../types/index';
+import { globalConnectionPool } from '../utils/connection-pool';
 
 export class QwenBackend extends BaseBackend {
   private readonly baseURL: string;
@@ -26,6 +27,33 @@ export class QwenBackend extends BaseBackend {
     super('qwen', config);
     
     this.baseURL = config.base_url || 'https://tools.flexcon-ai.de';
+  }
+
+  /**
+   * Get HTTP status text for status codes
+   */
+  private getStatusText(status: number): string {
+    const statusTexts: Record<number, string> = {
+      200: 'OK',
+      201: 'Created',
+      400: 'Bad Request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Not Found',
+      429: 'Too Many Requests',
+      500: 'Internal Server Error',
+      502: 'Bad Gateway',
+      503: 'Service Unavailable',
+      504: 'Gateway Timeout'
+    };
+    return statusTexts[status] || 'Unknown';
+  }
+
+  /**
+   * Get the default model for Qwen backend
+   */
+  protected getDefaultModel(): string {
+    return this.defaultModel;
   }
 
   async validateConfig(): Promise<boolean> {
@@ -82,7 +110,31 @@ export class QwenBackend extends BaseBackend {
     }
 
     const url = `${this.baseURL}${endpoint}`;
-    return fetch(url, options);
+    
+    // Use connection pool for better performance
+    try {
+      const response = await globalConnectionPool.request(url, {
+        method: options.method as string,
+        headers: options.headers as Record<string, string>,
+        body: options.body as string,
+        timeout: 30000
+      });
+      
+      // Convert connection pool response to fetch-like response
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        statusText: this.getStatusText(response.status),
+        headers: new Headers(response.headers),
+        json: async () => JSON.parse(response.body),
+        text: async () => response.body,
+        url
+      } as Response;
+    } catch (error) {
+      // Fallback to fetch if connection pool fails
+      console.warn(`[QwenBackend] Connection pool failed, falling back to fetch:`, (error as Error).message);
+      return fetch(url, options);
+    }
   }
 
   async send(request: ClaudetteRequest): Promise<ClaudetteResponse> {

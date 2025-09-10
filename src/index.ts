@@ -4,11 +4,13 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { readFileSync, existsSync } from 'fs';
 import { createHash } from 'crypto';
+import { BackendConfigValidator } from './config/validator';
 
 import { DatabaseManager } from './database/index';
 import { CacheSystem } from './cache/index';
 import { BackendRouter } from './router/index';
 import { ClaudeBackend } from './backends/claude';
+import { performanceMonitor } from './monitoring/performance-metrics';
 import { OpenAIBackend } from './backends/openai';
 import { QwenBackend } from './backends/qwen';
 import { AdaptiveQwenBackend } from './backends/adaptive-qwen';
@@ -34,6 +36,25 @@ export class Claudette {
 
   constructor(configPath?: string) {
     this.config = this.loadConfig(configPath);
+    
+    // Validate and auto-correct configuration
+    const validationResult = BackendConfigValidator.validateConfig(this.config);
+    if (validationResult.totalIssues > 0) {
+      console.log('🔧 Configuration validation found issues:');
+      console.log(`   Total: ${validationResult.totalIssues} issues (${validationResult.backendResults ? Object.values(validationResult.backendResults).filter(r => !r.valid).length : 0} errors)`);
+      
+      if (validationResult.correctedConfig) {
+        this.config = validationResult.correctedConfig;
+        console.log('✅ Configuration auto-corrected');
+      }
+      
+      // Log critical errors
+      validationResult.globalErrors.forEach(error => console.error(`❌ ${error}`));
+      Object.values(validationResult.backendResults).forEach(result => {
+        result.errors.forEach(error => console.error(`❌ ${error}`));
+      });
+    }
+    
     this.db = new DatabaseManager();
     this.cache = new CacheSystem(this.db, {
       ttl: this.config.thresholds.cache_ttl,
@@ -48,23 +69,43 @@ export class Claudette {
   }
 
   /**
-   * Initialize Claudette with backends
+   * Initialize Claudette with backends and performance monitoring
    */
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
+    // Start performance monitoring
+    performanceMonitor.startInitialization();
+
     try {
       // Initialize backends based on config
+      performanceMonitor.startTiming('backend-initialization');
       await this.initializeBackends();
+      performanceMonitor.recordInitializationStep('backend-health-checks');
       
       // Verify database health
+      performanceMonitor.startTiming('database-health-check');
       const dbHealth = this.db.healthCheck();
       if (!dbHealth.healthy) {
         console.warn('Database health check failed, some features may not work');
       }
+      performanceMonitor.endTiming('database-health-check');
+
+      // Mark cache setup as complete
+      performanceMonitor.recordInitializationStep('cache-setup', 0); // Cache is initialized in constructor
 
       this.initialized = true;
+      
+      // Complete initialization monitoring
+      const initMetrics = performanceMonitor.endInitialization();
+      
+      // Log performance improvement
+      if (initMetrics.totalInitializationTime < 1000) {
+        console.log('✅ Claudette initialized successfully with sub-second startup!');
+      }
+      
     } catch (error) {
+      performanceMonitor.endInitialization();
       throw new ClaudetteError(`Failed to initialize Claudette: ${error}`, 'INIT_ERROR');
     }
   }
@@ -84,6 +125,30 @@ export class Claudette {
       bypass_optimization?: boolean;
     } = {}
   ): Promise<ClaudetteResponse> {
+    // Critical input validation - fixes null/undefined/non-string crashes
+    if (prompt === null) {
+      throw new ClaudetteError('Prompt cannot be null', 'INVALID_INPUT');
+    }
+    if (prompt === undefined) {
+      throw new ClaudetteError('Prompt cannot be undefined', 'INVALID_INPUT');
+    }
+    if (typeof prompt !== 'string') {
+      throw new ClaudetteError(`Prompt must be a string, received ${typeof prompt}`, 'INVALID_INPUT');
+    }
+    if (prompt.trim().length === 0) {
+      throw new ClaudetteError('Prompt cannot be empty', 'INVALID_INPUT');
+    }
+
+    // Validate files array
+    if (files && !Array.isArray(files)) {
+      throw new ClaudetteError('Files parameter must be an array', 'INVALID_INPUT');
+    }
+
+    // Validate options
+    if (options && typeof options !== 'object') {
+      throw new ClaudetteError('Options parameter must be an object', 'INVALID_INPUT');
+    }
+
     // Check for raw mode bypass
     if (process.env.CLAUDETTE_RAW === '1' || options.bypass_optimization) {
       return this.directClaudeCall(prompt, files, options);
@@ -107,7 +172,7 @@ export class Claudette {
       // Execute hook sequence
       await this.executeHook('pre-task', { 
         hook_name: 'pre-task',
-        task_description: prompt.substring(0, 100) + '...',
+        task_description: this.createSafeTaskDescription(prompt),
         metadata: request.metadata
       });
 
@@ -137,7 +202,7 @@ export class Claudette {
       // Execute post-task hook
       await this.executeHook('post-task', {
         hook_name: 'post-task',
-        task_description: prompt.substring(0, 100) + '...',
+        task_description: this.createSafeTaskDescription(prompt),
         metadata: { ...request.metadata, response_length: response.content.length }
       });
 
@@ -165,6 +230,20 @@ export class Claudette {
     files: string[] = [], 
     options: any = {}
   ): Promise<ClaudetteResponse> {
+    // Apply same input validation as optimize() method
+    if (prompt === null) {
+      throw new ClaudetteError('Prompt cannot be null', 'INVALID_INPUT');
+    }
+    if (prompt === undefined) {
+      throw new ClaudetteError('Prompt cannot be undefined', 'INVALID_INPUT');
+    }
+    if (typeof prompt !== 'string') {
+      throw new ClaudetteError(`Prompt must be a string, received ${typeof prompt}`, 'INVALID_INPUT');
+    }
+    if (prompt.trim().length === 0) {
+      throw new ClaudetteError('Prompt cannot be empty', 'INVALID_INPUT');
+    }
+
     const claudeBackend = new ClaudeBackend(this.config.backends.claude);
     
     const request: ClaudetteRequest = {
@@ -298,10 +377,23 @@ export class Claudette {
    * Initialize backends based on configuration
    */
   private async initializeBackends(): Promise<void> {
-    // Initialize Claude backend
-    if (this.config.backends.claude.enabled) {
-      const claude = new ClaudeBackend(this.config.backends.claude);
-      this.router.registerBackend(claude);
+    // Initialize Claude backend with availability check
+    if (this.config.backends.claude.enabled || process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY) {
+      try {
+        // Enable Claude backend if API key is available in environment
+        const claudeConfig = {
+          ...this.config.backends.claude,
+          enabled: true,
+          api_key: this.config.backends.claude.api_key || 
+                   process.env.ANTHROPIC_API_KEY || 
+                   process.env.CLAUDE_API_KEY
+        };
+        const claude = new ClaudeBackend(claudeConfig);
+        this.router.registerBackend(claude);
+        console.log('✅ Claude backend registered');
+      } catch (error) {
+        console.warn('⚠️ Claude backend registration failed:', error instanceof Error ? error.message : String(error));
+      }
     }
 
     // Initialize OpenAI backend with availability check
@@ -322,9 +414,17 @@ export class Claudette {
     }
 
     // Initialize Qwen backend with availability check
-    if (this.config.backends.qwen.enabled) {
+    if (this.config.backends.qwen.enabled || process.env.CODELLM_API_KEY || process.env.QWEN_API_KEY) {
       try {
-        const qwen = new QwenBackend(this.config.backends.qwen);
+        // Enable Qwen backend if API key is available in environment
+        const qwenConfig = {
+          ...this.config.backends.qwen,
+          enabled: true,
+          api_key: this.config.backends.qwen.api_key || 
+                   process.env.CODELLM_API_KEY || 
+                   process.env.QWEN_API_KEY
+        };
+        const qwen = new QwenBackend(qwenConfig);
         this.router.registerBackend(qwen);
         console.log('✅ Qwen backend registered');
       } catch (error) {
@@ -343,8 +443,19 @@ export class Claudette {
       }
     }
 
-    // Initialize mock backend for testing when no API keys are available
-    if (this.router.getBackends().length === 0) {
+    // Check if we have any healthy backends after initialization
+    const healthChecks = await this.router.healthCheckAll();
+    const healthyBackends = healthChecks.filter(h => h.healthy);
+    
+    console.log(`🏥 Backend health summary: ${healthyBackends.length}/${healthChecks.length} healthy`);
+    healthChecks.forEach(check => {
+      const icon = check.healthy ? '✅' : '❌';
+      console.log(`   ${icon} ${check.name}: ${check.healthy ? 'healthy' : 'unhealthy'}${check.error ? ` (${check.error})` : ''}`);
+    });
+    
+    // Initialize mock backend for testing when no healthy backends are available
+    if (healthyBackends.length === 0) {
+      console.log('🎭 No healthy backends found, initializing mock backend for testing');
       const mockBackend = new MockBackend({
         enabled: true,
         priority: 999,
@@ -450,6 +561,23 @@ export class Claudette {
   }
 
   /**
+   * Safely create task description from prompt (prevents null/undefined crashes)
+   */
+  private createSafeTaskDescription(prompt: string): string {
+    try {
+      if (typeof prompt !== 'string') {
+        return `[Non-string prompt: ${typeof prompt}]`;
+      }
+      if (prompt.length <= 100) {
+        return prompt;
+      }
+      return prompt.substring(0, 100) + '...';
+    } catch (error) {
+      return '[Error creating task description]';
+    }
+  }
+
+  /**
    * Get system status and statistics
    */
   async getStatus(): Promise<{
@@ -481,6 +609,14 @@ export class Claudette {
    */
   getConfig(): ClaudetteConfig {
     return this.config;
+  }
+
+  /**
+   * Generate configuration validation report
+   */
+  getConfigValidationReport(): string {
+    const validationResult = BackendConfigValidator.validateConfig(this.config);
+    return BackendConfigValidator.generateReport(validationResult);
   }
 
   /**
@@ -632,8 +768,33 @@ export class Claudette {
    * Cleanup resources
    */
   async cleanup(): Promise<void> {
+    // Stop background health checks to prevent hanging
+    if (this.router && typeof this.router.stopBackgroundHealthChecks === 'function') {
+      this.router.stopBackgroundHealthChecks();
+    }
+    
+    // Stop metrics collection to prevent hanging
+    try {
+      const { globalMetrics } = await import('./monitoring/comprehensive-metrics');
+      globalMetrics.stop();
+    } catch (error) {
+      // Ignore if metrics module not available
+    }
+    
+    // Cleanup connection pool
+    try {
+      const { globalConnectionPool } = await import('./utils/connection-pool');
+      await globalConnectionPool.destroy();
+    } catch (error) {
+      // Ignore if connection pool module not available
+    }
+    
+    // Cleanup database connections
     this.db.cleanup();
     this.db.close();
+    
+    // Mark as uninitialized to allow re-initialization if needed
+    this.initialized = false;
   }
 }
 
@@ -660,11 +821,12 @@ export {
   MCPRAGProvider,
   BaseRAGProvider 
 } from './rag/index';
-export {
-  createMCPProvider,
-  createDockerProvider,
-  createRemoteProvider,
-  createRAGManager,
-  autoConfigureRAG
-} from './rag/providers';
+// RAG provider factories temporarily disabled during build fixes
+// export {
+//   createConfiguredMCPProvider as createMCPProvider,
+//   createConfiguredDockerProvider as createDockerProvider,
+//   createConfiguredRemoteProvider as createRemoteProvider,
+//   createConfiguredRAGManager as createRAGManager,
+//   autoConfigureRAG
+// } from './rag/providers';
 export * from './setup/index';

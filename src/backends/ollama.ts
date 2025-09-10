@@ -51,6 +51,13 @@ export class OllamaBackend extends BaseBackend {
     }
   }
 
+  /**
+   * Get the default model for Ollama backend
+   */
+  protected getDefaultModel(): string {
+    return (this.config as OllamaBackendSettings).model || this.defaultModel;
+  }
+
   async validateConfig(): Promise<boolean> {
     const hasModel = !!(this.config as OllamaBackendSettings).model;
     const hasValidUrl = this.isValidUrl(this.apiUrl);

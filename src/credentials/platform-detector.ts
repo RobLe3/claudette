@@ -9,6 +9,9 @@ const execAsync = promisify(exec);
 export class PlatformDetector {
   private static instance: PlatformDetector;
   private platformInfo: PlatformInfo | null = null;
+  private initializationPromise: Promise<PlatformInfo> | null = null;
+  private platformCacheExpiry: number = 0;
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
 
   static getInstance(): PlatformDetector {
     if (!PlatformDetector.instance) {
@@ -18,13 +21,37 @@ export class PlatformDetector {
   }
 
   /**
-   * Detect current platform and capabilities
+   * Detect current platform and capabilities with caching and async optimization
    */
   async detectPlatform(): Promise<PlatformInfo> {
-    if (this.platformInfo) {
+    const now = Date.now();
+    
+    // Return cached result if still valid
+    if (this.platformInfo && now < this.platformCacheExpiry) {
       return this.platformInfo;
     }
 
+    // If initialization is already in progress, wait for it
+    if (this.initializationPromise) {
+      return await this.initializationPromise;
+    }
+
+    // Start new initialization
+    this.initializationPromise = this.performPlatformDetection();
+    
+    try {
+      const result = await this.initializationPromise;
+      this.platformCacheExpiry = now + this.CACHE_TTL;
+      return result;
+    } finally {
+      this.initializationPromise = null;
+    }
+  }
+
+  /**
+   * Perform actual platform detection with parallel capability checks
+   */
+  private async performPlatformDetection(): Promise<PlatformInfo> {
     const platform = this.getPlatformType();
     const arch = process.arch;
     const version = process.version;
@@ -35,18 +62,41 @@ export class PlatformDetector {
       version
     };
 
-    // Check platform-specific capabilities
+    // Run capability checks in parallel instead of sequentially
+    const capabilityPromises: Promise<void>[] = [];
+
     switch (platform) {
       case Platform.MACOS:
-        platformInfo.hasKeychainAccess = await this.checkKeychainAccess();
+        capabilityPromises.push(
+          this.checkKeychainAccess().then(result => {
+            platformInfo.hasKeychainAccess = result;
+          }).catch(() => {
+            platformInfo.hasKeychainAccess = false;
+          })
+        );
         break;
       case Platform.WINDOWS:
-        platformInfo.hasCredentialManager = await this.checkWindowsCredentialManager();
+        capabilityPromises.push(
+          this.checkWindowsCredentialManager().then(result => {
+            platformInfo.hasCredentialManager = result;
+          }).catch(() => {
+            platformInfo.hasCredentialManager = false;
+          })
+        );
         break;
       case Platform.LINUX:
-        platformInfo.hasLibSecret = await this.checkLibSecret();
+        capabilityPromises.push(
+          this.checkLibSecret().then(result => {
+            platformInfo.hasLibSecret = result;
+          }).catch(() => {
+            platformInfo.hasLibSecret = false;
+          })
+        );
         break;
     }
+
+    // Wait for all capability checks to complete in parallel
+    await Promise.all(capabilityPromises);
 
     this.platformInfo = platformInfo;
     return platformInfo;
@@ -69,54 +119,61 @@ export class PlatformDetector {
   }
 
   /**
-   * Check if macOS Keychain is accessible
+   * Check if macOS Keychain is accessible with timeout and caching
    */
   private async checkKeychainAccess(): Promise<boolean> {
     try {
-      await execAsync('security -h');
-      // Test basic keychain operation
-      await execAsync('security find-generic-password -s "claudette-test-probe" 2>/dev/null || true');
-      return true;
+      // Fast timeout for capability checks to prevent blocking
+      const timeout = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 2000)
+      );
+      
+      const check = execAsync('security -h').then(() => true);
+      
+      return await Promise.race([check, timeout]);
     } catch (error) {
       return false;
     }
   }
 
   /**
-   * Check if Windows Credential Manager is accessible
+   * Check if Windows Credential Manager is accessible with timeout
    */
   private async checkWindowsCredentialManager(): Promise<boolean> {
     try {
-      // Test if cmdkey (Windows credential utility) is available
-      await execAsync('cmdkey /list >nul 2>nul');
-      return true;
+      const timeout = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 2000)
+      );
+      
+      const check = execAsync('cmdkey /list >nul 2>nul').then(() => true);
+      
+      return await Promise.race([check, timeout]);
     } catch (error) {
       return false;
     }
   }
 
   /**
-   * Check if Linux libsecret is available
+   * Check if Linux libsecret is available with timeout and parallel checks
    */
   private async checkLibSecret(): Promise<boolean> {
     try {
-      // Check for secret-tool (part of libsecret)
-      await execAsync('command -v secret-tool >/dev/null 2>&1');
-      return true;
+      const timeout = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 2000)
+      );
+      
+      // Run all package checks in parallel
+      const checks = [
+        execAsync('command -v secret-tool >/dev/null 2>&1').then(() => true).catch(() => false),
+        execAsync('dpkg -l | grep libsecret-tools >/dev/null 2>&1').then(() => true).catch(() => false),
+        execAsync('rpm -qa | grep libsecret >/dev/null 2>&1').then(() => true).catch(() => false)
+      ];
+      
+      const parallelCheck = Promise.all(checks).then(results => results.some(r => r));
+      
+      return await Promise.race([parallelCheck, timeout]);
     } catch (error) {
-      // Fallback: check for libsecret-tools package
-      try {
-        await execAsync('dpkg -l | grep libsecret-tools >/dev/null 2>&1');
-        return true;
-      } catch {
-        // Check for other package managers
-        try {
-          await execAsync('rpm -qa | grep libsecret >/dev/null 2>&1');
-          return true;
-        } catch {
-          return false;
-        }
-      }
+      return false;
     }
   }
 

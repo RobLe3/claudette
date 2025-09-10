@@ -47,9 +47,12 @@ import {
 
 export class UniversalCredentialManager {
   private primaryStorage: CredentialStorage | null = null;
-  private fallbackStorage: EncryptedFileStorage;
+  private fallbackStorage: InstanceType<typeof EncryptedFileStorage>;
   private platformDetector: PlatformDetector;
   private initialized = false;
+  private initializationPromise: Promise<void> | null = null;
+  private storageAvailabilityCache = new Map<string, { available: boolean; expiry: number }>();
+  private readonly STORAGE_CACHE_TTL = 30 * 1000; // 30 seconds cache for storage availability (reduced from 2 minutes to prevent startup delays)
 
   constructor(private options: CredentialManagerOptions = {}) {
     this.platformDetector = PlatformDetector.getInstance();
@@ -60,34 +63,97 @@ export class UniversalCredentialManager {
   }
 
   /**
-   * Initialize the credential manager with best available storage
+   * Initialize the credential manager with async queue and storage caching
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
       return;
     }
 
+    // If initialization is already in progress, wait for it
+    if (this.initializationPromise) {
+      return await this.initializationPromise;
+    }
+
+    // Start new initialization
+    this.initializationPromise = this.performInitialization();
+    
+    try {
+      await this.initializationPromise;
+    } finally {
+      this.initializationPromise = null;
+    }
+  }
+
+  /**
+   * Perform actual initialization with parallel storage checks
+   */
+  private async performInitialization(): Promise<void> {
     const platformInfo = await this.platformDetector.detectPlatform();
     const storageOptions = await this.platformDetector.getRecommendedStorage();
 
-    // Try to initialize primary storage based on platform
-    for (const storageType of storageOptions) {
+    // Check all storage options in parallel instead of sequentially
+    const storagePromises = storageOptions.map(async (storageType) => {
       try {
         const storage = this.createStorage(storageType);
-        if (storage && await storage.isAvailable()) {
-          this.primaryStorage = storage;
-          break;
+        if (!storage) return { storageType, storage: null, available: false };
+
+        // Check cache first
+        const cached = this.getStorageAvailabilityFromCache(storageType);
+        if (cached !== null) {
+          return { storageType, storage, available: cached };
         }
+
+        // Check availability with timeout
+        const isAvailable = await Promise.race([
+          storage.isAvailable(),
+          new Promise<boolean>((_, reject) => 
+            setTimeout(() => reject(new Error('Storage check timeout')), 1000)
+          )
+        ]);
+
+        // Cache the result
+        this.cacheStorageAvailability(storageType, isAvailable);
+        return { storageType, storage, available: isAvailable };
       } catch (error) {
-        // Continue to next storage option
-        continue;
+        this.cacheStorageAvailability(storageType, false);
+        return { storageType, storage: null, available: false };
+      }
+    });
+
+    const storageResults = await Promise.all(storagePromises);
+
+    // Select the first available primary storage
+    for (const result of storageResults) {
+      if (result.available && result.storage) {
+        this.primaryStorage = result.storage;
+        break;
       }
     }
 
-    // Check if we have at least one working storage system
+    // Check fallback storage availability with caching
+    let hasFallbackStorage = false;
+    if (this.options.fallbackToFile !== false) {
+      const cached = this.getStorageAvailabilityFromCache('encrypted-file');
+      if (cached !== null) {
+        hasFallbackStorage = cached;
+      } else {
+        try {
+          hasFallbackStorage = await Promise.race([
+            this.fallbackStorage.isAvailable(),
+            new Promise<boolean>((_, reject) => 
+              setTimeout(() => reject(new Error('Fallback storage timeout')), 1000)
+            )
+          ]);
+          this.cacheStorageAvailability('encrypted-file', hasFallbackStorage);
+        } catch (error) {
+          hasFallbackStorage = false;
+          this.cacheStorageAvailability('encrypted-file', false);
+        }
+      }
+    }
+
     const hasPrimaryStorage = this.primaryStorage !== null;
-    const hasFallbackStorage = this.options.fallbackToFile !== false && 
-                              await this.fallbackStorage.isAvailable();
     
     if (!hasPrimaryStorage && !hasFallbackStorage) {
       throw new CredentialError(
@@ -104,6 +170,27 @@ export class UniversalCredentialManager {
     }
 
     this.initialized = true;
+  }
+
+  /**
+   * Get storage availability from cache if still valid
+   */
+  private getStorageAvailabilityFromCache(storageType: string): boolean | null {
+    const cached = this.storageAvailabilityCache.get(storageType);
+    if (cached && Date.now() < cached.expiry) {
+      return cached.available;
+    }
+    return null;
+  }
+
+  /**
+   * Cache storage availability result
+   */
+  private cacheStorageAvailability(storageType: string, available: boolean): void {
+    this.storageAvailabilityCache.set(storageType, {
+      available,
+      expiry: Date.now() + this.STORAGE_CACHE_TTL
+    });
   }
 
   /**
@@ -257,7 +344,7 @@ export class UniversalCredentialManager {
     if (this.options.fallbackToFile !== false && await this.fallbackStorage.isAvailable()) {
       try {
         const fallbackServices = await this.fallbackStorage.listServices();
-        fallbackServices.forEach(service => services.add(service));
+        fallbackServices.forEach((service: string) => services.add(service));
       } catch (error) {
         console.warn(`Fallback storage service listing failed: ${(error as Error).message}`);
       }

@@ -268,7 +268,7 @@ export class PluginManager extends EventEmitter {
       logger: new Logger(),
       config,
       events: this,
-      claudetteVersion: process.env.CLAUDETTE_VERSION || '2.1.6', // Version from env or default
+      claudetteVersion: process.env.CLAUDETTE_VERSION || '3.0.0', // Version from env or default
       environment: process.env.NODE_ENV as any || 'development'
     };
 

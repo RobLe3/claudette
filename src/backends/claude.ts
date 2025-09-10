@@ -30,6 +30,13 @@ export class ClaudeBackend extends BaseBackend {
     this.client = null as any;
   }
 
+  /**
+   * Get the default model for Claude backend
+   */
+  protected getDefaultModel(): string {
+    return this.defaultModel;
+  }
+
   async validateConfig(): Promise<boolean> {
     const apiKey = await this.getApiKey();
     return await super.validateConfig() && !!apiKey;
@@ -69,19 +76,23 @@ export class ClaudeBackend extends BaseBackend {
   }
 
   protected async healthCheck(): Promise<boolean> {
-    const healthCheckFunction = HealthCheckPatterns.createMinimalCallHealthCheck(
-      this.client,
-      async (client) => {
+    const healthCheckFunction = async () => {
+      try {
+        // Initialize client first before attempting health check
         await this.initializeClient();
         
-        // Simple health check - try to get model info
-        await client.messages.create({
+        // Simple health check - try to get model info with minimal request
+        await this.client.messages.create({
           model: this.config.model || this.defaultModel,
           max_tokens: 1,
           messages: [{ role: 'user', content: 'Hi' }]
         });
+        
+        return true;
+      } catch (error) {
+        throw error;
       }
-    );
+    };
 
     return await performStandardHealthCheck({
       backendName: 'Claude',

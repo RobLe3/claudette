@@ -122,7 +122,7 @@ export class MonitoringPlatform {
   ) {
     this.db = db;
     
-    console.log('🚀 Initializing Claudette Monitoring Platform v2.1.6');
+    console.log('🚀 Initializing Claudette Monitoring Platform v3.0.0');
     
     // Initialize core monitoring components
     this.systemMonitor = new SystemMonitor(db, config.systemMonitor);
@@ -130,7 +130,7 @@ export class MonitoringPlatform {
     this.observabilityFramework = new ObservabilityFramework(
       db,
       config.serviceName || 'claudette',
-      config.serviceVersion || '2.1.6',
+      config.serviceVersion || '3.0.0',
       config.environment || 'production',
       config.observability
     );
@@ -492,7 +492,7 @@ export function initializeMonitoring(
   
   const config: MonitoringPlatformConfiguration = {
     serviceName,
-    serviceVersion: '2.1.6',
+    serviceVersion: '3.0.0',
     environment,
     systemMonitor: {
       enabled: true,

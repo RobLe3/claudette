@@ -1,5 +1,26 @@
 // Core type definitions for Claudette
 
+// Cache types defined locally to avoid import issues
+export interface CacheStats {
+  hit_rate: number;
+  total_requests: number;
+  cache_hits: number;
+  cache_misses: number;
+  memory_usage: number;
+  persistent_entries: number;
+  size_mb?: number;
+  entries_count?: number;
+}
+
+export interface CacheEntry {
+  key: string;
+  value: ClaudetteResponse;
+  timestamp: number;
+  ttl: number;
+  access_count: number;
+  compressed?: boolean;
+}
+
 export interface ClaudetteConfig {
   backends: BackendConfig;
   features: FeatureConfig;
@@ -131,6 +152,10 @@ export interface BackendInfo {
   avg_latency?: number;
   current_timeout?: number;
   success_rate?: number;
+  quality_tier?: 'excellent' | 'good' | 'fair' | 'poor';
+  calibration_confidence?: number;
+  performance_trend?: 'improving' | 'stable' | 'degrading';
+  last_calibration?: number;
 }
 
 // Hook system types
@@ -270,3 +295,4 @@ export interface Logger {
   error(message: string, ...args: any[]): void;
   fatal(message: string, ...args: any[]): void;
 }
+

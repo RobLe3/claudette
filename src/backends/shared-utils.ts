@@ -3,6 +3,7 @@
 
 import { getCredentialManager } from '../credentials';
 import { BackendError, ClaudetteRequest, ClaudetteResponse } from '../types/index';
+import { secureLogger, logBackendError } from '../utils/secure-logger';
 
 /**
  * Configuration for API key retrieval
@@ -100,6 +101,19 @@ export function createErrorResponse(
   isRetryable?: boolean
 ): never {
   const retryable = isRetryable !== undefined ? isRetryable : determineRetryability(error);
+  
+  // Log backend error with secure logging
+  logBackendError({
+    backend: backendName,
+    operation: 'send_request',
+    error,
+    retryable,
+    context: {
+      latency_ms: latencyMs,
+      prompt_length: request.prompt?.length,
+      files_count: request.files?.length
+    }
+  });
   
   throw new BackendError(
     `${backendName} backend error: ${error.message}`,

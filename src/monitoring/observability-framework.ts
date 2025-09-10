@@ -156,7 +156,7 @@ export class ObservabilityFramework extends EventEmitter {
   constructor(
     db: Database,
     serviceName: string = 'claudette',
-    serviceVersion: string = '2.1.6',
+    serviceVersion: string = '3.0.0',
     environment: string = 'production',
     config: Partial<ObservabilityConfiguration> = {}
   ) {

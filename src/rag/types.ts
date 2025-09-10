@@ -7,6 +7,7 @@ export interface RAGRequest {
   maxResults?: number;
   threshold?: number;
   metadata?: Record<string, any>;
+  priority?: 'high' | 'medium' | 'low';
 }
 
 export interface RAGResponse {
@@ -16,6 +17,7 @@ export interface RAGResponse {
     processingTime: number;
     source: 'vector' | 'graph' | 'hybrid';
     queryId: string;
+    serverId?: string;
   };
 }
 
@@ -36,17 +38,23 @@ export interface GraphRelationship {
 
 // Deployment scenario configurations
 export interface RAGConfig {
+  name?: string;
+  type?: 'mcp' | 'docker' | 'remote';
   deployment: 'mcp' | 'local_docker' | 'remote_docker';
   connection: MCPConnection | DockerConnection | RemoteConnection;
+  config?: any; // Additional configuration
   vectorDB?: VectorDBConfig;
   graphDB?: GraphDBConfig;
   hybrid?: boolean;
+  enabled?: boolean;
+  priority?: number;
 }
 
 export interface MCPConnection {
   type: 'mcp';
   pluginPath: string;
   serverPort?: number;
+  serverHost?: string;
   timeout?: number;
 }
 
@@ -67,10 +75,11 @@ export interface RemoteConnection {
 }
 
 export interface VectorDBConfig {
-  provider: 'chroma' | 'pinecone' | 'weaviate' | 'qdrant';
+  provider: 'chroma' | 'pinecone' | 'weaviate' | 'qdrant' | 'local';
   collection: string;
   dimensions?: number;
   similarity?: 'cosine' | 'euclidean' | 'dot';
+  enabled?: boolean;
 }
 
 export interface GraphDBConfig {
@@ -78,6 +87,51 @@ export interface GraphDBConfig {
   database: string;
   schema?: string;
   maxDepth?: number;
+  enabled?: boolean;
+}
+
+export interface RAGProviderConfig {
+  type: 'mcp' | 'docker' | 'remote';
+  config: any;
+  priority?: number;
+  enabled?: boolean;
+}
+
+export interface MCPProviderConfig {
+  type?: 'mcp';
+  pluginPath?: string;
+  timeout?: number;
+  maxRetries?: number;
+  priority?: number;
+  vectorDB?: VectorDBConfig;
+  graphDB?: GraphDBConfig;
+  hybrid?: boolean;
+  contextStrategy?: 'prepend' | 'append' | 'inject' | 'hybrid';
+}
+
+export interface DockerProviderConfig {
+  type?: 'docker';
+  containerName?: string;
+  port?: number;
+  host?: string;
+  healthCheckPath?: string;
+  timeout?: number;
+  maxRetries?: number;
+  priority?: number;
+  vectorDB?: VectorDBConfig;
+  contextStrategy?: 'prepend' | 'append' | 'inject' | 'hybrid';
+}
+
+export interface RemoteProviderConfig {
+  type?: 'remote';
+  baseURL?: string;
+  apiKey?: string;
+  timeout?: number;
+  maxRetries?: number;
+  headers?: Record<string, string>;
+  priority?: number;
+  vectorDB?: VectorDBConfig;
+  contextStrategy?: 'prepend' | 'append' | 'inject' | 'hybrid';
 }
 
 // Enhanced Claudette request with RAG capabilities
@@ -102,7 +156,7 @@ export interface ClaudetteRAGResponse {
 }
 
 export class RAGError extends Error {
-  code: 'CONNECTION_FAILED' | 'TIMEOUT' | 'INVALID_CONFIG' | 'RAG_SERVICE_ERROR';
+  code: 'CONNECTION_FAILED' | 'TIMEOUT' | 'INVALID_CONFIG' | 'RAG_SERVICE_ERROR' | 'NO_SERVERS_AVAILABLE' | 'FAILOVER_EXHAUSTED';
   deployment: string;
   retryable: boolean;
 

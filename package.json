@@ -8,6 +8,8 @@
   },
   "scripts": {
     "start": "node claudette",
+    "server": "node dist/server/index.js",
+    "start:server": "npm run build && npm run server",
     "build": "tsc",
     "test": "npm run build && node src/test/claudette-unit-tests.js",
     "test:rag": "node src/test/rag-integration-tests.js",
@@ -109,13 +111,14 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
     "@types/sqlite3": "^3.1.11",
+    "axios": "^1.11.0",
     "better-sqlite3": "^12.2.0",
     "chalk": "^5.4.1",
     "commander": "^14.0.0",
     "dotenv": "^17.2.2",
     "lru-cache": "^11.2.1",
     "node-fetch": "^3.3.2",
-    "openai": "^5.11.0",
+    "openai": "^5.19.1",
     "ora": "^8.2.0",
     "sqlite3": "^5.1.7"
   }
