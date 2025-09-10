@@ -147,9 +147,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Claude Code
-.claude/current_session.txt
-.claude/cache/
+# Claude Code - ignore all personal/dynamic content
+.claude/
+!.claude/settings.json
+!.claude/commands/
+!.claude/helpers/
 
 # Development artifacts - Claudette specific
 dev-artifacts/
