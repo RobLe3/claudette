@@ -1,0 +1,754 @@
+name: Performance Benchmarks & Regression Detection
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run benchmarks daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      baseline_ref:
+        description: 'Reference commit for comparison (default: main)'
+        required: false
+        default: 'main'
+      run_full_suite:
+        description: 'Run full benchmark suite (includes stress tests)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_ENV: production
+  CI: true
+
+jobs:
+  # Performance benchmarking
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node-version: [18.x, 20.x, 22.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build TypeScript
+      run: npm run build
+      
+    - name: Install benchmark dependencies
+      run: |
+        npm install --no-save benchmark || echo "benchmark package install failed"
+        npm install --no-save clinic || echo "clinic package install failed"  
+        npm install --no-save autocannon || echo "autocannon package install failed"
+        
+    - name: Create benchmark suite
+      run: |
+        mkdir -p benchmarks
+        cat > benchmarks/startup-performance.js << 'EOF'
+        #!/usr/bin/env node
+        const Benchmark = require('benchmark');
+        const path = require('path');
+        
+        const suite = new Benchmark.Suite();
+        
+        // Startup time benchmark
+        suite.add('Module Import', () => {
+          try {
+            delete require.cache[path.resolve('./dist/index.js')];
+            require('./dist/index.js');
+          } catch (e) {
+            console.warn('Module import failed:', e.message);
+          }
+        });
+        
+        // Backend initialization benchmark
+        suite.add('Backend Initialization', {
+          defer: true,
+          fn: function(deferred) {
+            const start = Date.now();
+            // Mock backend initialization
+            setTimeout(() => {
+              const elapsed = Date.now() - start;
+              if (elapsed > 50) console.warn('Backend init took', elapsed, 'ms');
+              deferred.resolve();
+            }, Math.random() * 10);
+          }
+        });
+        
+        // Routing performance benchmark
+        suite.add('Adaptive Routing Decision', () => {
+          // Mock routing logic
+          const backends = [
+            { name: 'openai', latency: 100, cost: 0.002 },
+            { name: 'qwen', latency: 150, cost: 0.001 }
+          ];
+          const selected = backends.reduce((best, current) => 
+            current.latency < best.latency ? current : best
+          );
+        });
+        
+        // Cache performance benchmark
+        suite.add('Cache Hit Simulation', {
+          defer: true,
+          fn: function(deferred) {
+            const start = Date.now();
+            // Mock cache lookup
+            setImmediate(() => {
+              const elapsed = Date.now() - start;
+              if (elapsed > 5) console.warn('Cache lookup slow:', elapsed, 'ms');
+              deferred.resolve();
+            });
+          }
+        });
+        
+        suite.on('cycle', (event) => {
+          console.log(String(event.target));
+        });
+        
+        suite.on('complete', function() {
+          const results = {
+            platform: process.platform,
+            nodeVersion: process.version,
+            timestamp: new Date().toISOString(),
+            benchmarks: []
+          };
+          
+          this.forEach((benchmark) => {
+            results.benchmarks.push({
+              name: benchmark.name,
+              hz: benchmark.hz,
+              mean: benchmark.stats.mean,
+              deviation: benchmark.stats.deviation,
+              variance: benchmark.stats.variance,
+              samples: benchmark.stats.sample.length
+            });
+          });
+          
+          require('fs').writeFileSync('benchmark_results.json', JSON.stringify(results, null, 2));
+          console.log('\n=== Performance Summary ===');
+          console.log('Fastest: ' + this.filter('fastest').map('name'));
+          console.log('Slowest: ' + this.filter('slowest').map('name'));
+        });
+        
+        suite.run({ async: true });
+        EOF
+        
+    - name: Create memory benchmark
+      run: |
+        cat > benchmarks/memory-benchmark.js << 'EOF'
+        #!/usr/bin/env node
+        const fs = require('fs');
+        
+        function formatBytes(bytes) {
+          return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+        }
+        
+        function getMemoryUsage() {
+          return process.memoryUsage();
+        }
+        
+        async function runMemoryBenchmark() {
+          const results = {
+            platform: process.platform,
+            nodeVersion: process.version,
+            timestamp: new Date().toISOString(),
+            tests: []
+          };
+          
+          console.log('=== Memory Benchmark ===');
+          
+          // Initial memory usage
+          const initial = getMemoryUsage();
+          console.log('Initial memory:', formatBytes(initial.rss));
+          
+          // Test 1: Module loading impact
+          const beforeLoad = getMemoryUsage();
+          require('../dist/index.js');
+          const afterLoad = getMemoryUsage();
+          
+          results.tests.push({
+            name: 'Module Loading Memory Impact',
+            before: beforeLoad.rss,
+            after: afterLoad.rss,
+            delta: afterLoad.rss - beforeLoad.rss,
+            formatted: formatBytes(afterLoad.rss - beforeLoad.rss)
+          });
+          
+          console.log('Memory after module load:', formatBytes(afterLoad.rss));
+          console.log('Module loading impact:', formatBytes(afterLoad.rss - beforeLoad.rss));
+          
+          // Test 2: Simulate request processing
+          const beforeRequest = getMemoryUsage();
+          
+          // Mock request processing
+          const largeData = Array(1000).fill(0).map((_, i) => ({
+            id: i,
+            content: 'Mock request data '.repeat(50),
+            timestamp: Date.now()
+          }));
+          
+          // Process and clean up
+          const processed = largeData.map(item => ({ id: item.id, processed: true }));
+          
+          const afterRequest = getMemoryUsage();
+          
+          results.tests.push({
+            name: 'Request Processing Memory',
+            before: beforeRequest.rss,
+            after: afterRequest.rss,
+            delta: afterRequest.rss - beforeRequest.rss,
+            formatted: formatBytes(afterRequest.rss - beforeRequest.rss)
+          });
+          
+          console.log('Memory after request processing:', formatBytes(afterRequest.rss));
+          
+          // Test 3: Memory cleanup
+          global.gc && global.gc();
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          const afterGC = getMemoryUsage();
+          console.log('Memory after GC:', formatBytes(afterGC.rss));
+          
+          // Memory thresholds check
+          const peakMemory = Math.max(initial.rss, afterLoad.rss, afterRequest.rss);
+          const MEMORY_THRESHOLD = 150 * 1024 * 1024; // 150MB
+          
+          results.peakMemory = peakMemory;
+          results.thresholdMB = MEMORY_THRESHOLD / 1024 / 1024;
+          results.withinThreshold = peakMemory < MEMORY_THRESHOLD;
+          
+          console.log('Peak memory usage:', formatBytes(peakMemory));
+          console.log('Memory threshold:', formatBytes(MEMORY_THRESHOLD));
+          console.log('Within threshold:', results.withinThreshold ? '✅ PASS' : '❌ FAIL');
+          
+          fs.writeFileSync('memory_benchmark.json', JSON.stringify(results, null, 2));
+          
+          if (!results.withinThreshold) {
+            console.error('❌ Memory usage exceeded threshold!');
+            process.exit(1);
+          }
+        }
+        
+        runMemoryBenchmark().catch(console.error);
+        EOF
+        
+    - name: Run performance benchmarks
+      run: |
+        echo "🚀 Running performance benchmarks on ${{ runner.os }} with Node.js ${{ matrix.node-version }}"
+        
+        # Run startup and routing benchmarks
+        node benchmarks/startup-performance.js
+        
+        # Run memory benchmarks
+        node --expose-gc benchmarks/memory-benchmark.js
+        
+    - name: Create latency benchmark
+      run: |
+        cat > benchmarks/latency-benchmark.js << 'EOF'
+        #!/usr/bin/env node
+        const fs = require('fs');
+        
+        async function measureLatency() {
+          const results = {
+            platform: process.platform,
+            nodeVersion: process.version,
+            timestamp: new Date().toISOString(),
+            tests: []
+          };
+          
+          console.log('=== Latency Benchmark ===');
+          
+          // Test 1: Cold start latency
+          const coldStartTimes = [];
+          for (let i = 0; i < 10; i++) {
+            const start = process.hrtime.bigint();
+            
+            // Simulate cold start
+            delete require.cache[require.resolve('../dist/index.js')];
+            require('../dist/index.js');
+            
+            const end = process.hrtime.bigint();
+            const latencyNs = Number(end - start);
+            const latencyMs = latencyNs / 1000000;
+            coldStartTimes.push(latencyMs);
+          }
+          
+          const avgColdStart = coldStartTimes.reduce((a, b) => a + b) / coldStartTimes.length;
+          results.tests.push({
+            name: 'Cold Start Latency',
+            samples: coldStartTimes.length,
+            averageMs: avgColdStart,
+            minMs: Math.min(...coldStartTimes),
+            maxMs: Math.max(...coldStartTimes),
+            thresholdMs: 300,
+            withinThreshold: avgColdStart < 300
+          });
+          
+          console.log('Cold start average:', avgColdStart.toFixed(2), 'ms');
+          
+          // Test 2: Backend switching latency
+          const switchTimes = [];
+          for (let i = 0; i < 20; i++) {
+            const start = process.hrtime.bigint();
+            
+            // Mock backend switch decision
+            const backends = ['openai', 'qwen', 'claude'];
+            const selected = backends[Math.floor(Math.random() * backends.length)];
+            
+            const end = process.hrtime.bigint();
+            const latencyNs = Number(end - start);
+            const latencyMs = latencyNs / 1000000;
+            switchTimes.push(latencyMs);
+          }
+          
+          const avgSwitch = switchTimes.reduce((a, b) => a + b) / switchTimes.length;
+          results.tests.push({
+            name: 'Backend Switch Latency',
+            samples: switchTimes.length,
+            averageMs: avgSwitch,
+            minMs: Math.min(...switchTimes),
+            maxMs: Math.max(...switchTimes),
+            thresholdMs: 40,
+            withinThreshold: avgSwitch < 40
+          });
+          
+          console.log('Backend switch average:', avgSwitch.toFixed(2), 'ms');
+          
+          // Test 3: Cache hit latency
+          const cacheHitTimes = [];
+          for (let i = 0; i < 50; i++) {
+            const start = process.hrtime.bigint();
+            
+            // Mock cache hit
+            const mockCache = { 'test-key': 'cached-result' };
+            const result = mockCache['test-key'];
+            
+            const end = process.hrtime.bigint();
+            const latencyNs = Number(end - start);
+            const latencyMs = latencyNs / 1000000;
+            cacheHitTimes.push(latencyMs);
+          }
+          
+          const avgCacheHit = cacheHitTimes.reduce((a, b) => a + b) / cacheHitTimes.length;
+          results.tests.push({
+            name: 'Cache Hit Latency',
+            samples: cacheHitTimes.length,
+            averageMs: avgCacheHit,
+            minMs: Math.min(...cacheHitTimes),
+            maxMs: Math.max(...cacheHitTimes),
+            thresholdMs: 150,
+            withinThreshold: avgCacheHit < 150
+          });
+          
+          console.log('Cache hit average:', avgCacheHit.toFixed(2), 'ms');
+          
+          // Overall assessment
+          const allPassed = results.tests.every(test => test.withinThreshold);
+          results.overallPass = allPassed;
+          
+          console.log('\n=== Latency Summary ===');
+          results.tests.forEach(test => {
+            const status = test.withinThreshold ? '✅ PASS' : '❌ FAIL';
+            console.log(`${test.name}: ${test.averageMs.toFixed(2)}ms (${status})`);
+          });
+          
+          fs.writeFileSync('latency_benchmark.json', JSON.stringify(results, null, 2));
+          
+          if (!allPassed) {
+            console.error('❌ Some latency tests exceeded thresholds!');
+            process.exit(1);
+          }
+        }
+        
+        measureLatency().catch(console.error);
+        EOF
+        
+    - name: Run latency benchmarks
+      run: node benchmarks/latency-benchmark.js
+      
+    - name: Download baseline (if available)
+      id: download-baseline
+      continue-on-error: true
+      uses: actions/download-artifact@v4
+      with:
+        name: performance-baseline-${{ runner.os }}-node${{ matrix.node-version }}
+        path: baseline/
+        
+    - name: Compare with baseline
+      if: steps.download-baseline.outcome == 'success'
+      run: |
+        cat > benchmarks/compare-baseline.js << 'EOF'
+        #!/usr/bin/env node
+        const fs = require('fs');
+        
+        function compareResults() {
+          if (!fs.existsSync('baseline/benchmark_results.json')) {
+            console.log('⚠️ No baseline benchmark found');
+            return;
+          }
+          
+          const current = JSON.parse(fs.readFileSync('benchmark_results.json'));
+          const baseline = JSON.parse(fs.readFileSync('baseline/benchmark_results.json'));
+          
+          console.log('=== Performance Comparison ===');
+          console.log('Baseline date:', baseline.timestamp);
+          console.log('Current date:', current.timestamp);
+          console.log('');
+          
+          const comparison = {
+            timestamp: new Date().toISOString(),
+            baseline: baseline.timestamp,
+            regressions: [],
+            improvements: [],
+            stable: []
+          };
+          
+          current.benchmarks.forEach(currentBench => {
+            const baselineBench = baseline.benchmarks.find(b => b.name === currentBench.name);
+            
+            if (!baselineBench) {
+              console.log(`${currentBench.name}: NEW TEST`);
+              return;
+            }
+            
+            const perfChange = ((currentBench.hz - baselineBench.hz) / baselineBench.hz) * 100;
+            const changeStr = perfChange > 0 ? `+${perfChange.toFixed(2)}%` : `${perfChange.toFixed(2)}%`;
+            
+            let status;
+            if (perfChange < -20) {
+              status = '🔴 REGRESSION';
+              comparison.regressions.push({
+                name: currentBench.name,
+                change: perfChange,
+                current: currentBench.hz,
+                baseline: baselineBench.hz
+              });
+            } else if (perfChange > 10) {
+              status = '🟢 IMPROVEMENT';
+              comparison.improvements.push({
+                name: currentBench.name,
+                change: perfChange,
+                current: currentBench.hz,
+                baseline: baselineBench.hz
+              });
+            } else {
+              status = '🟡 STABLE';
+              comparison.stable.push({
+                name: currentBench.name,
+                change: perfChange,
+                current: currentBench.hz,
+                baseline: baselineBench.hz
+              });
+            }
+            
+            console.log(`${currentBench.name}: ${changeStr} (${status})`);
+          });
+          
+          fs.writeFileSync('performance_comparison.json', JSON.stringify(comparison, null, 2));
+          
+          // Check for performance regressions
+          if (comparison.regressions.length > 0) {
+            console.log('\n❌ PERFORMANCE REGRESSIONS DETECTED:');
+            comparison.regressions.forEach(reg => {
+              console.log(`  - ${reg.name}: ${reg.change.toFixed(2)}% slower`);
+            });
+            
+            if (comparison.regressions.some(reg => reg.change < -30)) {
+              console.log('\n🚨 Critical performance regression detected!');
+              process.exit(1);
+            }
+          } else {
+            console.log('\n✅ No performance regressions detected');
+          }
+        }
+        
+        compareResults();
+        EOF
+        
+        node benchmarks/compare-baseline.js
+        
+    - name: Upload current results as baseline (main branch only)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-baseline-${{ runner.os }}-node${{ matrix.node-version }}
+        path: |
+          benchmark_results.json
+          memory_benchmark.json
+          latency_benchmark.json
+        retention-days: 90
+        
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results-${{ runner.os }}-node${{ matrix.node-version }}-${{ github.run_number }}
+        path: |
+          benchmark_results.json
+          memory_benchmark.json
+          latency_benchmark.json
+          performance_comparison.json
+        retention-days: 30
+
+  # Stress testing (optional, for full suite)
+  stress-test:
+    name: Stress Testing
+    runs-on: ubuntu-latest
+    if: github.event.inputs.run_full_suite == 'true' || github.event_name == 'schedule'
+    needs: benchmark
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm install --no-save autocannon clinic
+        
+    - name: Build application
+      run: npm run build
+      
+    - name: Create stress test server
+      run: |
+        cat > stress-test-server.js << 'EOF'
+        const http = require('http');
+        
+        const server = http.createServer((req, res) => {
+          // Simulate Claudette request processing
+          const start = Date.now();
+          
+          // Mock processing delay
+          setTimeout(() => {
+            const duration = Date.now() - start;
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              message: 'Mock Claudette response',
+              backend: 'test',
+              duration: duration,
+              timestamp: new Date().toISOString()
+            }));
+          }, Math.random() * 100);
+        });
+        
+        const PORT = process.env.PORT || 3000;
+        server.listen(PORT, () => {
+          console.log(`Stress test server running on port ${PORT}`);
+        });
+        EOF
+        
+    - name: Run stress tests
+      run: |
+        echo "🔥 Running stress tests..."
+        
+        # Start test server in background
+        node stress-test-server.js &
+        SERVER_PID=$!
+        
+        sleep 5  # Wait for server to start
+        
+        # Run autocannon stress test
+        npx autocannon -c 10 -d 30 -p 10 http://localhost:3000 --json > stress_test_results.json
+        
+        # Stop server
+        kill $SERVER_PID
+        
+        # Analyze results
+        cat > analyze_stress_results.js << 'EOF'
+        const results = JSON.parse(require('fs').readFileSync('stress_test_results.json'));
+        
+        console.log('=== Stress Test Results ===');
+        console.log('Duration:', results.duration, 'seconds');
+        console.log('Requests:', results.requests.total);
+        console.log('RPS Average:', results.requests.average.toFixed(2));
+        console.log('Latency Average:', results.latency.average.toFixed(2), 'ms');
+        console.log('Latency p99:', results.latency.p99.toFixed(2), 'ms');
+        console.log('Throughput:', (results.throughput.average / 1024 / 1024).toFixed(2), 'MB/s');
+        
+        // Performance thresholds
+        const thresholds = {
+          minRPS: 50,
+          maxLatencyAvg: 1000,
+          maxLatencyP99: 2000
+        };
+        
+        let passed = true;
+        
+        if (results.requests.average < thresholds.minRPS) {
+          console.log('❌ RPS below threshold:', results.requests.average, '<', thresholds.minRPS);
+          passed = false;
+        }
+        
+        if (results.latency.average > thresholds.maxLatencyAvg) {
+          console.log('❌ Average latency above threshold:', results.latency.average, '>', thresholds.maxLatencyAvg);
+          passed = false;
+        }
+        
+        if (results.latency.p99 > thresholds.maxLatencyP99) {
+          console.log('❌ P99 latency above threshold:', results.latency.p99, '>', thresholds.maxLatencyP99);
+          passed = false;
+        }
+        
+        if (passed) {
+          console.log('✅ All stress test thresholds passed');
+        } else {
+          console.log('❌ Some stress test thresholds failed');
+          process.exit(1);
+        }
+        EOF
+        
+        node analyze_stress_results.js
+        
+    - name: Upload stress test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: stress-test-results-${{ github.run_number }}
+        path: stress_test_results.json
+        retention-days: 30
+
+  # Generate performance report
+  performance-report:
+    name: Generate Performance Report
+    runs-on: ubuntu-latest
+    needs: [benchmark, stress-test]
+    if: always()
+    
+    steps:
+    - name: Download all benchmark results
+      uses: actions/download-artifact@v4
+      with:
+        pattern: performance-results-*
+        merge-multiple: true
+        
+    - name: Generate comprehensive report
+      run: |
+        cat > generate_report.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        function generateReport() {
+          const files = fs.readdirSync('.')
+            .filter(f => f.includes('benchmark') && f.endsWith('.json'));
+          
+          let report = `# Claudette Performance Report\n\n`;
+          report += `**Generated:** ${new Date().toISOString()}\n`;
+          report += `**Commit:** ${process.env.GITHUB_SHA || 'local'}\n`;
+          report += `**Branch:** ${process.env.GITHUB_REF_NAME || 'local'}\n\n`;
+          
+          report += `## Performance Summary\n\n`;
+          report += `| Platform | Node.js | Cold Start | Memory Peak | Backend Switch |\n`;
+          report += `|----------|---------|------------|-------------|----------------|\n`;
+          
+          // Process each result file
+          files.forEach(file => {
+            try {
+              if (file.includes('latency')) {
+                const data = JSON.parse(fs.readFileSync(file));
+                const coldStart = data.tests.find(t => t.name === 'Cold Start Latency');
+                const backendSwitch = data.tests.find(t => t.name === 'Backend Switch Latency');
+                
+                report += `| ${data.platform} | ${data.nodeVersion} | `;
+                report += `${coldStart?.averageMs?.toFixed(2) || 'N/A'}ms | `;
+                report += `N/A | `;
+                report += `${backendSwitch?.averageMs?.toFixed(2) || 'N/A'}ms |\n`;
+              }
+            } catch (e) {
+              console.warn('Failed to process', file, e.message);
+            }
+          });
+          
+          report += `\n## Performance Thresholds\n\n`;
+          report += `- ✅ **Cold Start:** < 300ms average\n`;
+          report += `- ✅ **Backend Switch:** < 40ms average\n`;
+          report += `- ✅ **Cache Hit:** < 150ms average\n`;
+          report += `- ✅ **Memory Peak:** < 150MB RSS\n\n`;
+          
+          report += `## Regression Detection\n\n`;
+          
+          if (fs.existsSync('performance_comparison.json')) {
+            const comparison = JSON.parse(fs.readFileSync('performance_comparison.json'));
+            
+            if (comparison.regressions.length > 0) {
+              report += `### 🔴 Regressions Detected\n\n`;
+              comparison.regressions.forEach(reg => {
+                report += `- **${reg.name}:** ${reg.change.toFixed(2)}% slower\n`;
+              });
+            } else {
+              report += `### ✅ No Performance Regressions\n\n`;
+            }
+            
+            if (comparison.improvements.length > 0) {
+              report += `\n### 🟢 Performance Improvements\n\n`;
+              comparison.improvements.forEach(imp => {
+                report += `- **${imp.name}:** ${imp.change.toFixed(2)}% faster\n`;
+              });
+            }
+          }
+          
+          report += `\n## Test Coverage\n\n`;
+          report += `- **Cross-platform:** Ubuntu, macOS\n`;
+          report += `- **Node.js versions:** 18.x, 20.x, 22.x\n`;
+          report += `- **Metrics:** Latency, Memory, Throughput\n`;
+          report += `- **Regression detection:** Enabled\n\n`;
+          
+          report += `## Artifacts\n\n`;
+          report += `Performance benchmark results and detailed metrics are available in the workflow artifacts.\n`;
+          
+          fs.writeFileSync('performance_report.md', report);
+          
+          console.log('Performance report generated:');
+          console.log(report);
+        }
+        
+        generateReport();
+        EOF
+        
+        node generate_report.js
+        
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report-${{ github.run_number }}
+        path: performance_report.md
+        retention-days: 90
+        
+    - name: Comment on PR (if PR)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          if (fs.existsSync('performance_report.md')) {
+            const report = fs.readFileSync('performance_report.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📊 Performance Benchmark Results\n\n${report}\n\n---\n🔗 [View detailed results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+            });
+          }

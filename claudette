@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+
+// Claudette CLI Entry Point
+// Routes to the compiled TypeScript CLI
+
+const path = require('path');
+const fs = require('fs');
+
+// Check if dist directory exists
+const distPath = path.join(__dirname, 'dist', 'cli', 'index.js');
+
+if (fs.existsSync(distPath)) {
+    // Use built version
+    require(distPath);
+} else {
+    // Fallback to TypeScript compilation
+    console.error('❌ Claudette not built. Run "npm run build" first.');
+    process.exit(1);
+}

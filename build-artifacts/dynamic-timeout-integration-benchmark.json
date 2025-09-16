@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-09-09T12:34:29.102Z",
+  "tests": [
+    {
+      "name": "Dynamic Timeout Manager Integration",
+      "passed": 4,
+      "total": 4,
+      "success_rate": 1,
+      "duration_ms": 0
+    },
+    {
+      "name": "Real Backend Timeout Behavior",
+      "passed": 4,
+      "total": 4,
+      "success_rate": 1,
+      "duration_ms": 808
+    },
+    {
+      "name": "MCP Timeout Prevention",
+      "passed": 3,
+      "total": 3,
+      "success_rate": 1,
+      "duration_ms": 0
+    },
+    {
+      "name": "Performance Comparison",
+      "passed": 1,
+      "total": 1,
+      "success_rate": 1,
+      "duration_ms": 6693
+    },
+    {
+      "name": "Integration Stress Test",
+      "passed": 3,
+      "total": 3,
+      "success_rate": 1,
+      "duration_ms": 3395
+    }
+  ],
+  "performance_metrics": {
+    "static": {
+      "total_time": 3794,
+      "avg_request_time": 758.8,
+      "success_rate": 1,
+      "timeout_setting": 45000
+    },
+    "dynamic": {
+      "total_time": 2899,
+      "avg_request_time": 579.2,
+      "success_rate": 1,
+      "final_calibrated_timeout": 5000
+    },
+    "test_duration_ms": 6693
+  },
+  "integration_status": "excellent"
+}

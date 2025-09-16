@@ -1,0 +1,203 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# API keys and secrets
+.env
+*.key
+*.pem
+secrets/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Test results
+test-results/
+test-output/
+calibration-report-*.json
+
+# Test artifacts
+*-test-results.json
+*-performance-metrics.json
+*-code-quality-results.json
+test-report-*.json
+
+# Custom cache directories
+.cache/
+cache/
+
+# Backup files
+*.backup
+*.bak
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Local development
+local/
+dev/
+
+# Documentation build
+docs/_build/
+
+# Python cache (legacy, if any Python scripts remain)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Claude Code - ignore all personal/dynamic content
+.claude/
+!.claude/settings.json
+!.claude/commands/
+!.claude/helpers/
+
+# Development artifacts - Claudette specific
+dev-artifacts/
+experiments/temp/
+scripts/temp/
+
+# Development test files (root level)
+test-*.js
+debug-*.js
+claude-*.js
+sequential-test.js
+final-verification.js
+final-verification.json
+
+# Analysis and validation files
+*-logic-assessment.md
+*-backend-analysis.js
+*-adaptation-scenarios.js
+
+# Test artifacts and reports
+*-test-results.json
+*-results.json
+*-report.json
+benchmark-*.json
+performance-*.json
+test-install-local-*/
+
+# Source build artifacts (should not be in git)
+src/build-artifacts/
+src/test/
+
+# Backup directories
+aneos-project-backup-*/
+*.tar.bz2
+
+# Development tools
+.hive-mind/
+
+# Environment files (specific patterns)
+.env.*
+!.env.example
+
+# Embedded repositories and test clones
+aneos-project/
+test-clone/
+
+# Ultipa specific files
+.env.ultipa
+ultipa-*-results.json

@@ -1,0 +1,104 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+*.lcov
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Temporary files
+.tmp/
+temp/
+tmp/
+
+# Documentation (not needed in container)
+docs/
+*.md
+README*
+CHANGELOG*
+LICENSE*
+
+# Development files
+.eslintrc*
+.prettierrc*
+jest.config.*
+tsconfig.json
+
+# Cache and data directories
+cache/
+data/
+.cache/
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Monitoring configuration
+monitoring/
+
+# Test files and benchmarks
+*test.js
+*benchmark.js
+*demo.js
+test-*.js
+*-test.js
+agent*.js
+debug*.js
+comprehensive*.js
+individual*.js
+real-api*.js
+
+# Result files
+*results.json
+*-results.json
+
+# Setup and development scripts
+setup.sh
+*.sh
+claudette-*.sh
