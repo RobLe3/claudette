@@ -2,6 +2,9 @@
 
 // Claudette CLI - Drop-in replacement for Claude CLI with optimization
 
+// Load environment variables from .env file
+import 'dotenv/config';
+
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
