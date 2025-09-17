@@ -183,6 +183,32 @@ test-install-local-*/
 src/build-artifacts/
 src/test/
 
+# Development artifacts and temporary files
+archives/
+build-artifacts/
+temp-*/
+*-temp/
+monitoring/prometheus.yml
+monitoring/claudette_alerts.yml
+
+# Development scripts and tools
+claude-doctor-fix.sh
+claude-terminal-diagnostics.sh
+claudette-bootstrap.sh
+claudette-mcp-server.js
+claudette-start.sh
+direct-api-test.js
+security_audit.py
+
+# Development configuration
+.pre-commit-config.yaml
+Makefile
+claudette.config.json.example
+
+# Test directories (keep only essential tests for npm package)
+tests/
+plugins/
+
 # Backup directories
 aneos-project-backup-*/
 *.tar.bz2
