@@ -1,0 +1,276 @@
+CLAUDETTE(1)                     User Commands                    CLAUDETTE(1)
+
+NAME
+       claudette - Enterprise AI middleware with intelligent routing and optimization
+
+SYNOPSIS
+       claudette [OPTIONS] [PROMPT] [FILES...]
+       claudette COMMAND [OPTIONS]
+
+DESCRIPTION
+       Claudette is an enterprise AI middleware platform providing intelligent 
+       routing between multiple AI backends (OpenAI, Claude, Qwen, Ollama), 
+       cost optimization, caching, and comprehensive monitoring capabilities.
+
+       The main functionality processes prompts through optimized AI backends with
+       automatic fallback, cost tracking, and performance monitoring.
+
+MAIN COMMAND OPTIONS
+       -b, --backend BACKEND
+              Specific backend to use (claude, openai, qwen, ollama)
+
+       -m, --model MODEL
+              Specific model to use
+
+       -t, --temperature TEMPERATURE
+              Temperature setting (0-1, float)
+
+       --max-tokens TOKENS
+              Maximum tokens to generate (integer)
+
+       --no-cache
+              Bypass cache for this request
+
+       --raw  Bypass all optimizations (raw mode)
+
+       --stream
+              Stream response in real-time
+
+       --cost-limit LIMIT
+              Maximum cost in EUR for this request (float)
+
+       --timeout SECONDS
+              Request timeout in seconds (integer)
+
+       -v, --verbose
+              Verbose output with response metadata
+
+       -V, --version
+              Output version information
+
+       -h, --help
+              Display help information
+
+COMMANDS
+   status [OPTIONS]
+       Show system status and health information including database state,
+       cache performance, and backend availability.
+
+       --timeout SECONDS
+              Status check timeout in seconds (default: 30)
+
+   backends [OPTIONS]
+       List available backends and their status with routing statistics.
+
+       --timeout SECONDS
+              Backend check timeout in seconds (default: 20)
+
+   cache SUBCOMMAND
+       Cache management operations.
+
+       cache stats
+              Show detailed cache statistics including hit rate, storage size,
+              and active entries.
+
+       cache clear [OPTIONS]
+              Clear all cache entries.
+
+              -f, --force
+                     Force clear without confirmation prompt
+
+   api-keys SUBCOMMAND (alias: keys)
+       Manage API keys for different backends.
+
+       api-keys add BACKEND [OPTIONS]
+              Add or update API key for specified backend.
+
+              -k, --key KEY
+                     Provide API key directly (prompts securely if not provided)
+
+              -t, --test
+                     Test the API key after adding
+
+       api-keys list
+              List all configured backends and their API key status.
+
+       api-keys remove BACKEND [OPTIONS]
+              Remove API key for specified backend.
+
+              -f, --force
+                     Skip confirmation prompt
+
+       api-keys guide [BACKEND]
+              Show setup guide for obtaining API keys. If no backend specified,
+              shows guides for all supported backends.
+
+       api-keys test BACKEND
+              Test existing API key for specified backend.
+
+   setup SUBCOMMAND
+       Interactive setup and configuration wizard.
+
+       setup init [OPTIONS] (alias: setup wizard)
+              Run the interactive setup wizard.
+
+              -q, --quick
+                     Quick setup mode with smart defaults
+
+              --target-time SECONDS
+                     Target completion time in seconds (default: 120)
+
+              --skip-welcome
+                     Skip welcome screen
+
+              -v, --verbose
+                     Verbose output during setup
+
+       setup validate [OPTIONS]
+              Validate current setup without making changes.
+
+              -f, --fix
+                     Attempt to fix issues automatically
+
+   init [OPTIONS]
+       Quick setup wizard (alias for 'setup init --quick').
+
+       -q, --quick
+              Skip advanced configuration, use smart defaults
+
+       -v, --verbose
+              Verbose output during setup
+
+   config [OPTIONS]
+       Show current configuration including backends, features, and thresholds.
+
+       --setup
+              Show setup-specific configuration information
+
+       --timeout SECONDS
+              Config load timeout in seconds (default: 10)
+
+SUPPORTED BACKENDS
+       claude
+              Anthropic's Claude models (claude-3-sonnet, claude-3-haiku, etc.)
+
+       openai
+              OpenAI models (GPT-4, GPT-3.5-turbo, etc.)
+
+       qwen   Alibaba's Qwen models
+
+       ollama
+              Local Ollama installation
+
+       mistral
+              Mistral AI models
+
+       google
+              Google's Gemini models
+
+API KEY FORMATS
+       Different backends require specific API key formats:
+
+       openai: sk-[48+ alphanumeric characters]
+       claude/anthropic: sk-ant-[95+ characters with hyphens/underscores]
+       google/gemini: [39 alphanumeric/hyphen/underscore characters]
+       mistral: [32 alphanumeric characters]
+
+CONFIGURATION
+       Claudette validates and auto-corrects configuration issues on startup.
+       Configuration includes backend priorities, feature toggles, and thresholds.
+
+       Default configuration path: ~/.claudette/config.json
+
+EXAMPLES
+       # Basic usage
+       claudette "Explain quantum computing"
+
+       # Use specific backend
+       claudette -b openai "Write a Python function"
+
+       # Include files in context
+       claudette "Review this code" main.py utils.py
+
+       # Set temperature and token limits
+       claudette -t 0.7 --max-tokens 1000 "Creative writing prompt"
+
+       # Bypass cache and optimizations
+       claudette --no-cache --raw "Direct API call"
+
+       # Verbose output with metadata
+       claudette -v "Test prompt"
+
+       # Stream real-time response
+       claudette --stream "Long response expected"
+
+       # Set cost limit
+       claudette --cost-limit 0.05 "Expensive operation"
+
+       # Check system status
+       claudette status
+
+       # List available backends
+       claudette backends
+
+       # View cache statistics
+       claudette cache stats
+
+       # Add API key
+       claudette api-keys add openai
+
+       # Test API key
+       claudette api-keys test claude
+
+       # Run setup wizard
+       claudette init
+
+       # Show current configuration
+       claudette config
+
+EXIT STATUS
+       0      Successful completion
+       1      Error occurred (API failure, configuration issue, timeout, etc.)
+
+FILES
+       ~/.claudette/config.json
+              Main configuration file
+
+       ~/.claudette/cache.db
+              SQLite database for caching and performance tracking
+
+TIMEOUTS AND PERFORMANCE
+       Several commands implement timeout mechanisms:
+       - Main requests: Configurable via --timeout option
+       - Status checks: 30 seconds default, configurable
+       - Backend checks: 20 seconds default, configurable  
+       - Config loading: 10 seconds default, configurable
+       - API key input: 60 seconds for secure input
+       - Confirmation prompts: 30 seconds
+
+       Some commands may appear to hang during backend health checks or
+       status operations. This is expected behavior for comprehensive
+       system validation.
+
+ENVIRONMENT VARIABLES
+       CLAUDETTE_RAW
+              Set to '1' to enable raw mode (bypasses optimizations)
+
+       API key environment variables are backend-specific:
+       - OPENAI_API_KEY
+       - ANTHROPIC_API_KEY
+       - DASHSCOPE_API_KEY (for Qwen)
+
+VERSION
+       1.0.1
+
+BUGS AND LIMITATIONS
+       - Cache clear functionality not implemented (placeholder)
+       - Setup validation auto-fix not implemented
+       - Some commands may timeout during health checks
+       - Configuration shows persistent "8 issues" that are auto-corrected
+
+AUTHOR
+       Developed for enterprise AI middleware with TypeScript implementation.
+
+SEE ALSO
+       Full documentation available in docs/ directory of the project.
+       Issue tracking: https://github.com/RobLe3/claudette/issues

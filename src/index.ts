@@ -41,19 +41,27 @@ export class Claudette {
     // Validate and auto-correct configuration
     const validationResult = BackendConfigValidator.validateConfig(this.config);
     if (validationResult.totalIssues > 0) {
-      logger.info('🔧 Configuration validation found issues:');
-      logger.info(`   Total: ${validationResult.totalIssues} issues (${validationResult.backendResults ? Object.values(validationResult.backendResults).filter(r => !r.valid).length : 0} errors)`);
+      // Only show configuration validation in debug mode or if there are actual errors
+      const errorCount = validationResult.backendResults ? Object.values(validationResult.backendResults).filter(r => !r.valid).length : 0;
+      
+      if (errorCount > 0) {
+        logger.info('🔧 Configuration validation found issues:');
+        logger.info(`   Total: ${validationResult.totalIssues} issues (${errorCount} errors)`);
+        
+        // Log critical errors only
+        validationResult.globalErrors.forEach(error => logger.error(`❌ ${error}`));
+        Object.values(validationResult.backendResults).forEach(result => {
+          result.errors.forEach(error => logger.error(`❌ ${error}`));
+        });
+      }
       
       if (validationResult.correctedConfig) {
         this.config = validationResult.correctedConfig;
-        logger.info('✅ Configuration auto-corrected');
+        // Only log auto-correction if there were actual errors
+        if (errorCount > 0) {
+          logger.info('✅ Configuration auto-corrected');
+        }
       }
-      
-      // Log critical errors
-      validationResult.globalErrors.forEach(error => logger.error(`❌ ${error}`));
-      Object.values(validationResult.backendResults).forEach(result => {
-        result.errors.forEach(error => logger.error(`❌ ${error}`));
-      });
     }
     
     this.db = new DatabaseManager();
@@ -493,11 +501,14 @@ export class Claudette {
     const healthChecks = await this.router.healthCheckAll();
     const healthyBackends = healthChecks.filter(h => h.healthy);
     
-    console.log(`🏥 Backend health summary: ${healthyBackends.length}/${healthChecks.length} healthy`);
-    healthChecks.forEach(check => {
-      const icon = check.healthy ? '✅' : '❌';
-      console.log(`   ${icon} ${check.name}: ${check.healthy ? 'healthy' : 'unhealthy'}${check.error ? ` (${check.error})` : ''}`);
-    });
+    // Only show backend health in debug mode, or when there are issues
+    if (process.env.CLAUDETTE_DEBUG === '1' || healthyBackends.length === 0) {
+      console.log(`🏥 Backend health summary: ${healthyBackends.length}/${healthChecks.length} healthy`);
+      healthChecks.forEach(check => {
+        const icon = check.healthy ? '✅' : '❌';
+        console.log(`   ${icon} ${check.name}: ${check.healthy ? 'healthy' : 'unhealthy'}`);
+      });
+    }
     
     // Initialize mock backend for testing when no healthy backends are available
     if (healthyBackends.length === 0) {

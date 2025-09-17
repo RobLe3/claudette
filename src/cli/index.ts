@@ -35,7 +35,16 @@ program
   .option('--cost-limit <limit>', 'Maximum cost in EUR for this request', parseFloat)
   .option('--timeout <seconds>', 'Request timeout in seconds', parseInt)
   .option('-v, --verbose', 'Verbose output')
+  .option('--debug', 'Enable debug output')
+  .option('-q, --quiet', 'Quiet mode - minimal output')
   .action(async (prompt, files, options) => {
+    // Set logger levels based on options
+    if (options.debug) {
+      (await import('../utils/logger')).default.setLevel('debug');
+    } else if (options.quiet) {
+      (await import('../utils/logger')).default.setConsoleOutput(false);
+    }
+    
     if (!prompt) {
       // If no prompt provided, read from stdin
       prompt = await readStdin();
@@ -46,7 +55,7 @@ program
       process.exit(1);
     }
 
-    const spinner = ora('Processing request...').start();
+    const spinner = options.quiet ? { start: () => ({}), succeed: () => ({}), fail: () => ({}), warn: () => ({}) } : ora('Processing request...').start();
 
     try {
       // Read file contents if files provided
@@ -842,7 +851,7 @@ async function testOpenAIKey(apiKey: string): Promise<{ success: boolean; error?
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'User-Agent': 'claudette/3.0.0'
+        'User-Agent': 'claudette/1.0.1'
       },
       signal: AbortSignal.timeout(10000)
     });
@@ -869,7 +878,7 @@ async function testClaudeKey(apiKey: string): Promise<{ success: boolean; error?
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'User-Agent': 'claudette/3.0.0'
+        'User-Agent': 'claudette/1.0.1'
       },
       body: JSON.stringify({
         model: 'claude-3-haiku-20240307',

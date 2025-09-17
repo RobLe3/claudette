@@ -27,7 +27,19 @@ class BasicLogger implements Logger {
   }
 
   private formatMessage(level: string, message: string, ...args: any[]): string {
-    const timestamp = new Date().toISOString();
+    // Format timestamp in local timezone
+    const now = new Date();
+    const timestamp = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0') + 'T' +
+      String(now.getHours()).padStart(2, '0') + ':' +
+      String(now.getMinutes()).padStart(2, '0') + ':' +
+      String(now.getSeconds()).padStart(2, '0') + '.' +
+      String(now.getMilliseconds()).padStart(3, '0') + 
+      (now.getTimezoneOffset() >= 0 ? '-' : '+') +
+      String(Math.abs(Math.floor(now.getTimezoneOffset() / 60))).padStart(2, '0') + 
+      String(Math.abs(now.getTimezoneOffset() % 60)).padStart(2, '0');
+    
     const formattedArgs = args.length > 0 ? ` ${JSON.stringify(args)}` : '';
     return `[${timestamp}] [CLAUDETTE] ${level.toUpperCase()}: ${message}${formattedArgs}`;
   }

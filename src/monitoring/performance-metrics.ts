@@ -44,7 +44,10 @@ export class PerformanceMonitor {
   endTiming(name: string, metadata?: Record<string, any>): number {
     const startTime = this.activeTimers.get(name);
     if (!startTime) {
-      console.warn(`No start time found for metric: ${name}`);
+      // Only show this warning in debug mode
+      if (process.env.NODE_ENV === 'development' || process.env.CLAUDETTE_DEBUG === '1') {
+        console.warn(`No start time found for metric: ${name}`);
+      }
       return 0;
     }
 
