@@ -203,8 +203,11 @@ export class Claudette {
       }
     };
 
-    // Set up timeout wrapper
-    const requestTimeout = options.timeout || this.config.thresholds?.request_timeout || 45000; // Default 45 seconds - optimized timeout
+    // Set up timeout wrapper with security limits
+    const maxTimeout = 300000; // 5 minutes maximum to prevent resource exhaustion
+    const defaultTimeout = this.config.thresholds?.request_timeout || 45000; // Default 45 seconds
+    const userTimeout = options.timeout ? Math.min(options.timeout, maxTimeout) : defaultTimeout;
+    const requestTimeout = Math.max(1000, userTimeout); // Minimum 1 second
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new ClaudetteError(`Request timed out after ${requestTimeout}ms`, 'REQUEST_TIMEOUT'));
