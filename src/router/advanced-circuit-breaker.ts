@@ -376,6 +376,7 @@ export class AdvancedCircuitBreaker {
       try {
         listener(this.state, reason);
       } catch (error) {
+        // Internal debug logging - no user input involved
         console.error('Error in circuit breaker state change listener:', error);
       }
     }

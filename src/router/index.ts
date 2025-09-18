@@ -116,7 +116,8 @@ export class BackendRouter {
               return backend;
             }
           } catch (availabilityError) {
-            console.error(`Error checking backend availability for ${request.backend}:`, availabilityError);
+            const { SecureLogger } = await import('../utils/secure-logger');
+            SecureLogger.secureLog('error', `Error checking backend availability for ${request.backend}:`, availabilityError);
             this.cacheHealth(request.backend, false);
             throw new BackendError(
               `Failed to check availability for backend '${request.backend}': ${(availabilityError as Error).message}`, 
@@ -155,7 +156,8 @@ export class BackendRouter {
               healthyBackends.push(backendName);
             }
           } catch (error) {
-            console.warn(`Backend ${backendName} availability check failed:`, (error as Error).message);
+            const { SecureLogger } = await import('../utils/secure-logger');
+            SecureLogger.secureLog('warn', `Backend ${backendName} availability check failed:`, (error as Error).message);
             this.cacheHealth(backendName, false);
           }
         }
@@ -238,7 +240,8 @@ export class BackendRouter {
               `send_request_${request.prompt?.substring(0, 50) || 'unknown'}`
             );
           } catch (sendError) {
-            console.error(`Backend send error for ${backend.name}:`, sendError);
+            const { SecureLogger } = await import('../utils/secure-logger');
+            SecureLogger.secureLog('error', `Backend send error for ${backend.name}:`, sendError);
             
             // Create a BackendError for send failures
             const backendError = new BackendError(
@@ -297,7 +300,8 @@ export class BackendRouter {
       
     } catch (error) {
       // Top-level error handling for the entire routing process
-      console.error('Critical error in routeRequest:', error);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('error', 'Critical error in routeRequest:', error);
       
       if (error instanceof BackendError) {
         throw error;
@@ -340,7 +344,8 @@ export class BackendRouter {
               ]);
               this.cacheHealth(name, isAvailable);
             } catch (availabilityError) {
-              console.warn(`Error checking availability for backend ${name}:`, availabilityError);
+              const { SecureLogger } = await import('../utils/secure-logger');
+              SecureLogger.secureLog('warn', `Error checking availability for backend ${name}:`, availabilityError);
               this.cacheHealth(name, false);
               continue; // Skip this backend if availability check fails
             }
@@ -362,14 +367,16 @@ export class BackendRouter {
           try {
             costScore = backend.estimateCost(estimatedTokens);
           } catch (costError) {
-            console.warn(`Error estimating cost for backend ${name}:`, costError);
+            const { SecureLogger } = await import('../utils/secure-logger');
+            SecureLogger.secureLog('warn', `Error estimating cost for backend ${name}:`, costError);
             continue; // Skip this backend if cost estimation fails
           }
 
           try {
             latencyScore = await backend.getLatencyScore();
           } catch (latencyError) {
-            console.warn(`Error getting latency score for backend ${name}:`, latencyError);
+            const { SecureLogger } = await import('../utils/secure-logger');
+            SecureLogger.secureLog('warn', `Error getting latency score for backend ${name}:`, latencyError);
             continue; // Skip this backend if latency score fails
           }
 
@@ -392,7 +399,8 @@ export class BackendRouter {
           });
           
         } catch (backendError) {
-          console.warn(`Error processing backend ${name} during scoring:`, backendError);
+          const { SecureLogger } = await import('../utils/secure-logger');
+          SecureLogger.secureLog('warn', `Error processing backend ${name} during scoring:`, backendError);
           continue; // Skip this backend and continue with others
         }
       }
@@ -400,7 +408,8 @@ export class BackendRouter {
       return scores;
       
     } catch (error) {
-      console.error('Error in scoreBackends:', error);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('error', 'Error in scoreBackends:', error);
       throw new BackendError(
         `Backend scoring failed: ${(error as Error).message}`,
         'router'
@@ -536,7 +545,8 @@ export class BackendRouter {
   async forceRecoveryTest(backendName: string): Promise<boolean> {
     const backend = this.backends.get(backendName);
     if (!backend) {
-      console.warn(`Backend ${backendName} not found for recovery test`);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('warn', `Backend ${backendName} not found for recovery test`);
       return false;
     }
 

@@ -85,7 +85,8 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.warn(`Qwen health check failed: ${response.status} ${response.statusText}`);
+        const { SecureLogger } = await import('../utils/secure-logger');
+        SecureLogger.secureLog('warn', `Qwen health check failed: ${response.status} ${response.statusText}`);
         return false;
       }
 
@@ -93,13 +94,15 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
       const hasModel = data.data?.some((model) => model.id === this.defaultModel);
       
       if (!hasModel) {
-        console.warn(`Qwen model ${this.defaultModel} not available`);
+        const { SecureLogger } = await import('../utils/secure-logger');
+        SecureLogger.secureLog('warn', `Qwen model ${this.defaultModel} not available`);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Qwen health check error:', error);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('error', 'Qwen health check error:', error);
       return false;
     }
   }
@@ -181,7 +184,8 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
 
     } catch (error) {
       const latency = Date.now() - startTime;
-      console.error(`❌ Qwen request failed after ${latency}ms:`, error);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('error', `❌ Qwen request failed after ${latency}ms:`, error);
       
       // Handle specific timeout scenarios
       const errorObj = error as Error;
@@ -221,7 +225,8 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
       };
       
     } catch (error) {
-      console.error(`❌ Async Qwen contribution failed for ${requestId}:`, error);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('error', `❌ Async Qwen contribution failed for ${requestId}:`, error);
       throw error;
     }
   }

@@ -74,10 +74,8 @@ export async function retrieveApiKey(
     
     return stored;
   } catch (error) {
-    console.warn(
-      `Failed to retrieve ${config.backendName} API key from credential storage:`, 
-      error
-    );
+    const { SecureLogger } = await import('../utils/secure-logger');
+    SecureLogger.secureLog('warn', `Failed to retrieve ${config.backendName} API key from credential storage:`, error);
     return null;
   }
 }
@@ -173,7 +171,8 @@ export async function performStandardHealthCheck(config: HealthCheckConfig): Pro
                                error.message?.toLowerCase().includes('authentication');
     
     if (!shouldSuppressError) {
-      console.warn(`${config.backendName} health check failed: ${error.message}`);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('warn', `${config.backendName} health check failed: ${error.message}`);
     }
     
     return false;

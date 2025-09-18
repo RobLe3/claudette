@@ -341,7 +341,8 @@ export class OllamaBackend extends BaseBackend {
         return response.models?.map((model: any) => model.name) || [];
       }
     } catch (error) {
-      console.warn(`Failed to fetch models from Ollama: ${error}`);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('warn', `Failed to fetch models from Ollama: ${error}`);
       return [(this.config as OllamaBackendSettings).model || this.defaultModel];
     }
   }
