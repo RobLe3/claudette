@@ -1,7 +1,7 @@
 version: 2
 updates:
-  # Enable version updates for Python dependencies
-  - package-ecosystem: "pip"
+  # Enable version updates for npm dependencies
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -9,16 +9,16 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "ruvnet"
+      - "RobLe3"
     assignees:
-      - "ruvnet"
+      - "RobLe3"
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
       include: "scope"
     labels:
       - "dependencies"
-      - "python"
+      - "npm"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -29,9 +29,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 3
     reviewers:
-      - "ruvnet"
+      - "RobLe3"
     assignees:
-      - "ruvnet"
+      - "RobLe3"
     commit-message:
       prefix: "ci"
       include: "scope"
