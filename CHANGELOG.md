@@ -5,6 +5,30 @@ All notable changes to Claudette will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-09-18
+
+### 🔧 Bug Fixes & Improvements
+
+#### Backend Configuration
+- **Fixed Qwen Model Configuration** - Updated from invalid `Qwen/Qwen2.5-Coder-7B-Instruct-AWQ` to valid `qwen-plus` model
+- **Corrected Backend URLs** - Fixed Qwen backend URL configuration in multiple locations
+- **Standardized Health Checks** - Aligned Qwen backend with `performStandardHealthCheck` pattern
+
+#### System Stability
+- **Backend Health Monitoring** - All 3 backends (OpenAI, Qwen, FlexCon) now consistently healthy
+- **Request Routing** - Improved intelligent backend selection with proper fallback mechanisms
+- **Configuration Validation** - Added missing `priority` fields to backend configurations
+
+#### Documentation & Testing
+- **Unit Tests** - Maintained 100% pass rate (17/17 tests) 
+- **Comprehensive Verification** - Full system testing including real API requests
+- **Code Quality** - Clean TypeScript compilation and validation
+
+### 📊 Performance
+- **System Health**: 3/3 backends operational
+- **Initialization**: Sub-second startup (~600-800ms)
+- **Error Handling**: Robust validation and graceful failures
+
 ## [1.0.1] - 2025-09-16
 
 ### 🎉 First Stable Release

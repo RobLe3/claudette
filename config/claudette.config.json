@@ -16,7 +16,7 @@
       "enabled": true,
       "priority": 2,
       "cost_per_token": 0.0001,
-      "model": "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ"
+      "model": "qwen-plus"
     },
     "mistral": {
       "enabled": false,

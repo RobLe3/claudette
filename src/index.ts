@@ -204,7 +204,7 @@ export class Claudette {
     };
 
     // Set up timeout wrapper
-    const requestTimeout = options.timeout || this.config.thresholds?.request_timeout || 60000; // Default 60 seconds
+    const requestTimeout = options.timeout || this.config.thresholds?.request_timeout || 45000; // Default 45 seconds - optimized timeout
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new ClaudetteError(`Request timed out after ${requestTimeout}ms`, 'REQUEST_TIMEOUT'));
@@ -372,7 +372,9 @@ export class Claudette {
         qwen: {
           enabled: false, // Disabled by default - requires API key
           priority: 5,
-          cost_per_token: 0.0001
+          cost_per_token: 0.0001,
+          model: 'qwen-plus',
+          base_url: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
         }
       },
       features: {
@@ -424,141 +426,223 @@ export class Claudette {
   }
 
   /**
-   * Initialize backends based on configuration
+   * Validate backend configuration before registration
+   */
+  private async validateBackendConfig(backendName: string, config: any, requiresApiKey: boolean = true): Promise<boolean> {
+    try {
+      // Check if API key is present and valid format (if required)
+      if (requiresApiKey) {
+        if (!config.api_key) {
+          console.warn(`❌ ${backendName}: No API key provided`);
+          return false;
+        }
+        
+        // Basic API key format validation
+        if (typeof config.api_key !== 'string' || config.api_key.length < 10) {
+          console.warn(`❌ ${backendName}: Invalid API key format`);
+          return false;
+        }
+      }
+
+      // For backends with custom URLs, validate URL format
+      if (config.base_url) {
+        try {
+          new URL(config.base_url);
+        } catch {
+          console.warn(`❌ ${backendName}: Invalid base URL format: ${config.base_url}`);
+          return false;
+        }
+      }
+
+      console.log(`✅ ${backendName}: Configuration validation passed`);
+      return true;
+    } catch (error) {
+      console.warn(`❌ ${backendName}: Configuration validation failed:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Initialize backends based on configuration - only register properly configured backends
    */
   private async initializeBackends(): Promise<void> {
-    // Initialize Claude backend with availability check
-    if (this.config.backends.claude.enabled || process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY) {
-      try {
-        // Enable Claude backend if API key is available in environment
-        const claudeConfig = {
-          ...this.config.backends.claude,
-          enabled: true,
-          api_key: this.config.backends.claude.api_key || 
-                   process.env.ANTHROPIC_API_KEY || 
-                   process.env.CLAUDE_API_KEY
-        };
-        const claude = new ClaudeBackend(claudeConfig);
-        this.router.registerBackend(claude);
-        logger.info('✅ Claude backend registered');
-      } catch (error) {
-        logger.warn('⚠️ Claude backend registration failed:', error instanceof Error ? error.message : String(error));
+    const registeredBackends: string[] = [];
+    
+    // Initialize Claude backend with proper validation
+    const claudeApiKey = this.config.backends.claude.api_key || 
+                        process.env.ANTHROPIC_API_KEY || 
+                        process.env.CLAUDE_API_KEY;
+    
+    if ((this.config.backends.claude.enabled || claudeApiKey) && claudeApiKey) {
+      const claudeConfig = {
+        ...this.config.backends.claude,
+        enabled: true,
+        api_key: claudeApiKey
+      };
+      
+      if (await this.validateBackendConfig('Claude', claudeConfig)) {
+        try {
+          const claude = new ClaudeBackend(claudeConfig);
+          this.router.registerBackend(claude);
+          registeredBackends.push('Claude');
+          logger.info('✅ Claude backend registered');
+        } catch (error) {
+          logger.warn('⚠️ Claude backend registration failed:', error instanceof Error ? error.message : String(error));
+        }
       }
     }
 
-    // Initialize OpenAI backend with availability check
-    if (this.config.backends.openai.enabled || process.env.OPENAI_API_KEY) {
-      try {
-        // Enable OpenAI backend if API key is available in environment
-        const openaiConfig = {
-          ...this.config.backends.openai,
-          enabled: true,
-          api_key: this.config.backends.openai.api_key || process.env.OPENAI_API_KEY
-        };
-        const openai = new OpenAIBackend(openaiConfig);
-        this.router.registerBackend(openai);
-        logger.info('✅ OpenAI backend registered');
-      } catch (error) {
-        logger.warn('⚠️ OpenAI backend registration failed:', error instanceof Error ? error.message : String(error));
+    // Initialize OpenAI backend with proper validation  
+    const openaiApiKey = this.config.backends.openai.api_key || process.env.OPENAI_API_KEY;
+    
+    if ((this.config.backends.openai.enabled || openaiApiKey) && openaiApiKey) {
+      const openaiConfig = {
+        ...this.config.backends.openai,
+        enabled: true,
+        api_key: openaiApiKey
+      };
+      
+      if (await this.validateBackendConfig('OpenAI', openaiConfig)) {
+        try {
+          const openai = new OpenAIBackend(openaiConfig);
+          this.router.registerBackend(openai);
+          registeredBackends.push('OpenAI');
+          logger.info('✅ OpenAI backend registered');
+        } catch (error) {
+          logger.warn('⚠️ OpenAI backend registration failed:', error instanceof Error ? error.message : String(error));
+        }
       }
     }
 
-    // Initialize Qwen backend with availability check
-    if (this.config.backends.qwen.enabled || process.env.QWEN_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.CODELLM_API_KEY) {
-      try {
-        // Enable Qwen backend if API key is available in environment
-        const qwenConfig = {
-          ...this.config.backends.qwen,
-          enabled: true,
-          api_key: this.config.backends.qwen.api_key || 
-                   process.env.QWEN_API_KEY || 
-                   process.env.DASHSCOPE_API_KEY ||
-                   process.env.CODELLM_API_KEY,
-          base_url: this.config.backends.qwen.base_url ||
-                   process.env.QWEN_BASE_URL ||
-                   'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
-        };
-        const qwen = new QwenBackend(qwenConfig);
-        this.router.registerBackend(qwen);
-        console.log('✅ Qwen backend registered');
-      } catch (error) {
-        console.warn('⚠️ Qwen backend registration failed:', error instanceof Error ? error.message : String(error));
+    // Initialize Qwen backend with proper validation
+    const qwenApiKey = this.config.backends.qwen.api_key || 
+                      process.env.QWEN_API_KEY || 
+                      process.env.DASHSCOPE_API_KEY ||
+                      process.env.CODELLM_API_KEY;
+    
+    if ((this.config.backends.qwen.enabled || qwenApiKey) && qwenApiKey) {
+      const qwenConfig = {
+        ...this.config.backends.qwen,
+        enabled: true,
+        api_key: qwenApiKey,
+        base_url: this.config.backends.qwen.base_url ||
+                 process.env.QWEN_BASE_URL ||
+                 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
+      };
+      
+      if (await this.validateBackendConfig('Qwen', qwenConfig)) {
+        try {
+          const qwen = new QwenBackend(qwenConfig);
+          this.router.registerBackend(qwen);
+          registeredBackends.push('Qwen');
+          console.log('✅ Qwen backend registered');
+        } catch (error) {
+          console.warn('⚠️ Qwen backend registration failed:', error instanceof Error ? error.message : String(error));
+        }
       }
     }
 
-    // Initialize Adaptive Qwen backend if configured
-    if (this.config.backends.qwen.enabled && (this.config.backends.qwen as any).backend_type === 'adaptive') {
-      try {
-        const adaptiveQwen = new AdaptiveQwenBackend(this.config.backends.qwen as any);
-        this.router.registerBackend(adaptiveQwen);
-        console.log('✅ Adaptive Qwen backend registered');
-      } catch (error) {
-        console.warn('⚠️ Adaptive Qwen backend registration failed:', error instanceof Error ? error.message : String(error));
+    // Initialize FlexCon/Custom backend as Ollama backend with proper validation
+    const flexconApiKey = process.env.CUSTOM_BACKEND_1_API_KEY || process.env.FLEXCON_API_KEY;
+    const flexconUrl = process.env.CUSTOM_BACKEND_1_API_URL || process.env.FLEXCON_API_URL;
+    
+    if (flexconApiKey && flexconUrl) {
+      const flexconConfig = {
+        ...this.config.backends.ollama,
+        enabled: true,
+        api_key: flexconApiKey,
+        base_url: flexconUrl,
+        model: process.env.CUSTOM_BACKEND_1_MODEL || 
+               process.env.FLEXCON_MODEL || 
+               'gpt-oss:20b-gpu16-ctx3072'
+      };
+      
+      if (await this.validateBackendConfig('FlexCon', flexconConfig)) {
+        try {
+          const flexcon = new OllamaBackend(flexconConfig as any);
+          this.router.registerBackend(flexcon);
+          registeredBackends.push('FlexCon');
+          console.log('✅ FlexCon backend registered');
+        } catch (error) {
+          console.warn('⚠️ FlexCon backend registration failed:', error instanceof Error ? error.message : String(error));
+        }
       }
     }
 
-    // Check if we have any healthy backends after initialization
+    // Initialize standard Ollama backend only if no FlexCon and Ollama URL exists
+    if (!flexconApiKey && (this.config.backends.ollama.enabled || process.env.OLLAMA_API_URL)) {
+      const ollamaConfig = {
+        ...this.config.backends.ollama,
+        enabled: true,
+        base_url: this.config.backends.ollama.base_url || 
+                 process.env.OLLAMA_API_URL || 
+                 'http://localhost:11434',
+        api_key: this.config.backends.ollama.api_key || process.env.OLLAMA_API_KEY,
+        model: this.config.backends.ollama.model || 
+               process.env.OLLAMA_MODEL || 
+               'llama2'
+      };
+      
+      // Ollama doesn't require API key validation
+      if (await this.validateBackendConfig('Ollama', ollamaConfig, false)) {
+        try {
+          const ollama = new OllamaBackend(ollamaConfig as any);
+          this.router.registerBackend(ollama);
+          registeredBackends.push('Ollama');
+          console.log('✅ Ollama backend registered');
+        } catch (error) {
+          console.warn('⚠️ Ollama backend registration failed:', error instanceof Error ? error.message : String(error));
+        }
+      }
+    }
+
+    console.log(`📋 Backend registration complete: ${registeredBackends.length} backends registered [${registeredBackends.join(', ')}]`);
+
+    // Perform health checks with appropriate timeouts AFTER all registrations
+    console.log('🔍 Performing backend health checks...');
     const healthChecks = await this.router.healthCheckAll();
     const healthyBackends = healthChecks.filter(h => h.healthy);
     
-    // Only show backend health in debug mode, or when there are issues
-    if (process.env.CLAUDETTE_DEBUG === '1' || healthyBackends.length === 0) {
-      console.log(`🏥 Backend health summary: ${healthyBackends.length}/${healthChecks.length} healthy`);
-      healthChecks.forEach(check => {
-        const icon = check.healthy ? '✅' : '❌';
-        console.log(`   ${icon} ${check.name}: ${check.healthy ? 'healthy' : 'unhealthy'}`);
-      });
-    }
+    // Always show health check results to user
+    console.log(`🏥 Backend health summary: ${healthyBackends.length}/${healthChecks.length} healthy`);
+    healthChecks.forEach(check => {
+      const icon = check.healthy ? '✅' : '❌';
+      const errorInfo = check.error ? ` (${check.error})` : '';
+      console.log(`   ${icon} ${check.name}: ${check.healthy ? 'healthy' : 'unhealthy'}${errorInfo}`);
+    });
     
-    // Initialize mock backend for testing when no healthy backends are available
+    // Only initialize mock backend if NO backends are healthy AND we want to prevent complete failure
     if (healthyBackends.length === 0) {
-      console.log('🎭 No healthy backends found, initializing mock backend for testing');
-      const mockBackend = new MockBackend({
-        enabled: true,
-        priority: 999,
-        cost_per_token: 0,
-        model: 'mock-backend-v1',
-        simulateLatency: 50,
-        simulateFailure: false,
-        mockResponses: [
-          'This is a mock response for testing purposes. The backend routing system is working correctly.',
-          'Mock backend successfully handled the request. All system components are functioning.',
-          'Test response from mock backend. The AI middleware is operational.'
-        ]
-      });
-      this.router.registerBackend(mockBackend);
-      console.log('✅ Mock backend registered (no API backends available)');
-    }
-
-    // Initialize Ollama backend with availability check
-    if (this.config.backends.ollama.enabled || process.env.OLLAMA_API_URL || process.env.FLEXCON_API_URL) {
-      try {
-        // Enable Ollama backend if environment variables are available
-        const ollamaConfig = {
-          ...this.config.backends.ollama,
+      console.warn('⚠️  WARNING: No healthy backends found! This should not happen in production.');
+      console.warn('⚠️  Possible causes:');
+      console.warn('⚠️    - Network connectivity issues');
+      console.warn('⚠️    - Invalid API keys');
+      console.warn('⚠️    - API service outages');
+      console.warn('⚠️    - Firewall blocking requests');
+      
+      if (process.env.NODE_ENV === 'development' || process.env.CLAUDETTE_ALLOW_MOCK === '1') {
+        console.log('🎭 Development mode: Initializing mock backend as fallback');
+        const mockBackend = new MockBackend({
           enabled: true,
-          base_url: this.config.backends.ollama.base_url || 
-                   process.env.FLEXCON_API_URL || 
-                   process.env.OLLAMA_API_URL || 
-                   'http://localhost:11434',
-          api_key: this.config.backends.ollama.api_key || 
-                   process.env.FLEXCON_API_KEY || 
-                   process.env.OLLAMA_API_KEY,
-          model: this.config.backends.ollama.model || 
-                 process.env.FLEXCON_MODEL || 
-                 process.env.OLLAMA_MODEL || 
-                 'llama2'
-        };
-        
-        const ollama = new OllamaBackend(ollamaConfig as any);
-        this.router.registerBackend(ollama);
-        console.log('✅ Ollama backend registered');
-      } catch (error) {
-        console.warn('⚠️ Ollama backend registration failed:', error instanceof Error ? error.message : String(error));
+          priority: 999,
+          cost_per_token: 0,
+          model: 'mock-backend-v1',
+          simulateLatency: 50,
+          simulateFailure: false,
+          mockResponses: [
+            'This is a mock response for testing purposes. The backend routing system is working correctly.',
+            'Mock backend successfully handled the request. All system components are functioning.',
+            'Test response from mock backend. The AI middleware is operational.'
+          ]
+        });
+        this.router.registerBackend(mockBackend);
+        console.log('✅ Mock backend registered (development fallback)');
+      } else {
+        throw new Error('No healthy backends available and mock backend disabled in production mode');
       }
+    } else {
+      console.log(`🚀 Claudette ready with ${healthyBackends.length} healthy backend(s): ${healthyBackends.map(h => h.name).join(', ')}`);
     }
-
-    // Note: Mistral backend can be added in future versions as needed
   }
 
   /**
@@ -657,7 +741,7 @@ export class Claudette {
         stats: routerStats,
         health: backendHealth
       },
-      version: '1.0.1'
+      version: '1.0.2'
     };
   }
 

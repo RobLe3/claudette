@@ -80,27 +80,31 @@ export class QwenBackend extends BaseBackend {
   }
 
   protected async healthCheck(): Promise<boolean> {
-    try {
-      const apiKey = await this.getApiKey();
-      if (!apiKey) {
-        return false;
-      }
-      
-      // Direct fetch call for health check to bypass connection pool issues
-      const response = await fetch(`${this.baseURL}/models`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        signal: AbortSignal.timeout(5000) // 5 second timeout
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.warn(`[QwenBackend] Health check failed:`, (error as Error).message);
-      return false;
-    }
+    return await performStandardHealthCheck({
+      backendName: 'Qwen',
+      checkFunction: async () => {
+        const apiKey = await this.getApiKey();
+        if (!apiKey) {
+          console.warn('[QwenBackend] Health check failed: No API key');
+          return false;
+        }
+        
+        const url = `${this.baseURL}/models`;
+        
+        // Use direct fetch for health check to bypass connection pool issues
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          signal: AbortSignal.timeout(5500) // 5.5 second timeout to match router expectations
+        });
+        
+        return response.ok;
+      },
+      suppressAuthErrors: true
+    });
   }
 
   private async makeRequest(endpoint: string, method: string = 'POST', body?: any): Promise<Response> {
@@ -237,7 +241,14 @@ export class QwenBackend extends BaseBackend {
    */
   getAvailableModels(): string[] {
     return [
-      'Qwen/Qwen2.5-Coder-7B-Instruct-AWQ'
+      'qwen-plus',
+      'qwen-plus-2025-09-11',
+      'qwen-max',
+      'qwen-turbo',
+      'qwen2-7b-instruct',
+      'qwen3-max-preview',
+      'qwen3-next-80b-a3b-instruct',
+      'qwen3-next-80b-a3b-thinking'
     ];
   }
 

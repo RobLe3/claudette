@@ -29,7 +29,7 @@ export class BackendConfigValidator {
     claude: 'claude-3-sonnet-20240229',
     openai: 'gpt-4o-mini',
     ollama: 'llama2',
-    qwen: 'Qwen/Qwen2.5-Coder-7B-Instruct-AWQ',
+    qwen: 'qwen-plus',
     mistral: 'mistral-large-latest'
   };
 
@@ -61,7 +61,7 @@ export class BackendConfigValidator {
     claude: null, // Uses Anthropic's default
     openai: null, // Uses OpenAI's default
     ollama: 'http://localhost:11434',
-    qwen: 'https://tools.flexcon-ai.de',
+    qwen: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
     mistral: null
   };
 

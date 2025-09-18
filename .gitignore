@@ -9,6 +9,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# Source build artifacts (temporary build files within src)
+src/build-artifacts/
+
 # Environment files
 .env
 .env.local
@@ -49,12 +52,8 @@ coverage/
 # nyc test coverage
 .nyc_output
 
-# Dependency directories
-node_modules/
+# Dependency directories  
 jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -110,6 +109,11 @@ secrets/
 *.sqlite
 *.sqlite3
 
+# Claudette specific database files
+claudette_data.db
+claude_cache.db
+quota_tracker.db
+
 # Test results
 test-results/
 test-output/
@@ -128,12 +132,9 @@ cache/
 # Backup files
 *.backup
 *.bak
+*\ 2
+*\ copy
 
-# Editor directories and files
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
 
 # Local development
 local/
@@ -153,25 +154,21 @@ __pycache__/
 !.claude/commands/
 !.claude/helpers/
 
-# Development artifacts - Claudette specific
-dev-artifacts/
+# Development artifacts directory - contains all development-related files
+artifacts/
+
+# Development temporary files
 experiments/temp/
 scripts/temp/
+temp-*/
+*-temp/
 
-# Development test files (root level)
+# Development test files (root level) - if any are created in future
 test-*.js
 debug-*.js
 claude-*.js
-sequential-test.js
-final-verification.js
-final-verification.json
 
-# Analysis and validation files
-*-logic-assessment.md
-*-backend-analysis.js
-*-adaptation-scenarios.js
-
-# Test artifacts and reports
+# Test artifacts and reports (root level) - if any are created in future
 *-test-results.json
 *-results.json
 *-report.json
@@ -179,35 +176,10 @@ benchmark-*.json
 performance-*.json
 test-install-local-*/
 
-# Source build artifacts (should not be in git)
-src/build-artifacts/
-src/test/
-
-# Development artifacts and temporary files
-archives/
-build-artifacts/
-temp-*/
-*-temp/
-monitoring/prometheus.yml
-monitoring/claudette_alerts.yml
-
-# Development scripts and tools
-claude-doctor-fix.sh
-claude-terminal-diagnostics.sh
-claudette-bootstrap.sh
-claudette-mcp-server.js
-claudette-start.sh
-direct-api-test.js
-security_audit.py
-
 # Development configuration
 .pre-commit-config.yaml
 Makefile
 claudette.config.json.example
-
-# Test directories (keep only essential tests for npm package)
-tests/
-plugins/
 
 # Backup directories
 aneos-project-backup-*/
@@ -227,3 +199,24 @@ test-clone/
 # Ultipa specific files
 .env.ultipa
 ultipa-*-results.json
+
+# Development artifacts (keep src/ for development, exclude other artifacts)
+archives/
+build-artifacts/
+dev-artifacts/
+temp-fresh-system-test/
+
+# Development scripts and diagnostics (root level)
+claude-terminal-diagnostics.sh
+claudette-start.sh
+claude-backend-analysis.js
+claude-logic-assessment.md
+debug-qwen-health.js
+
+# Man pages (development)
+CLAUDETTE.1
+
+# Container files (development)
+docker-compose.yml
+Dockerfile
+.dockerignore

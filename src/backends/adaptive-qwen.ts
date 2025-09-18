@@ -58,9 +58,9 @@ export class AdaptiveQwenBackend extends AdaptiveBaseBackend {
 
     super('qwen', adaptiveConfig);
     
-    this.baseURL = config.base_url || 'https://tools.flexcon-ai.de';
+    this.baseURL = config.base_url || 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1';
     this.apiKey = config.api_key;
-    this.defaultModel = config.model || 'Qwen/Qwen2.5-Coder-7B-Instruct-AWQ';
+    this.defaultModel = config.model || 'qwen-plus';
     this.customHeaders = config.custom_headers || {};
   }
 

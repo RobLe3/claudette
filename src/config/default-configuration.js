@@ -35,6 +35,7 @@ class DefaultConfigurationProvider {
       baseURL: 'https://api.openai.com/v1',
       defaultModel: 'gpt-4o-mini',  // More cost-effective model
       cost_per_token: 0.00015,    // GPT-4o-mini pricing
+      priority: 1,                // Backend priority (higher = preferred)
       contextLimit: 8192,
       timeout: 50000,             // Initial timeout - will be dynamically adjusted
       adaptive_timeout: true,     // Enable dynamic timeout calibration
@@ -48,23 +49,25 @@ class DefaultConfigurationProvider {
       baseURL: 'https://api.anthropic.com',
       defaultModel: 'claude-3-sonnet-20240229',
       cost_per_token: 0.000015,   // Claude pricing
+      priority: 3,                // Backend priority (higher = preferred)
       contextLimit: 200000,     // Claude's large context
       timeout: 45000
     });
 
-    // Custom Backend #1 (Qwen/Flexcon) - ENABLED with adaptive behavior
+    // Qwen/Dashscope Backend - ENABLED with adaptive behavior
     this.configurations.set('backend.qwen', {
       ...this.get('backend.defaults'),
-      enabled: true,              // Enable custom backend
-      baseURL: 'https://tools.flexcon-ai.de',
-      defaultModel: 'gpt-oss:20b-gpu16-ctx3072',  // Full model specification
-      cost_per_token: 0.001,      // Cost per 1K tokens
-      contextLimit: 3072,         // Context window from model spec
+      enabled: true,              // Enable Qwen backend
+      baseURL: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
+      defaultModel: 'qwen-plus',  // Qwen default model
+      cost_per_token: 0.0001,     // Qwen competitive pricing
+      priority: 2,                // Backend priority (higher = preferred)
+      contextLimit: 8192,         // Qwen context window
       timeout: 45000,             // Initial timeout - will be dynamically adjusted
       adaptive_timeout: true,     // Enable dynamic timeout calibration
-      quality_tier: 'fair',       // Expected quality tier (fine-tunable)
-      specialization: ['coding', 'technical', 'cost-effective'],
-      hardware_acceleration: true, // 16x GPU acceleration
+      quality_tier: 'good',       // Expected quality tier
+      specialization: ['multilingual', 'coding', 'technical', 'cost-effective'],
+      hardware_acceleration: true, // Cloud acceleration
       streaming_support: true,    // Real-time responses
       custom_headers: {
         'User-Agent': 'Claudette/3.0.0',

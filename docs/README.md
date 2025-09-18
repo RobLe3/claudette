@@ -1,122 +1,134 @@
-# Claudette v2.1.6 - Documentation Hub
+# Claudette v1.0.2 Documentation
 
-**Comprehensive documentation for Claudette enterprise AI middleware platform.**
+**AI Middleware Platform with Intelligent Backend Routing**
 
-This documentation covers all aspects of Claudette v2.1.6, including setup, configuration, API usage, development guidelines, and advanced features. Claudette is the premier enterprise AI middleware platform with intelligent routing, RAG integration, monitoring, and cost optimization.
+Claudette v1.0.2 is a TypeScript-based AI middleware platform that provides intelligent routing across multiple AI backends with cost optimization, health monitoring, and timeout management.
 
-## 🎯 Platform Overview
+## 🎯 What Claudette Does
 
-Claudette v2.1.6 provides:
-- **Enterprise AI Middleware** with intelligent multi-backend routing
-- **Advanced RAG Integration** with MCP, Docker, and remote API support
-- **Real-time Monitoring** with observability and alerting
-- **Interactive Setup Wizard** for 2-minute onboarding
-- **Cost Intelligence** with predictive analytics and optimization
-- **Production Security** with encrypted credential management
+Claudette acts as a smart middleware layer between your application and AI providers:
+
+- **Multi-Backend Support**: OpenAI, Qwen (Alibaba Cloud), and FlexCon
+- **Intelligent Routing**: Automatic backend selection based on performance and availability
+- **Health Monitoring**: Real-time backend health checks with circuit breaker patterns
+- **Cost Tracking**: Monitor API costs across all backends in EUR
+- **Timeout Management**: Optimized timeout configuration for reliable operations
 
 ## 📚 Documentation Structure
 
-### 🚀 Getting Started
-Quick start guides and onboarding:
+### Quick Start
+- **[Installation Guide](guides/installation.md)** - Set up Claudette in your project
+- **[Getting Started](guides/getting-started.md)** - Basic usage and configuration
+- **[Configuration Guide](guides/configuration.md)** - Environment setup and backend configuration
 
-- **[Installation Guide](getting-started/interactive-tutorial.md)** - Complete installation and setup
-- **[Quick Start Tutorial](getting-started/interactive-tutorial.md)** - 2-minute guided setup
-- **[Setup Wizard Guide](technical/setup/SETUP_WIZARD_IMPLEMENTATION_COMPLETE.md)** - Interactive configuration
+### API Reference  
+- **[Core API](api/core-api.md)** - Main `optimize()` function and response handling
+- **[Backend System](api/backends.md)** - Backend configuration and management
+- **[Types Reference](api/types.md)** - TypeScript type definitions
 
-### 🔧 API Documentation
-Comprehensive API reference and integration guides:
+### Technical Documentation
+- **[Architecture](technical/architecture.md)** - System design and components
+- **[Timeout System](technical/timeout-management.md)** - Timeout configuration and calibration
+- **[Contributing](technical/contributing.md)** - Development guidelines
 
-- **[Core API Reference](api/core/claudette-api.md)** - Main Claudette API
-- **[Backend Integration](api/backends.md)** - AI provider integration
-- **[RAG System API](api/rag/rag-system.md)** - RAG integration and usage
-- **[Backend Architecture](api/backends/backend-architecture.md)** - Backend system design
+## 🚀 Quick Example
 
-### 🧠 RAG Integration
-Retrieval-Augmented Generation documentation:
+```typescript
+import { optimize } from 'claudette';
 
-- **[RAG System Overview](api/rag/rag-system.md)** - Complete RAG integration guide
-- **[Vector Database Setup](technical/setup/CLAUDETTE_MCP_SETUP.md)** - MCP and vector DB configuration
-- **[RAG Provider Configuration](api/rag/rag-system.md)** - Multi-deployment setup
+// Simple request - Claudette automatically selects the best backend
+const response = await optimize('Explain quantum computing in simple terms');
+console.log(response.content);
+console.log(`Cost: €${response.cost_eur}, Backend: ${response.backend_used}`);
 
-### 🛠️ Technical Documentation
-Architecture, development, and infrastructure:
+// Advanced usage with options
+const response = await optimize(
+  'Write a function to calculate fibonacci',
+  ['./example.js'], // Optional file context
+  {
+    backend: 'openai',        // Force specific backend
+    max_tokens: 500,          // Token limit
+    temperature: 0.7,         // Creativity level
+    bypass_cache: true        // Skip caching
+  }
+);
+```
 
-- **[System Architecture](technical/ARCHITECTURE.md)** - Platform architecture overview
-- **[Contributing Guidelines](technical/CONTRIBUTING.md)** - Development workflow
-- **[Installation Guide](technical/setup/INSTALLATION_GUIDE.md)** - Advanced installation options
+## 🔧 Current Capabilities (v1.0.2)
 
-## 🔍 Quick Reference
+### ✅ **Implemented Features**
+- **Backend Management**: OpenAI, Qwen, FlexCon integration
+- **Health Monitoring**: Automatic health checks every 60 seconds
+- **Intelligent Routing**: Performance-based backend selection
+- **Cost Tracking**: Real-time EUR cost calculation
+- **Timeout Management**: Calibrated timeout system (5.5s health, 45s requests)
+- **Error Handling**: Circuit breaker patterns with automatic recovery
+- **Caching**: Response caching with configurable TTL
+- **Configuration**: Environment-based setup with validation
 
-### For New Users
-1. **Getting Started** → [Getting Started Tutorial](getting-started/interactive-tutorial.md)
-2. **Setup Wizard** → `claudette setup wizard` (2-minute guided setup)
-3. **Basic Usage** → [Core API Reference](api/core/claudette-api.md)
+### ⚠️ **Partial Implementation**
+- **Setup Wizard**: Basic interactive setup (in development)
+- **RAG System**: Foundation implemented, not fully featured
+- **Monitoring**: Basic performance metrics (no alerting)
 
-### For Developers
-1. **API Integration** → [Backend Integration Guide](api/backends.md)
-2. **RAG Setup** → [RAG System Documentation](api/rag/rag-system.md)
-3. **Contributing** → [Contributing Guidelines](technical/CONTRIBUTING.md)
+### ❌ **Not Yet Implemented**  
+- Advanced monitoring dashboard
+- Production deployment automation
+- Comprehensive test coverage reporting
+- Enterprise security features
 
-### For DevOps/Infrastructure
-1. **Installation Options** → [Installation Guide](technical/setup/INSTALLATION_GUIDE.md)
-2. **Infrastructure Setup** → [Infrastructure Guide](technical/infrastructure/DEVOPS_INFRASTRUCTURE_GUIDE.md)
-3. **Monitoring Setup** → [Monitoring Documentation](../src/monitoring/README.md)
+## 🏗️ System Requirements
 
-### For Enterprise Users
-1. **Enterprise Features** → [Enterprise Documentation](technical/planning/CLAUDETTE_STRATEGIC_INTEGRATION_PLAN_V2.2-3.0.md)
-2. **Security Configuration** → [Security Documentation](SECURITY.md)
-3. **Advanced RAG** → [RAG Distribution Guide](technical/infrastructure/CLAUDETTE_V2.1.5_RAG_DISTRIBUTION.md)
+- **Node.js**: 18.0.0 or higher
+- **TypeScript**: 4.5.0 or higher (for development)
+- **Operating System**: macOS, Linux, Windows
 
-## 📝 Documentation Standards
+## 📋 Backend Requirements
 
-### File Naming Convention
-- **Guides**: `FEATURE_GUIDE.md` (all caps, descriptive)
-- **Analysis**: `SUBJECT_ANALYSIS.md` (research and studies)
-- **Results**: `results_description.md` (lowercase, underscore-separated)
-- **Reports**: `REPORT_TYPE_REPORT.md` (status and completion reports)
+### API Keys Required
+- **OpenAI**: `OPENAI_API_KEY` environment variable
+- **Qwen**: `QWEN_API_KEY` environment variable  
+- **FlexCon**: `CUSTOM_BACKEND_1_API_KEY` and `CUSTOM_BACKEND_1_API_URL`
 
-### Content Structure
-All documentation follows this structure:
-1. **Title and overview**
-2. **Quick reference/TOC**
-3. **Detailed content**
-4. **Examples and usage**
-5. **Troubleshooting** (if applicable)
-6. **References and links**
+### Backend Performance
+| Backend | Avg Health Check | Avg Request | Use Case |
+|---------|------------------|-------------|----------|
+| OpenAI  | 758ms           | 1,102ms     | General purpose |
+| Qwen    | 302ms           | 912ms       | Fast, cost-effective |
+| FlexCon | 74ms            | 22,351ms    | GPU-accelerated models |
 
-### Maintenance
-- **Review quarterly** for accuracy
-- **Update immediately** when features change
-- **Archive outdated** documentation to legacy/
-- **Validate links** and examples regularly
+## 🔍 Project Status
 
-## 🔄 Documentation Workflow
+**Current Version**: v1.0.2  
+**Status**: Functional MVP  
+**Test Status**: Core functionality verified  
+**Production Ready**: Basic use cases only
 
-### Adding New Documentation
-1. **Determine category** (guides, analysis, results, legacy)
-2. **Follow naming convention**
-3. **Use standard structure**
-4. **Add to this README** in appropriate section
-5. **Validate links** and examples
+### Recent Improvements
+- **Timeout Calibration**: Systematic timeout optimization for all backends
+- **Qwen Integration**: Full Alibaba Cloud DashScope integration  
+- **Health Check Reliability**: Improved backend availability detection
+- **Error Handling**: Enhanced error recovery and circuit breaker patterns
 
-### Updating Existing Documentation
-1. **Check impact** on related documentation
-2. **Update cross-references**
-3. **Validate examples** still work
-4. **Update modification date**
+## 📞 Support
 
-### Archiving Documentation
-1. **Move to legacy/** directory
-2. **Update references** in other documents
-3. **Add note** about archival in README
-4. **Preserve for historical reference**
+For issues, questions, or contributions:
+- **Issues**: Report bugs or request features
+- **Documentation**: All docs reflect actual v1.0.2 capabilities
+- **Development**: See [Contributing Guide](technical/contributing.md)
+
+## 🗺️ Roadmap
+
+### v1.1.0 (Planned)
+- Enhanced setup wizard
+- Improved monitoring capabilities  
+- Additional backend integrations
+
+### v1.2.0 (Future)
+- Advanced RAG system
+- Dashboard interface
+- Production deployment tools
 
 ---
 
-**Private development documentation for Claude Flow advanced extensions.**
-
-*Repository focus: Advanced AI coordination, cost optimization research, and development automation.*
-
-*Related projects: [Claudette CLI](https://github.com/RobLe3/claudette) (public), [Claude Flow](https://github.com/ruvnet/claude-flow) (original)*
-
-*Last updated: 2025-07-25*
+*This documentation accurately reflects Claudette v1.0.2 capabilities. All features listed are implemented and tested.*

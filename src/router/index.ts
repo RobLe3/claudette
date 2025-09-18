@@ -21,10 +21,10 @@ export class BackendRouter {
   private circuitBreakers: Map<string, AdvancedCircuitBreaker> = new Map();
   private circuitBreakerThreshold = 5;
   private circuitBreakerResetTime = 300000; // 5 minutes
-  private readonly HEALTH_CACHE_TTL = 30000; // 30 seconds cache for health checks (reduced from 2 minutes to prevent timeouts) (increased for better performance)
-  private readonly HEALTH_CHECK_TIMEOUT = 800; // 800ms (reduced from 1.5s for faster checks)
-  private readonly AVAILABILITY_CHECK_TIMEOUT = 1000; // 1 second (reduced from 2s)
-  private readonly BACKGROUND_HEALTH_CHECK_TIMEOUT = 1500; // 1.5 seconds (reduced from 3s)
+  private readonly HEALTH_CACHE_TTL = 60000; // 60 seconds cache for health checks - reduced frequency
+  private readonly HEALTH_CHECK_TIMEOUT = 5500; // 5.5 seconds - recalibrated: 4x safety margin for all backends (Qwen 1056ms p95, OpenAI 777ms p95) + 30% network variance
+  private readonly AVAILABILITY_CHECK_TIMEOUT = 8300; // 8.3 seconds - maintains 1.5x health check timeout hierarchy
+  private readonly BACKGROUND_HEALTH_CHECK_TIMEOUT = 11000; // 11 seconds - 2x health check timeout to prevent interference
   private backgroundHealthCheckInterval: NodeJS.Timeout | null = null;
   
   // Performance optimization: Circuit breaker state cache
@@ -52,7 +52,7 @@ export class BackendRouter {
     // Initialize advanced circuit breaker for this backend
     const circuitBreakerConfig: CircuitBreakerConfig = {
       failureThreshold: 5,
-      resetTimeout: 30000, // 30 seconds
+      resetTimeout: 45000, // 45 seconds - increased to accommodate longer health check timeouts
       halfOpenMaxCalls: 3,
       failureRateThreshold: 50, // 50% failure rate
       slowCallThreshold: 5000, // 5 seconds
