@@ -537,7 +537,8 @@ export class Claudette {
           registeredBackends.push('Qwen');
           console.log('✅ Qwen backend registered');
         } catch (error) {
-          console.warn('⚠️ Qwen backend registration failed:', error instanceof Error ? error.message : String(error));
+          const { SecureLogger } = await import('./utils/secure-logger');
+          SecureLogger.secureLog('warn', '⚠️ Qwen backend registration failed:', error instanceof Error ? error.message : String(error));
         }
       }
     }
@@ -564,7 +565,8 @@ export class Claudette {
           registeredBackends.push('FlexCon');
           console.log('✅ FlexCon backend registered');
         } catch (error) {
-          console.warn('⚠️ FlexCon backend registration failed:', error instanceof Error ? error.message : String(error));
+          const { SecureLogger } = await import('./utils/secure-logger');
+          SecureLogger.secureLog('warn', '⚠️ FlexCon backend registration failed:', error instanceof Error ? error.message : String(error));
         }
       }
     }
@@ -741,7 +743,7 @@ export class Claudette {
         stats: routerStats,
         health: backendHealth
       },
-      version: '1.0.2'
+      version: '1.0.3'
     };
   }
 

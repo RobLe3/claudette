@@ -157,8 +157,9 @@ async function testSetupWizard(results: any) {
       verboseOutput: false
     });
     
-    // Test wizard initialization
-    assert(wizard !== null, 'Wizard should initialize');
+    // Test wizard initialization - verify it's properly constructed
+    assert(wizard instanceof SetupWizard, 'Wizard should be a SetupWizard instance');
+    assert(typeof wizard.run === 'function', 'Wizard should have run method');
     
     console.log(chalk.green('   ✅ Setup Wizard initialization passed'));
     results.passed++;

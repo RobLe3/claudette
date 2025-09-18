@@ -107,19 +107,61 @@ export class SecureLogger {
   }
 
   /**
+   * Sanitize user input to prevent log injection attacks
+   */
+  private sanitizeLogInput(input: string): string {
+    if (typeof input !== 'string') {
+      return String(input);
+    }
+
+    return input
+      // Remove control characters that could cause log injection
+      .replace(/[\r\n\t\x00-\x1f\x7f-\x9f]/g, '')
+      // Remove ANSI escape sequences
+      .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
+      // Limit length to prevent log flooding
+      .slice(0, 500)
+      // Remove potential log format patterns
+      .replace(/\[(DEBUG|INFO|WARN|ERROR|FATAL|ADMIN|FAKE|INJECTED)\]/gi, '[SANITIZED]');
+  }
+
+  /**
    * Format log message with context
    */
   private formatMessage(level: string, message: string, context?: LogContext): string {
     const timestamp = new Date().toISOString();
     const contextStr = context ? JSON.stringify(this.maskObject(context), null, 2) : '';
     
-    let formatted = `[${timestamp}] [${level.toUpperCase()}] ${this.maskSensitive(message)}`;
+    let formatted = `[${timestamp}] [${level.toUpperCase()}] ${this.maskSensitive(this.sanitizeLogInput(message))}`;
     
     if (contextStr) {
       formatted += `\nContext: ${contextStr}`;
     }
 
     return formatted;
+  }
+
+  /**
+   * Secure console logging that prevents injection and masks sensitive data
+   */
+  static secureLog(level: 'log' | 'warn' | 'error', message: string, ...args: any[]): void {
+    const logger = SecureLogger.getInstance();
+    
+    // Sanitize the main message
+    const sanitizedMessage = logger.sanitizeLogInput(message);
+    const maskedMessage = logger.maskSensitive(sanitizedMessage);
+    
+    // Sanitize and mask any additional arguments
+    const sanitizedArgs = args.map(arg => {
+      if (typeof arg === 'string') {
+        return logger.maskSensitive(logger.sanitizeLogInput(arg));
+      } else if (typeof arg === 'object') {
+        return logger.maskObject(arg);
+      }
+      return arg;
+    });
+    
+    console[level](maskedMessage, ...sanitizedArgs);
   }
 
   /**

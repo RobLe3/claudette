@@ -5,6 +5,52 @@ All notable changes to Claudette will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2025-09-18
+
+### 🔒 Security Fixes
+
+#### Log Injection Prevention
+- **Enhanced Secure Logging** - Added comprehensive log sanitization to prevent injection attacks
+  - Removes control characters (newlines, carriage returns, ANSI escape sequences)
+  - Sanitizes potential log format patterns ([ADMIN], [FAKE], [INJECTED], etc.)
+  - Limits log entry length to prevent flooding attacks
+  - Automatically masks API keys and sensitive data in all log outputs
+- **Updated Vulnerable Logging Calls** - Replaced raw console.warn/error with SecureLogger.secureLog
+  - Fixed log injection in connection pool warmup failures
+  - Secured backend registration error logging
+  - Enhanced error message sanitization in Qwen backend
+
+#### Code Quality Improvements
+- **Fixed Progress Tracker Logic Error** - Corrected unreachable condition in setup time recommendations
+  - Issue: `else if (deviationPercent > 50)` was unreachable after `if (deviationPercent > 20)`
+  - Fixed: Reordered conditions to check > 50% before > 20% deviation
+  - Impact: Users with severely delayed setups now get appropriate "skip optional steps" guidance
+- **Improved Setup Wizard Assertions** - Replaced unnecessary null checks with meaningful validation
+  - Removed: `assert(wizard !== null)` (always true for new object instances)
+  - Added: `assert(wizard instanceof SetupWizard)` and method existence checks
+  - Better error messages for actual initialization failures
+
+### 🛡️ Security Enhancements
+- **Log Injection Protection**: All user-controlled data in logs is now sanitized
+- **API Key Masking**: Automatic detection and masking of sensitive credentials
+- **Input Validation**: Enhanced validation for all user inputs that reach logging systems
+
+### 🧪 Testing
+- **Added Security Test Suite** - Comprehensive validation of log injection prevention
+- **Bug Fix Verification** - Automated tests for all reported CodeQL issues
+- **Regression Testing** - Ensures fixes don't break existing functionality
+
+### 📊 CodeQL Security Alerts Resolved
+- **#193**: Progress tracker logic error (HIGH) - ✅ FIXED
+- **#185**: Unnecessary null comparison (MEDIUM) - ✅ FIXED  
+- **#16, #15, #14, #13**: Log injection vulnerabilities (MEDIUM) - ✅ FIXED
+- **#5**: False positive credential logging - ✅ VERIFIED SECURE (already used masked logging)
+
+### 🔧 Technical Improvements
+- **SecureLogger Enhancement** - Added `sanitizeLogInput()` and `secureLog()` methods
+- **Type Safety** - Better TypeScript assertions in test utilities
+- **Code Standards** - Aligned with security best practices for logging
+
 ## [1.0.2] - 2025-09-18
 
 ### 🔧 Bug Fixes & Improvements

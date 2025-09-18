@@ -1,6 +1,6 @@
 {
   "name": "claudette",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Enterprise AI middleware platform with intelligent routing, RAG integration, monitoring, and cost optimization",
   "main": "claudette",
   "bin": {

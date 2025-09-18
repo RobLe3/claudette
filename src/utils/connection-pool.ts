@@ -327,7 +327,8 @@ export class ConnectionPool {
         });
       } catch (error) {
         // Ignore warmup failures
-        console.warn(`[ConnectionPool] Warmup failed for ${url}:`, (error as Error).message);
+        const { SecureLogger } = await import('./secure-logger');
+        SecureLogger.secureLog('warn', `[ConnectionPool] Warmup failed for ${url}:`, (error as Error).message);
       }
     });
 

@@ -151,7 +151,8 @@ export class QwenBackend extends BaseBackend {
       } as Response;
     } catch (error) {
       // Fallback to fetch if connection pool fails
-      console.warn(`[QwenBackend] Connection pool failed, falling back to fetch:`, (error as Error).message);
+      const { SecureLogger } = await import('../utils/secure-logger');
+      SecureLogger.secureLog('warn', `[QwenBackend] Connection pool failed, falling back to fetch:`, (error as Error).message);
       return fetch(url, options);
     }
   }

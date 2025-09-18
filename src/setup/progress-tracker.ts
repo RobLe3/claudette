@@ -201,10 +201,10 @@ export class ProgressTracker {
     let recommendation = '';
     let onTrack = Math.abs(deviationPercent) <= 20; // Within 20% of target
 
-    if (deviationPercent > 20) {
-      recommendation = 'Consider enabling quick setup mode to reduce time';
-    } else if (deviationPercent > 50) {
+    if (deviationPercent > 50) {
       recommendation = 'Setup is running significantly over time. Consider skipping optional steps';
+    } else if (deviationPercent > 20) {
+      recommendation = 'Consider enabling quick setup mode to reduce time';
     } else if (deviationPercent < -20) {
       recommendation = 'Setup is ahead of schedule. Good progress!';
     } else {

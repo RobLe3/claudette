@@ -1,10 +1,10 @@
-# Claudette v1.0.2 - Maximize Your AI Investment 🧠
+# Claudette v1.0.3 - Maximize Your AI Investment 🧠
 
 🚀 **Smart AI Middleware That Saves Money While Preserving Quality**
 
-> **v1.0.2**: Get more from your AI budget by intelligently routing requests across multiple providers. Reduce costs while maintaining the quality your users expect.
+> **v1.0.3**: Get more from your AI budget by intelligently routing requests across multiple providers. Reduce costs while maintaining the quality your users expect.
 
-![Version](https://img.shields.io/badge/version-1.0.2-blue)
+![Version](https://img.shields.io/badge/version-1.0.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)
 ![Tested](https://img.shields.io/badge/Core_System-Verified-brightgreen)
@@ -112,7 +112,7 @@ npm install && npm run build
 
 3. **Verify installation**:
    ```bash
-   claudette --version    # Should output: 1.0.2
+   claudette --version    # Should output: 1.0.3
    claudette status       # Check system status
    ```
 
@@ -215,7 +215,7 @@ npm run test:comprehensive  # Run full test suite
 
 ## 📊 Current Version
 
-### ✅ v1.0.2 (Current)
+### ✅ v1.0.3 (Current)
 - **Backend Support**: OpenAI, Claude, Qwen, Ollama, and custom backends
 - **Monitoring**: Performance metrics and health monitoring
 - **Cost Tracking**: Real-time cost calculation and budget management
@@ -233,4 +233,4 @@ npm run test:comprehensive  # Run full test suite
 
 ---
 
-*Claudette v1.0.2 - AI Backend Router & Cost Optimizer*
+*Claudette v1.0.3 - AI Backend Router & Cost Optimizer*

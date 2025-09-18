@@ -22,7 +22,7 @@ const claudette = new Claudette();
 program
   .name('claudette')
   .description('Enterprise AI middleware with intelligent routing, advanced polishing, and comprehensive monitoring')
-  .version('1.0.2');
+  .version('1.0.3');
 
 // Main command - analyze/process text
 program
@@ -854,7 +854,7 @@ async function testOpenAIKey(apiKey: string): Promise<{ success: boolean; error?
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'User-Agent': 'claudette/1.0.2'
+        'User-Agent': 'claudette/1.0.3'
       },
       signal: AbortSignal.timeout(10000)
     });
@@ -881,7 +881,7 @@ async function testClaudeKey(apiKey: string): Promise<{ success: boolean; error?
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'User-Agent': 'claudette/1.0.2'
+        'User-Agent': 'claudette/1.0.3'
       },
       body: JSON.stringify({
         model: 'claude-3-haiku-20240307',
