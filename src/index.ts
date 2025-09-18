@@ -668,7 +668,8 @@ export class Claudette {
         latency_ms: response.latency_ms
       });
     } catch (error) {
-      console.warn(`Failed to record quota entry: ${error}`);
+      const { SecureLogger } = await import('./utils/secure-logger');
+      SecureLogger.secureLog('warn', `Failed to record quota entry:`, error);
     }
   }
 
@@ -803,7 +804,8 @@ export class Claudette {
         }
       };
     } catch (error) {
-      console.warn(`Compression failed: ${error}, using original request`);
+      const { SecureLogger } = await import('./utils/secure-logger');
+      SecureLogger.secureLog('warn', `Compression failed, using original request:`, error);
       return request;
     }
   }
@@ -872,7 +874,8 @@ export class Claudette {
         }
       };
     } catch (error) {
-      console.warn(`Summarization failed: ${error}, using original request`);
+      const { SecureLogger } = await import('./utils/secure-logger');
+      SecureLogger.secureLog('warn', `Summarization failed, using original request:`, error);
       return request;
     }
   }

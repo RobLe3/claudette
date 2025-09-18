@@ -208,6 +208,7 @@ export class CredentialSetupStep implements SetupStep {
       } catch (error) {
         // If prompts fail but we have a detected key, use it for quick setup
         if (context.options.quickSetup) {
+          // Using properly masked API key - safe for display
           console.log(chalk.green(`   ✅ Using detected ${backendConfig.displayName} API key (${maskedKey})`));
         } else {
           // For non-quick setup, skip if prompts fail

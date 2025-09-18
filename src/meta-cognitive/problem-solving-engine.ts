@@ -506,11 +506,15 @@ export class MetaCognitiveProblemSolver {
   }
 
   private generateId(): string {
-    return `problem_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const crypto = require('crypto');
+    const randomBytes = crypto.randomBytes(4).toString('hex');
+    return `problem_${Date.now()}_${randomBytes}`;
   }
 
   private generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const crypto = require('crypto');
+    const randomBytes = crypto.randomBytes(4).toString('hex');
+    return `session_${Date.now()}_${randomBytes}`;
   }
 
   private inferDomain(description: string): string {

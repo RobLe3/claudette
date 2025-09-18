@@ -85,7 +85,8 @@ export class QwenBackend extends BaseBackend {
       checkFunction: async () => {
         const apiKey = await this.getApiKey();
         if (!apiKey) {
-          console.warn('[QwenBackend] Health check failed: No API key');
+          const { SecureLogger } = await import('../utils/secure-logger');
+          SecureLogger.secureLog('warn', '[QwenBackend] Health check failed: No API key');
           return false;
         }
         
