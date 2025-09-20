@@ -19,41 +19,41 @@ Claudette is an **AI middleware platform** that helps you **maximize your AI inv
 ## 💼 What Claudette Helps You With
 
 ### 🏢 **For Businesses**
-- **Reduce AI costs** by automatically choosing cost-effective backends for routine tasks
-- **Extend subscription value** - get significantly more AI interactions for the same budget
-- **Avoid vendor lock-in** with support for multiple AI providers
+- **Extend Claude Code Pro usage** by routing routine tasks to alternative providers
+- **Preserve premium allocations** for complex analysis and critical decisions
+- **Avoid usage limits** with intelligent request routing and fallback options
 - **Scale confidently** with built-in failover and health monitoring
-- **Track spending** with real-time cost monitoring and budget controls
+- **Track usage patterns** with real-time monitoring and optimization suggestions
 
 ### 👨‍💻 **For Developers**
-- **Build AI features faster** with a unified API across multiple providers
-- **Prevent outages** with automatic failover between AI services
-- **Optimize performance** with intelligent caching and routing
+- **Extend your Claude Code Pro** - use it strategically for complex coding tasks
+- **Free up premium usage** by routing documentation and simple queries elsewhere
+- **Never hit rate limits** during intensive development sessions
 - **Debug easily** with comprehensive logging and monitoring
-- **Deploy reliably** with production-tested infrastructure
+- **Work continuously** with local fallback options (Ollama)
 
 ### 🎓 **For Teams & Projects**
-- **Make AI budgets last longer** by optimizing every request
-- **Ensure consistent quality** while reducing costs
-- **Simplify AI integration** with one interface for multiple providers
-- **Stay operational** even when one AI service has issues
-- **Scale usage** without proportional cost increases
+- **Stretch Claude Pro subscriptions** across entire teams with smart routing
+- **Maintain quality standards** while preserving premium usage for critical work
+- **Ensure continuous operation** even when Claude Code hits rate limits
+- **Share premium access** intelligently across team members
+- **Scale productivity** without requiring multiple expensive subscriptions
 
 ### 🌟 **Real-World Use Cases**
-- **Content teams**: Draft with cost-effective models, polish with premium ones - save budget for creative review
-- **Development teams**: Route code questions intelligently - simple syntax to fast models, architecture to specialized ones  
-- **Customer support**: Handle routine inquiries efficiently while ensuring complex issues get premium treatment
-- **Research projects**: Optimize between speed and quality based on whether it's exploration or final analysis
-- **Startups**: Access multiple AI capabilities without multiple expensive subscriptions
+- **Claude Code Pro Users**: Preserve your monthly allocation for complex coding while using alternatives for documentation and simple queries
+- **Development teams**: Never get blocked by rate limits - local Ollama keeps you coding while Claude handles architecture decisions
+- **Content creators**: Save Claude Pro usage for final review and creative polish, draft with cost-effective alternatives
+- **Researchers**: Use Claude strategically for critical analysis while processing routine tasks through other providers
+- **Intensive users**: Work all day without exhausting your Claude Pro limits through intelligent request routing
 
 ### 🏆 Key Features
-- **🔄 Smart Routing** - Automatic selection between OpenAI, Claude, Qwen, and Ollama based on your needs
-- **💰 Cost Intelligence** - Real-time optimization to maximize your AI budget
-- **💸 Low-Cost Providers** - Access to [significantly cheaper alternatives](#-low-cost-token-providers--inference-services) like Alibaba Cloud (Qwen) and free local models
-- **📊 Transparency** - Track performance, costs, and quality across all providers
+- **🔄 Smart Routing** - Preserve your Claude Pro usage by automatically routing routine tasks to alternatives
+- **⏱️ Usage Extension** - Make your Claude Code Pro subscription last much longer through intelligent request distribution
+- **💸 Alternative Providers** - Access to [alternative AI services](#-low-cost-token-providers--inference-services) like Alibaba Cloud (Qwen) and free local models
+- **📊 Usage Tracking** - Monitor Claude Pro consumption and optimize routing patterns
 - **🏗️ Developer Ready** - Full TypeScript support with modern tooling
-- **⚡ Performance** - Intelligent caching and optimized request handling
-- **🛡️ Reliability** - Circuit breakers and graceful failure recovery
+- **⚡ Continuous Operation** - Never get blocked by rate limits during intensive work sessions
+- **🛡️ Fallback Protection** - Local Ollama ensures you can always continue working
 
 ---
 
@@ -162,41 +162,77 @@ const response = await claudette.optimize("Simple question");
 
 ## 💰 Claude Subscription Optimization Guide
 
-> **Maximize your Claude Pro investment** - From $20/month to enterprise-scale efficiency
+> **Extend your Claude Code Pro usage dramatically** - Make your $20/month subscription work much harder
 
-### 🎯 **Claude Pro ($20/month) - 5x More Value**
+### 🎯 **Claude Pro ($20/month) - Extend Your Usage Dramatically**
 
-With just a **Claude Pro subscription**, Claudette transforms your $20/month into powerful AI capabilities:
+With just a **Claude Pro subscription**, Claudette extends your AI capabilities by intelligently routing requests:
 
-**Without Claudette:**
-- ~500-1000 Claude Sonnet interactions/month
+**Without Claudette (Claude Code Pro only):**
+- Limited to Claude Pro monthly usage limits
+- All requests consume your Claude Pro allocation
+- Hit rate limits during intensive work
 - Single provider dependency
-- No cost optimization
-- Manual quality vs. cost decisions
 
-**With Claudette + Claude Pro:**
+**With Claudette + Claude Code Pro:**
 ```javascript
-// Smart routing maximizes your Claude Pro usage
+// Smart routing preserves your Claude Pro usage
 const config = {
   claude: { 
     enabled: true, 
-    priority: 1,        // Premium quality for important tasks
+    priority: 1,        // Reserved for complex tasks only
     model: "claude-3-sonnet-20240229" 
   },
   qwen: { 
     enabled: true, 
-    priority: 2,        // Cost-effective for routine tasks
-    cost_per_token: 0.0001 // 3x cheaper than Claude
+    priority: 2,        // Handles routine tasks
+    cost_per_token: 0.0001
+  },
+  ollama: {
+    enabled: true,
+    priority: 3,        // Free local processing
+    cost_per_token: 0
   }
 };
 
-// Claudette automatically optimizes:
-// - Complex analysis → Claude (premium quality)
-// - Simple questions → Qwen (cost-effective)
-// - Code explanations → Mixed routing based on complexity
+// Claudette intelligently routes:
+// - Critical analysis → Claude Pro (preserves your premium allocation)
+// - Simple questions → Qwen (extends your capacity)
+// - Development work → Ollama (unlimited free usage)
+// - Code review → Mixed routing based on complexity
 ```
 
-**Result**: **2,500+ effective interactions/month** for the same $20 budget!
+**Result**: **Your Claude Pro subscription lasts much longer** - save premium usage for what matters most!
+
+### 💻 **Perfect for Claude Code Pro Users**
+
+If you're using **Claude Code with a Pro subscription**, Claudette is specifically designed to extend your usage:
+
+```javascript
+// Example: Typical developer workflow optimization
+const claudeCodeWorkflow = {
+  // Preserve Claude Pro for these critical tasks:
+  architecture_discussions: "claude",    // Complex system design
+  code_review_complex: "claude",         // Security and performance review  
+  debugging_difficult: "claude",         // Hard-to-solve problems
+  
+  // Route these to alternatives to save Claude Pro usage:
+  simple_documentation: "qwen",          // API docs, comments
+  code_generation_basic: "ollama",       // Boilerplate, simple functions  
+  research_questions: "qwen",            // "How do I..." queries
+  test_generation: "ollama",             // Unit tests, mock data
+};
+
+// Result: Your Claude Pro allocation lasts 3-5x longer
+// You can work intensively all month without hitting limits
+```
+
+**Key Benefits for Claude Code Users:**
+- 🔄 **Seamless Integration** - Works alongside your existing Claude Code workflow
+- ⏰ **Extended Sessions** - Code for hours without worrying about rate limits  
+- 💡 **Smart Decisions** - Claudette learns which tasks truly need Claude's power
+- 🚀 **Uninterrupted Flow** - Local Ollama keeps you productive when limits hit
+- 📊 **Usage Insights** - See exactly how your Claude Pro allocation is being used
 
 ### 🚀 **Scaling with Additional APIs**
 
