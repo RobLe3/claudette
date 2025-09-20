@@ -49,7 +49,7 @@ Claudette is an **AI middleware platform** that helps you **maximize your AI inv
 ### 🏆 Key Features
 - **🔄 Smart Routing** - Automatic selection between OpenAI, Claude, Qwen, and Ollama based on your needs
 - **💰 Cost Intelligence** - Real-time optimization to maximize your AI budget
-- **💸 Low-Cost Providers** - Access to [80-95% cheaper alternatives](#-low-cost-token-providers--inference-services) like Alibaba Cloud, DeepSeek, and free local models
+- **💸 Low-Cost Providers** - Access to [significantly cheaper alternatives](#-low-cost-token-providers--inference-services) like Alibaba Cloud (Qwen) and free local models
 - **📊 Transparency** - Track performance, costs, and quality across all providers
 - **🏗️ Developer Ready** - Full TypeScript support with modern tooling
 - **⚡ Performance** - Intelligent caching and optimized request handling
@@ -442,11 +442,13 @@ claudette init --quick
 
 ## 💸 Low-Cost Token Providers & Inference Services
 
-> **Slash your AI costs by 80-95%** - Access premium AI capabilities through budget-friendly providers
+> **Reduce your AI costs significantly** - Access premium AI capabilities through budget-friendly providers
+
+**Important**: Cost savings are estimates and vary by usage patterns. Always verify current pricing with providers.
 
 ### 🏭 **Enterprise-Grade Low-Cost Providers**
 
-#### **Alibaba Cloud (Qwen) - 90% Cost Reduction**
+#### **Alibaba Cloud (Qwen) - Significant Cost Reduction**
 ```javascript
 // Qwen through Alibaba Cloud DashScope
 const config = {
@@ -472,55 +474,26 @@ const config = {
 - **Qwen-Max**: ¥0.02/1K tokens (~$0.003) - **10x cheaper than GPT-4**
 - **Qwen-Turbo**: ¥0.0003/1K tokens (~$0.00004) - **75x cheaper than Claude**
 
-#### **DeepSeek - Extremely Low Cost**
+#### **Additional Providers - Future Integration**
 ```javascript
-const config = {
-  deepseek: {
+// NOTE: These providers are planned but not yet implemented
+// Current implementation supports: Claude, OpenAI, Qwen, Ollama
+
+// FUTURE: DeepSeek integration (planned)
+// FUTURE: Together AI integration (planned) 
+// FUTURE: Groq integration (planned)
+
+// For now, use implemented backends:
+const workingConfig = {
+  qwen: {
     enabled: true,
-    base_url: "https://api.deepseek.com/v1",
-    api_key: process.env.DEEPSEEK_API_KEY,
-    model: "deepseek-chat",
-    cost_per_token: 0.00002,  // 95% cheaper than premium models
-    priority: 3
+    base_url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    api_key: process.env.QWEN_API_KEY,
+    model: "qwen-plus",
+    cost_per_token: 0.0001,  // Significantly cheaper than Claude
+    priority: 2
   }
 };
-
-// Get access at: https://platform.deepseek.com/
-// $5 free credits, then $0.14/1M input tokens
-```
-
-#### **Together AI - High Performance, Low Cost**
-```javascript
-const config = {
-  together: {
-    enabled: true,
-    base_url: "https://api.together.xyz/v1",
-    api_key: process.env.TOGETHER_API_KEY,
-    model: "meta-llama/Llama-2-70b-chat-hf",
-    cost_per_token: 0.0002,  // 85% cheaper than Claude
-    priority: 4
-  }
-};
-
-// Access: https://api.together.xyz/
-// Multiple open-source models, competitive pricing
-```
-
-#### **Groq - Ultra-Fast Inference**
-```javascript
-const config = {
-  groq: {
-    enabled: true,
-    base_url: "https://api.groq.com/openai/v1",
-    api_key: process.env.GROQ_API_KEY,
-    model: "mixtral-8x7b-32768",
-    cost_per_token: 0.00027,  // 80% cheaper + 10x faster
-    priority: 5
-  }
-};
-
-// Get free tier: https://console.groq.com/
-// 100 requests/day free, then $0.27/1M tokens
 ```
 
 ### 🏠 **Self-Hosted Solutions (FREE)**
@@ -568,15 +541,17 @@ const config = {
 
 ### 📊 **Cost Comparison Table**
 
-| Provider | Model | Cost/1M Tokens | vs Claude Pro | Quality | Speed |
-|----------|-------|----------------|---------------|---------|-------|
-| **Claude Pro** | claude-3-sonnet | $3.00 | Baseline | Excellent | Fast |
-| **Qwen Plus** | qwen-plus | $0.10 | **30x cheaper** | Excellent | Fast |
-| **DeepSeek** | deepseek-chat | $0.14 | **21x cheaper** | Very Good | Fast |
-| **Groq Mixtral** | mixtral-8x7b | $0.27 | **11x cheaper** | Very Good | **Ultra Fast** |
-| **Together AI** | llama-2-70b | $0.20 | **15x cheaper** | Very Good | Fast |
-| **Ollama** | llama2:70b | **$0.00** | **∞ cheaper** | Good | Medium |
-| **LocalAI** | Various | **$0.00** | **∞ cheaper** | Varies | Medium |
+| Provider | Model | Cost/1M Tokens | vs Claude Pro | Quality | Speed | Status |
+|----------|-------|----------------|---------------|---------|-------|---------|
+| **Claude Pro** | claude-3-sonnet | $3.00 | Baseline | Excellent | Fast | ✅ **IMPLEMENTED** |
+| **Qwen Plus** | qwen-plus | ~$0.10 | Significantly cheaper | Very Good | Fast | ✅ **IMPLEMENTED** |
+| **OpenAI** | gpt-4o-mini | ~$0.10 | Significantly cheaper | Very Good | Fast | ✅ **IMPLEMENTED** |
+| **Ollama** | llama2:70b | **$0.00** | Free | Good | Medium | ✅ **IMPLEMENTED** |
+| **DeepSeek** | deepseek-chat | ~$0.14 | Lower cost | UNVERIFIED | UNVERIFIED | ❌ **PLANNED** |
+| **Groq** | mixtral-8x7b | ~$0.27 | Lower cost | UNVERIFIED | UNVERIFIED | ❌ **PLANNED** |
+| **Together AI** | llama-2-70b | ~$0.20 | Lower cost | UNVERIFIED | UNVERIFIED | ❌ **PLANNED** |
+
+**Note**: Cost comparisons are estimates and may vary. Actual savings depend on usage patterns and current provider pricing.
 
 ### 🎯 **Smart Cost Optimization Strategy**
 
@@ -608,8 +583,8 @@ const budgetConfig = {
   }
 };
 
-// Result: 10,000+ interactions for $5/month
-// vs 500 interactions with Claude Pro alone
+// Estimated result: Substantially more interactions for same budget
+// Actual capacity depends on usage patterns [ESTIMATE ONLY]
 ```
 
 #### **Tier 2: Performance Setup ($10-20/month)**
@@ -640,8 +615,8 @@ const performanceConfig = {
   }
 };
 
-// Result: 25,000+ interactions for $20/month
-// Premium quality with ultra-fast responses
+// Estimated result: Significantly more interactions for budget
+// Quality routing based on available backends [ESTIMATE ONLY]
 ```
 
 ### 🔧 **Easy Setup Guide**
@@ -665,16 +640,14 @@ export QWEN_API_KEY="sk-your-qwen-key-here"
 claudette setup-credentials
 ```
 
-#### **2. DeepSeek Setup**
+#### **2. OpenAI Setup (Alternative to DeepSeek)**
 ```bash
-# Step 1: Register at https://platform.deepseek.com/
-# $5 free credits, no credit card required
-
-# Step 2: Generate API key
-# API Keys → Create New Key
-
-# Step 3: Add to Claudette
-export DEEPSEEK_API_KEY="sk-your-deepseek-key"
+# Step 1: Register at https://platform.openai.com/
+# Step 2: Add payment method for API access
+# Step 3: Generate API key
+# Step 4: Add to Claudette
+export OPENAI_API_KEY="sk-your-openai-key"
+claudette setup-credentials
 ```
 
 #### **3. Ollama Local Setup**
@@ -750,16 +723,16 @@ const contentWorkflow = {
 
 #### **Development Team**
 ```javascript
-// Before: GPT-4 for everything
-// Cost: $200/month for team
-// After: Tiered approach
+// Example workflow optimization [ESTIMATE ONLY]
+// Before: Premium API for everything (~$200/month estimated)
+// After: Smart routing approach
 const devWorkflow = {
-  code_review: "groq",       // Ultra-fast, $5/month
-  documentation: "qwen",     // High quality, $8/month
-  architecture: "claude",    // Complex reasoning, $15/month
+  code_review: "openai",     // Good code analysis
+  documentation: "qwen",     // Cost-effective writing
+  architecture: "claude",    // Complex reasoning
   prototyping: "ollama",     // Free local development
-  // Total: $28/month vs $200/month
-  // Savings: 86% ($172/month)
+  // Estimated total: Substantially lower monthly costs
+  // Actual savings vary by usage patterns [UNVERIFIED]
 };
 ```
 
