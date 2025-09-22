@@ -10,6 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
+    env:
+      CI: true
+    
     strategy:
       matrix:
         node-version: [18.x, 20.x]
@@ -30,9 +33,13 @@ jobs:
       run: npm run build
     
     - name: Test
+      env:
+        CI: true
       run: npm run test:ci
     
     - name: Check CLI
+      env:
+        CI: true
       run: |
         chmod +x ./claudette
         ./claudette --version

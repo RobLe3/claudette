@@ -5,9 +5,18 @@
 // Load environment variables from .env file and credential storage
 import { ensureEnvironmentLoaded } from '../utils/environment-loader';
 
-// Initialize environment loading immediately (wrapped in async function)
+// Initialize environment loading immediately (wrapped in async function with error handling)
 (async () => {
-  await ensureEnvironmentLoaded(false);
+  try {
+    await ensureEnvironmentLoaded(false);
+  } catch (error) {
+    // Silently continue if environment loading fails in CI environments
+    if (process.env.CI) {
+      console.warn('[CLI] Environment loading failed in CI, continuing...');
+    } else {
+      console.warn('[CLI] Environment loading warning:', error instanceof Error ? error.message : error);
+    }
+  }
 })();
 
 import { Command } from 'commander';

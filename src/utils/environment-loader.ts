@@ -149,6 +149,11 @@ export class EnvironmentLoader {
    * Load API keys from credential storage and set as environment variables
    */
   private async loadFromCredentialStorage(config: EnvironmentConfig): Promise<{ loaded: boolean; count: number }> {
+    // Skip credential storage in CI environments
+    if (process.env.CI || process.env.GITHUB_ACTIONS) {
+      return { loaded: false, count: 0 };
+    }
+    
     try {
       const credentialManager = getCredentialManager();
       await credentialManager.initialize();
