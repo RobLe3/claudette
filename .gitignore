@@ -125,9 +125,12 @@ calibration-report-*.json
 *-code-quality-results.json
 test-report-*.json
 
-# Custom cache directories
+# Custom cache directories (runtime cache, not source code)
 .cache/
-cache/
+/cache/
+runtime-cache/
+temp-cache/
+!src/cache/
 
 # Backup files
 *.backup
