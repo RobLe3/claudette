@@ -5,7 +5,7 @@
 > We're building the future of AI middleware - intelligent routing, cost optimization, and seamless multi-provider integration. Your contributions make this platform better for everyone.
 
 ![Contributors Welcome](https://img.shields.io/badge/contributors-welcome-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-1.0.3-blue)
+![Version](https://img.shields.io/badge/version-1.0.4-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)
 
 ## 🎯 How You Can Contribute
@@ -440,7 +440,7 @@ What you expected to happen.
 What actually happened.
 
 **Environment**
-- Claudette Version: [e.g., 1.0.3]
+- Claudette Version: [e.g., 1.0.4]
 - Node.js Version: [e.g., 18.17.0]
 - OS: [e.g., macOS 13.4]
 - Backend: [e.g., Claude, OpenAI]

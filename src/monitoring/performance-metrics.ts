@@ -199,6 +199,48 @@ export class PerformanceMonitor {
   }
 
   /**
+   * Record a metric with specific type
+   */
+  recordNamedMetric(name: string, type: 'gauge' | 'counter', value: number, metadata?: Record<string, any>): void {
+    this.metrics.push({
+      name: `${name}_${type}`,
+      duration: value,
+      timestamp: new Date(),
+      metadata: { ...metadata, type }
+    });
+  }
+
+  /**
+   * Get snapshot of current metrics
+   */
+  getSnapshot(): Record<string, any> {
+    const now = Date.now();
+    const recentMetrics = this.metrics.filter(m => 
+      now - m.timestamp.getTime() < 300000 // Last 5 minutes
+    );
+
+    const metricsByType = recentMetrics.reduce((acc, metric) => {
+      const type = metric.metadata?.type || 'unknown';
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(metric);
+      return acc;
+    }, {} as Record<string, PerformanceMetric[]>);
+
+    return {
+      totalMetrics: this.metrics.length,
+      recentMetrics: recentMetrics.length,
+      activeTimers: this.activeTimers.size,
+      metricsByType,
+      breakdown: {
+        gauges: metricsByType.gauge?.length || 0,
+        counters: metricsByType.counter?.length || 0,
+        timings: metricsByType.unknown?.length || 0
+      },
+      lastUpdate: now
+    };
+  }
+
+  /**
    * Clear metrics (useful for testing)
    */
   clear(): void {

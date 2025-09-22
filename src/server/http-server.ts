@@ -308,7 +308,7 @@ export class ClaudetteHttpServer {
       const routerStats = await this.getRouterStats();
 
       const status = {
-        version: '1.0.3',
+        version: '1.0.4',
         status: 'running',
         timestamp: new Date().toISOString(),
         uptime: Date.now() - this.metrics.start_time,
@@ -352,7 +352,7 @@ export class ClaudetteHttpServer {
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Claudette AI Middleware v1.0.3</h1>
+    <h1>🚀 Claudette AI Middleware v1.0.4</h1>
     <p>High-performance AI middleware with intelligent backend routing</p>
     
     <h2>Available Endpoints</h2>
@@ -462,4 +462,13 @@ export class ClaudetteHttpServer {
       }
     };
   }
+}
+
+/**
+ * Convenience function to start HTTP server
+ */
+export async function startHttpServer(port: number = 3000): Promise<ClaudetteHttpServer> {
+  const server = new ClaudetteHttpServer(port);
+  await server.start();
+  return server;
 }

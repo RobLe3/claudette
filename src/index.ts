@@ -6,6 +6,9 @@ import { readFileSync, existsSync } from 'fs';
 import { createHash } from 'crypto';
 import { BackendConfigValidator } from './config/validator';
 import logger from './utils/logger';
+import { ensureEnvironmentLoaded } from './utils/environment-loader';
+import { performanceHarmonizer, harmonizedBackendOperation } from './monitoring/performance-harmonizer';
+import { TimingCategory, completeTimer } from './monitoring/unified-performance-system';
 
 import { DatabaseManager } from './database/index';
 import { CacheSystem } from './cache/index';
@@ -83,7 +86,17 @@ export class Claudette {
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    // Start performance monitoring
+    // Initialize harmonized performance monitoring
+    await performanceHarmonizer.initialize();
+
+    // Load environment variables from all sources (CRITICAL: Must be first!)
+    const envTimer = performanceHarmonizer.createHarmonizedTimer(
+      'environment-loader', 'load_environment', TimingCategory.INITIALIZATION
+    );
+    await ensureEnvironmentLoaded(false); // Show loading messages for debugging
+    completeTimer(envTimer);
+
+    // Start performance monitoring (legacy support)
     performanceMonitor.startInitialization();
 
     try {
@@ -747,7 +760,7 @@ export class Claudette {
         stats: routerStats,
         health: backendHealth
       },
-      version: '1.0.3'
+      version: '1.0.4'
     };
   }
 

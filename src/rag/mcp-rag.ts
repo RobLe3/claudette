@@ -166,27 +166,63 @@ export class MCPRAGProvider extends BaseRAGProvider {
 
   private async waitForServer(): Promise<void> {
     return new Promise((resolve, reject) => {
+      // Use standard MCP startup timeout (15 seconds)
       const timeout = setTimeout(() => {
-        reject(new Error('MCP server startup timeout'));
-      }, 10000);
+        reject(new Error('MCP server startup timeout after 15 seconds'));
+      }, 15000);
+
+      let serverReady = false;
+      let startupTime = Date.now();
 
       if (this.serverProcess) {
         this.serverProcess.stdout.on('data', (data: Buffer) => {
           const output = data.toString();
-          if (output.includes('MCP_RAG_READY')) {
-            clearTimeout(timeout);
-            resolve();
+          console.log(`[MCP] Server output: ${output.trim()}`);
+          
+          // More flexible startup detection
+          if (output.includes('MCP_RAG_READY') || 
+              output.includes('Server listening') || 
+              output.includes('MCP server started') ||
+              output.includes('ready')) {
+            if (!serverReady) {
+              serverReady = true;
+              const elapsed = Date.now() - startupTime;
+              console.log(`[MCP] Server ready after ${elapsed}ms`);
+              clearTimeout(timeout);
+              resolve();
+            }
           }
         });
 
         this.serverProcess.stderr.on('data', (data: Buffer) => {
-          console.error('MCP server error:', data.toString());
+          const errorOutput = data.toString();
+          console.error(`[MCP] Server error: ${errorOutput.trim()}`);
+          
+          // Don't fail immediately on stderr output, some servers log warnings
+          if (errorOutput.includes('Error:') || errorOutput.includes('FATAL')) {
+            clearTimeout(timeout);
+            reject(new Error(`MCP server startup failed: ${errorOutput}`));
+          }
         });
 
         this.serverProcess.on('error', (error: Error) => {
           clearTimeout(timeout);
           reject(error);
         });
+
+        this.serverProcess.on('exit', (code: number | null) => {
+          if (!serverReady) {
+            clearTimeout(timeout);
+            reject(new Error(`MCP server exited early with code ${code}`));
+          }
+        });
+
+        // Give the process a moment to start before timing out
+        setTimeout(() => {
+          if (!serverReady) {
+            console.log('[MCP] Server taking longer than expected to start...');
+          }
+        }, 5000);
       }
     });
   }

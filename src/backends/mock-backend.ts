@@ -96,6 +96,58 @@ export class MockBackend extends BaseBackend {
   }
 
   /**
+   * Check backend health status
+   */
+  async checkHealth(): Promise<{ status: string; responseTime: number; error?: string }> {
+    const startTime = Date.now();
+    
+    try {
+      if (this.mockSettings.simulateFailure) {
+        return {
+          status: 'unhealthy',
+          responseTime: Date.now() - startTime,
+          error: 'Mock backend simulated failure'
+        };
+      }
+
+      // Simulate some latency for health check
+      if (this.mockSettings.simulateLatency) {
+        const delay = Math.min(this.mockSettings.simulateLatency, 100);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+
+      return {
+        status: 'healthy',
+        responseTime: Date.now() - startTime
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        responseTime: Date.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Get backend configuration
+   */
+  getConfiguration(): Record<string, any> {
+    return {
+      name: this.name,
+      type: 'mock',
+      model: this.config.model || 'mock-model-v1',
+      priority: this.config.priority || 999,
+      cost_per_token: this.config.cost_per_token,
+      simulateLatency: this.mockSettings.simulateLatency,
+      simulateFailure: this.mockSettings.simulateFailure,
+      mockResponses: this.mockSettings.mockResponses?.length || 4,
+      available: true,
+      mock: true
+    };
+  }
+
+  /**
    * Test the mock backend
    */
   async test(): Promise<boolean> {

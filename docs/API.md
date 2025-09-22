@@ -1,10 +1,10 @@
 # Claudette API Documentation 📚
 
-> **Complete API reference for Claudette v1.0.3**
+> **Complete API reference for Claudette v1.0.4**
 > 
 > Enterprise AI middleware platform with intelligent routing, cost optimization, and monitoring capabilities.
 
-![API Version](https://img.shields.io/badge/API-v1.0.3-blue)
+![API Version](https://img.shields.io/badge/API-v1.0.4-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)
 ![Stability](https://img.shields.io/badge/stability-stable-brightgreen)
 
@@ -590,6 +590,7 @@ claudette "Your prompt here" [options]
 claudette --version
 claudette --help
 claudette status
+claudette status --http              # Start HTTP dashboard server
 
 # Configuration
 claudette config [show|edit|validate]
@@ -1095,4 +1096,4 @@ Claudette is released under the MIT License. See [LICENSE](../LICENSE) for detai
 
 ---
 
-*This API documentation is for Claudette v1.0.3. For older versions, see the [changelog](../CHANGELOG.md).*
+*This API documentation is for Claudette v1.0.4. For older versions, see the [changelog](../CHANGELOG.md).*

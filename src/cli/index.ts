@@ -2,8 +2,13 @@
 
 // Claudette CLI - Drop-in replacement for Claude CLI with optimization
 
-// Load environment variables from .env file
-import 'dotenv/config';
+// Load environment variables from .env file and credential storage
+import { ensureEnvironmentLoaded } from '../utils/environment-loader';
+
+// Initialize environment loading immediately (wrapped in async function)
+(async () => {
+  await ensureEnvironmentLoaded(false);
+})();
 
 import { Command } from 'commander';
 import chalk from 'chalk';
@@ -22,7 +27,7 @@ const claudette = new Claudette();
 program
   .name('claudette')
   .description('Enterprise AI middleware with intelligent routing, advanced polishing, and comprehensive monitoring')
-  .version('1.0.3');
+  .version('1.0.4');
 
 // Main command - analyze/process text
 program
@@ -118,7 +123,37 @@ program
   .command('status')
   .description('Show system status and health')
   .option('--timeout <seconds>', 'Status check timeout in seconds (default: 30)', parseInt)
+  .option('--http', 'Start HTTP server and show status in browser')
   .action(async (options) => {
+    // Check if HTTP server mode requested
+    if (options.http) {
+      const { startHttpServer } = await import('../server/http-server');
+      const spinner = ora('Starting HTTP server...').start();
+      
+      try {
+        const port = process.env.CLAUDETTE_HTTP_PORT ? parseInt(process.env.CLAUDETTE_HTTP_PORT) : 3000;
+        await startHttpServer(port);
+        spinner.succeed(`HTTP server started on http://localhost:${port}`);
+        console.log(chalk.green(`\n🌐 Claudette Status Dashboard: http://localhost:${port}`));
+        console.log(chalk.yellow('Press Ctrl+C to stop the server'));
+        
+        // Keep the process alive
+        process.on('SIGINT', () => {
+          console.log(chalk.yellow('\n👋 Shutting down HTTP server...'));
+          process.exit(0);
+        });
+        
+        // Wait indefinitely
+        await new Promise(() => {});
+        
+      } catch (error) {
+        spinner.fail('Failed to start HTTP server');
+        console.error(chalk.red(`Error: ${error instanceof Error ? error.message : error}`));
+        process.exit(1);
+      }
+      return;
+    }
+
     const spinner = ora('Checking status...').start();
     const timeoutSeconds = options.timeout || 30;
     
@@ -854,7 +889,7 @@ async function testOpenAIKey(apiKey: string): Promise<{ success: boolean; error?
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'User-Agent': 'claudette/1.0.3'
+        'User-Agent': 'claudette/1.0.4'
       },
       signal: AbortSignal.timeout(10000)
     });
@@ -881,7 +916,7 @@ async function testClaudeKey(apiKey: string): Promise<{ success: boolean; error?
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'User-Agent': 'claudette/1.0.3'
+        'User-Agent': 'claudette/1.0.4'
       },
       body: JSON.stringify({
         model: 'claude-3-haiku-20240307',

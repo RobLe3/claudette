@@ -362,6 +362,110 @@ class AdaptiveBackendManager {
       console.log(`[ADAPTIVE] Reset adaptation for ${backendName}`);
     }
   }
+
+  /**
+   * Initialize the adaptive backend manager
+   */
+  async initialize() {
+    console.log('[ADAPTIVE] Initializing Adaptive Backend Manager...');
+    
+    // Initialize timeout manager
+    await this.timeoutManager.initialize();
+    
+    // Setup default backends if none registered
+    if (this.backends.size === 0) {
+      console.log('[ADAPTIVE] No backends registered, setting up defaults...');
+      
+      // Register mock backend for testing
+      this.registerBackend('mock', {
+        type: 'mock',
+        timeout: 5000,
+        quality_tier: 'good',
+        cost_per_token: 0.0001,
+        specialization: ['testing', 'development']
+      });
+    }
+    
+    console.log(`[ADAPTIVE] Initialization complete with ${this.backends.size} backends`);
+  }
+
+  /**
+   * Get list of available backends
+   */
+  getAvailableBackends() {
+    const backends = [];
+    
+    for (const [name, config] of this.backends.entries()) {
+      backends.push({
+        name: name,
+        type: config.type || 'unknown',
+        status: config.adaptive_state?.reliability_score > 0.5 ? 'healthy' : 'degraded',
+        quality_tier: config.quality_tier || 'unknown',
+        cost_per_token: config.cost_per_token || 0,
+        timeout: config.adaptive_state?.current_timeout || config.timeout || 30000,
+        specialization: config.specialization || [],
+        performance: {
+          quality_score: config.adaptive_state?.quality_score || 0,
+          reliability_score: config.adaptive_state?.reliability_score || 0,
+          cost_efficiency: config.adaptive_state?.cost_efficiency || 0
+        }
+      });
+    }
+    
+    return backends;
+  }
+
+  /**
+   * Check health of all backends
+   */
+  async checkAllBackendsHealth() {
+    console.log('[ADAPTIVE] Checking health of all backends...');
+    
+    const results = {
+      total: this.backends.size,
+      healthy: 0,
+      degraded: 0,
+      unhealthy: 0,
+      backends: {}
+    };
+    
+    for (const [name, config] of this.backends.entries()) {
+      try {
+        // Simple health check based on adaptive state
+        const reliabilityScore = config.adaptive_state?.reliability_score || 0;
+        const qualityScore = config.adaptive_state?.quality_score || 0;
+        
+        let status = 'unhealthy';
+        if (reliabilityScore > 0.7 && qualityScore > 6) {
+          status = 'healthy';
+          results.healthy++;
+        } else if (reliabilityScore > 0.4 && qualityScore > 3) {
+          status = 'degraded';
+          results.degraded++;
+        } else {
+          results.unhealthy++;
+        }
+        
+        results.backends[name] = {
+          status,
+          reliability_score: reliabilityScore,
+          quality_score: qualityScore,
+          last_check: new Date().toISOString()
+        };
+        
+      } catch (error) {
+        results.backends[name] = {
+          status: 'unhealthy',
+          error: error.message,
+          last_check: new Date().toISOString()
+        };
+        results.unhealthy++;
+      }
+    }
+    
+    console.log(`[ADAPTIVE] Health check complete: ${results.healthy} healthy, ${results.degraded} degraded, ${results.unhealthy} unhealthy`);
+    return results;
+  }
 }
 
 module.exports = { AdaptiveBackendManager };

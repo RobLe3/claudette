@@ -1,6 +1,42 @@
 // Monitoring System - Complete monitoring and analytics platform
 // Centralized exports and initialization for all monitoring components
 
+// Unified Performance System exports (NEW)
+export { 
+  unifiedPerformance,
+  TimingCategory,
+  PERFORMANCE_THRESHOLDS,
+  createTimer,
+  completeTimer,
+  timedOperation,
+  timedSyncOperation,
+  type PerformanceLevel,
+  type UnifiedTimer,
+  type PerformanceSnapshot,
+  type ComponentPerformanceProfile
+} from './unified-performance-system';
+
+export {
+  timeoutManager,
+  TimeoutError,
+  STANDARD_TIMEOUTS,
+  withTimeout,
+  setTimeoutConfig,
+  type TimeoutType,
+  type TimeoutConfig,
+  type TimeoutContext
+} from './timeout-manager';
+
+export {
+  performanceHarmonizer,
+  COMPONENT_PROFILES,
+  harmonizedBackendOperation,
+  harmonizedCacheOperation,
+  harmonizedDatabaseOperation,
+  harmonizedMCPOperation,
+  harmonizedAuthOperation
+} from './performance-harmonizer';
+
 export { SystemMonitor } from './system-monitor';
 export type { 
   SystemMetric, 
