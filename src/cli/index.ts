@@ -36,7 +36,7 @@ const claudette = new Claudette();
 program
   .name('claudette')
   .description('Enterprise AI middleware with intelligent routing, advanced polishing, and comprehensive monitoring')
-  .version('1.0.4');
+  .version('1.0.5');
 
 // Main command - analyze/process text
 program

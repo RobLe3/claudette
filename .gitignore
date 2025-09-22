@@ -179,6 +179,9 @@ benchmark-*.json
 performance-*.json
 test-install-local-*/
 
+# Reports (case insensitive pattern)
+*[Rr][Ee][Pp][Oo][Rr][Tt]*.md
+
 # Development configuration
 .pre-commit-config.yaml
 Makefile
