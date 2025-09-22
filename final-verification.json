@@ -1,0 +1,36 @@
+{
+  "environment": {
+    "OPENAI_API_KEY": true,
+    "QWEN_API_KEY": true,
+    "DASHSCOPE_API_KEY": true,
+    "ANTHROPIC_API_KEY": false,
+    "CUSTOM_BACKEND_1_API_KEY": true
+  },
+  "direct_api_tests": {
+    "openai": {
+      "success": true,
+      "latency": 3731
+    },
+    "qwen": {
+      "success": true,
+      "latency": 600
+    }
+  },
+  "claudette_integration": {
+    "claude": {
+      "healthy": false
+    },
+    "openai": {
+      "healthy": true
+    },
+    "qwen": {
+      "healthy": false
+    },
+    "request_test": {
+      "success": true,
+      "backend_used": "openai",
+      "cost": 0.0000046,
+      "latency": 810
+    }
+  }
+}
