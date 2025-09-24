@@ -1,10 +1,10 @@
-# Claudette v1.0.4 - Maximize Your AI Investment 🧠
+# Claudette v1.0.5 - Maximize Your AI Investment 🧠
 
 🚀 **Smart AI Middleware That Saves Money While Preserving Quality**
 
-> **v1.0.4**: Get more from your AI budget by intelligently routing requests across multiple providers. Reduce costs while maintaining the quality your users expect.
+> **v1.0.5**: Get more from your AI budget by intelligently routing requests across multiple providers. Reduce costs while maintaining the quality your users expect.
 
-![Version](https://img.shields.io/badge/version-1.0.4-blue)
+![Version](https://img.shields.io/badge/version-1.0.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)
 ![Tested](https://img.shields.io/badge/Core_System-Verified-brightgreen)

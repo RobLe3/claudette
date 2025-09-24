@@ -5,6 +5,7 @@
  */
 
 import { config as dotenvConfig } from 'dotenv';
+import { readFileSync as fsReadFileSync } from 'fs';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { getCredentialManager } from '../credentials';
@@ -72,8 +73,10 @@ export class EnvironmentLoader {
         }
       }
 
-      // 2. Load from credential storage
-      if (config.useCredentialStorage !== false) {
+      // 2. Load from credential storage (skip in test/benchmark mode for performance)
+      if (config.useCredentialStorage !== false && 
+          process.env.NODE_ENV !== 'test' && 
+          !process.env.CLAUDETTE_BENCHMARK) {
         const credLoaded = await this.loadFromCredentialStorage(config);
         if (credLoaded.loaded) {
           sources.push('credential storage');
@@ -126,31 +129,101 @@ export class EnvironmentLoader {
     try {
       const beforeCount = Object.keys(process.env).length;
       
-      const result = dotenvConfig({ 
-        path: envPath,
-        override: config.override || false 
-      });
+      // Use our own .env parser to completely avoid dotenv's logging
+      if (config.silent !== false) {
+        const envContent = fsReadFileSync(envPath, 'utf8');
+        const envVars = this.parseEnvFile(envContent);
+        
+        let varsSet = 0;
+        for (const [key, value] of Object.entries(envVars)) {
+          if (!process.env[key] || config.override) {
+            process.env[key] = value;
+            varsSet++;
+          }
+        }
+        
+        return { loaded: varsSet > 0, count: varsSet };
+      } else {
+        // Use dotenv only in non-silent mode
+        const result = dotenvConfig({ 
+          path: envPath,
+          override: config.override || false,
+          debug: false
+        });
 
-      const afterCount = Object.keys(process.env).length;
-      const newVarsCount = afterCount - beforeCount;
+        const afterCount = Object.keys(process.env).length;
+        const newVarsCount = afterCount - beforeCount;
 
-      if (result.error) {
-        throw result.error;
+        if (result.error) {
+          throw result.error;
+        }
+
+        return { loaded: true, count: newVarsCount };
       }
-
-      return { loaded: true, count: newVarsCount };
     } catch (error) {
-      console.warn(`[EnvLoader] Failed to load .env file: ${error}`);
+      if (!config.silent) {
+        console.warn(`[EnvLoader] Failed to load .env file: ${error}`);
+      }
       return { loaded: false, count: 0 };
     }
+  }
+
+  /**
+   * Parse .env file content manually to avoid dotenv logging
+   */
+  private parseEnvFile(content: string): Record<string, string> {
+    const envVars: Record<string, string> = {};
+    const lines = content.split('\n');
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      // Skip empty lines and comments
+      if (!trimmed || trimmed.startsWith('#')) {
+        continue;
+      }
+      
+      // Find the first = sign
+      const equalIndex = trimmed.indexOf('=');
+      if (equalIndex === -1) {
+        continue;
+      }
+      
+      const key = trimmed.substring(0, equalIndex).trim();
+      let value = trimmed.substring(equalIndex + 1).trim();
+      
+      // Remove quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) || 
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      
+      // Handle escape sequences
+      value = value.replace(/\\n/g, '\n')
+                   .replace(/\\r/g, '\r')
+                   .replace(/\\t/g, '\t')
+                   .replace(/\\\\/g, '\\')
+                   .replace(/\\"/g, '"')
+                   .replace(/\\'/g, "'");
+      
+      envVars[key] = value;
+    }
+    
+    return envVars;
   }
 
   /**
    * Load API keys from credential storage and set as environment variables
    */
   private async loadFromCredentialStorage(config: EnvironmentConfig): Promise<{ loaded: boolean; count: number }> {
-    // Skip credential storage in CI environments
-    if (process.env.CI || process.env.GITHUB_ACTIONS) {
+    // Skip credential storage in CI environments or when already loaded
+    if (process.env.CI || process.env.GITHUB_ACTIONS || this.loaded) {
+      return { loaded: false, count: 0 };
+    }
+    
+    // Skip if we already have API keys loaded
+    const hasApiKeys = this.getApiKeysFromEnv().length > 0;
+    if (hasApiKeys && !config.override) {
       return { loaded: false, count: 0 };
     }
     

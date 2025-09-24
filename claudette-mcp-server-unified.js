@@ -11,20 +11,20 @@ const path = require('path');
 class UnifiedClaudetteMCPServer {
   constructor() {
     this.name = 'claudette-mcp-unified';
-    this.version = '1.0.4';
+    this.version = '1.0.5';
     this.capabilities = {
       tools: ['claudette_query', 'claudette_status', 'claudette_version', 'claudette_backends', 'claudette_health'],
       resources: ['claudette_config', 'claudette_logs', 'claudette_metrics']
     };
     
-    // Optimized configuration
+    // HARMONIZED TIMEOUTS - Claude Code Compatible (115s total limit)
     this.config = {
       timeouts: {
-        startup: 20000,          // 20s startup timeout
-        command: 45000,          // 45s command timeout (was 30s)
-        health: 8000,            // 8s health check timeout
-        query: 75000,            // 75s query timeout for complex operations
-        connection: 10000        // 10s connection timeout
+        startup: 25000,          // 25s startup timeout (harmonized)
+        command: 60000,          // 60s command timeout (harmonized for complex operations)
+        health: 10000,           // 10s health check timeout (harmonized)
+        query: 90000,            // 90s query timeout (Claude Code compatible - leaves 25s margin)
+        connection: 15000        // 15s connection timeout (harmonized)
       },
       retry: {
         maxAttempts: 3,          // 3 retry attempts

@@ -1,53 +1,61 @@
 /**
- * Unified Timeout Management System
+ * Unified Timeout Management System - HARMONIZED FOR CLAUDE CODE
  * Standardizes timeout handling across all Claudette components
+ * Updated to work seamlessly with Claude Code's 120s timeout limit
  */
 
 import { EventEmitter } from 'events';
 import { TimingCategory, unifiedPerformance } from './unified-performance-system';
+import { 
+  TIMEOUT_HIERARCHY, 
+  getHarmonizedTimeout, 
+  timeoutCalculator,
+  BACKEND_TIMEOUTS,
+  MCP_TIMEOUTS 
+} from '../config/harmonized-timeouts';
 
-// Standardized timeout configurations by operation type
+// HARMONIZED timeout configurations - designed for Claude Code compatibility
 export const STANDARD_TIMEOUTS = {
-  // Core system operations
-  INITIALIZATION: 30000,           // 30 seconds for system startup
-  BACKEND_HEALTH_CHECK: 5500,     // 5.5 seconds for health checks
-  CREDENTIAL_LOADING: 3000,       // 3 seconds for credential operations
-  ENVIRONMENT_LOADING: 2000,      // 2 seconds for environment setup
+  // Core system operations - Level 1 (5-10s)
+  INITIALIZATION: TIMEOUT_HIERARCHY.HEALTH_CHECK_MAX,           // 12s for system startup
+  BACKEND_HEALTH_CHECK: TIMEOUT_HIERARCHY.HEALTH_CHECK_BASE,   // 8s for health checks (harmonized)
+  CREDENTIAL_LOADING: TIMEOUT_HIERARCHY.QUICK_OPERATION,       // 10s for credential operations
+  ENVIRONMENT_LOADING: TIMEOUT_HIERARCHY.QUICK_OPERATION,      // 10s for environment setup
   
-  // Backend operations
-  BACKEND_REQUEST: 45000,         // 45 seconds for AI requests
-  BACKEND_STREAMING: 120000,      // 2 minutes for streaming responses
-  BACKEND_CONNECTION: 10000,      // 10 seconds for connection establishment
+  // Backend operations - Level 2-4 (15-75s)
+  BACKEND_REQUEST: TIMEOUT_HIERARCHY.COMPLEX_REQUEST_BASE,     // 60s for AI requests (Claude Code compatible)
+  BACKEND_STREAMING: TIMEOUT_HIERARCHY.MCP_OPERATION_BASE,    // 90s for streaming responses
+  BACKEND_CONNECTION: TIMEOUT_HIERARCHY.CONNECTION_ESTABLISHMENT, // 15s for connection establishment
   
-  // Cache operations
-  CACHE_READ: 500,                // 500ms for cache reads
-  CACHE_WRITE: 1000,              // 1 second for cache writes
-  CACHE_INVALIDATION: 2000,       // 2 seconds for cache cleanup
+  // Cache operations - Level 1 (Quick)
+  CACHE_READ: 1000,                                            // 1s for cache reads (increased)
+  CACHE_WRITE: 2000,                                           // 2s for cache writes (increased)
+  CACHE_INVALIDATION: 5000,                                    // 5s for cache cleanup (increased)
   
-  // Database operations
-  DATABASE_QUERY: 5000,           // 5 seconds for database queries
-  DATABASE_MIGRATION: 60000,      // 1 minute for migrations
-  DATABASE_BACKUP: 300000,        // 5 minutes for backups
+  // Database operations - Level 2-3
+  DATABASE_QUERY: TIMEOUT_HIERARCHY.CONNECTION_WITH_RETRY,     // 20s for database queries
+  DATABASE_MIGRATION: TIMEOUT_HIERARCHY.COMPLEX_REQUEST_BASE, // 60s for migrations
+  DATABASE_BACKUP: TIMEOUT_HIERARCHY.MCP_OPERATION_MAX,       // 105s for backups
   
-  // Network operations
-  HTTP_REQUEST: 30000,            // 30 seconds for HTTP requests
-  WEBHOOK_DELIVERY: 10000,        // 10 seconds for webhook calls
-  API_CALL: 15000,                // 15 seconds for external API calls
+  // Network operations - Level 2-3
+  HTTP_REQUEST: TIMEOUT_HIERARCHY.SIMPLE_REQUEST_BASE,        // 30s for HTTP requests
+  WEBHOOK_DELIVERY: TIMEOUT_HIERARCHY.CONNECTION_ESTABLISHMENT, // 15s for webhook calls
+  API_CALL: TIMEOUT_HIERARCHY.CONNECTION_WITH_RETRY,          // 20s for external API calls
   
-  // MCP operations
-  MCP_REQUEST: 60000,             // 1 minute for MCP requests
-  MCP_SERVER_START: 15000,        // 15 seconds for MCP server startup
-  MCP_TOOL_EXECUTION: 45000,      // 45 seconds for tool execution
+  // MCP operations - Level 5 (90-105s) - CRITICAL FOR CLAUDE CODE
+  MCP_REQUEST: MCP_TIMEOUTS.REQUEST_PROCESSING,               // 90s for MCP requests (Claude Code optimized)
+  MCP_SERVER_START: MCP_TIMEOUTS.SERVER_STARTUP,             // 25s for MCP server startup
+  MCP_TOOL_EXECUTION: MCP_TIMEOUTS.TOOL_EXECUTION,           // 60s for tool execution
   
-  // RAG operations
-  RAG_QUERY: 30000,               // 30 seconds for RAG queries
-  RAG_INDEXING: 120000,           // 2 minutes for indexing
-  RAG_EMBEDDING: 20000,           // 20 seconds for embeddings
+  // RAG operations - Level 3-4
+  RAG_QUERY: TIMEOUT_HIERARCHY.SIMPLE_REQUEST_BASE,          // 30s for RAG queries
+  RAG_INDEXING: TIMEOUT_HIERARCHY.COMPLEX_REQUEST_BASE,      // 60s for indexing
+  RAG_EMBEDDING: TIMEOUT_HIERARCHY.CONNECTION_WITH_RETRY,     // 20s for embeddings
   
-  // Authentication operations
-  AUTH_LOGIN: 10000,              // 10 seconds for login
-  AUTH_TOKEN_REFRESH: 5000,       // 5 seconds for token refresh
-  AUTH_VALIDATION: 3000,          // 3 seconds for token validation
+  // Authentication operations - Level 1-2
+  AUTH_LOGIN: TIMEOUT_HIERARCHY.QUICK_OPERATION,             // 10s for login
+  AUTH_TOKEN_REFRESH: TIMEOUT_HIERARCHY.HEALTH_CHECK_BASE,   // 8s for token refresh
+  AUTH_VALIDATION: TIMEOUT_HIERARCHY.HEALTH_CHECK_BASE,      // 8s for token validation
   
   // File operations
   FILE_READ: 5000,                // 5 seconds for file reads

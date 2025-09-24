@@ -18,14 +18,9 @@
       "cost_per_token": 0.0001,
       "model": "qwen-plus"
     },
-    "mistral": {
-      "enabled": false,
-      "priority": 3,
-      "cost_per_token": 0.0002
-    },
     "ollama": {
       "enabled": false,
-      "priority": 4,
+      "priority": 3,
       "cost_per_token": 0
     }
   },

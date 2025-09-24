@@ -1,32 +1,86 @@
-# Installation Guide
+# Installation Guide - Claudette v1.0.5
 
 ## Prerequisites
 
-- **Node.js**: 18.0.0 or higher
+- **Node.js**: 18.0.0 or higher (Node.js 24+ recommended for optimal performance)
 - **npm**: 8.0.0 or higher
-- At least one AI backend API key (OpenAI, Qwen, or FlexCon)
+- **TypeScript**: 5.0+ (automatically installed)
+- At least one AI backend API key (OpenAI, Qwen/DashScope, or Ollama)
 
-## Installation
+## Installation Methods
 
-### 1. Install Claudette
+### Method 1: NPM Installation (Recommended)
 
 ```bash
-# Install from local source (current development setup)
+# Install globally for CLI usage
+npm install -g claudette@1.0.5
+
+# Or install locally in your project
+npm install claudette@1.0.5
+```
+
+### Method 2: Local Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/RobLe3/claudette.git
+cd claudette
+
+# Install dependencies
 npm install
 
 # Build the project
 npm run build
+
+# Make CLI executable
+chmod +x dist/cli/index.js
+
+# Create symlink for global usage (optional)
+npm link
 ```
 
-### 2. Verify Installation
+## Verify Installation
 
 ```bash
-# Check version
-./claudette --version
-# Should output: claudette 1.0.2
+# Check version (should output: 1.0.5)
+claudette --version
 
-# Check help
-./claudette --help
+# Check system status
+claudette status
+
+# Display comprehensive help
+claudette --help
+```
+
+## Quick Setup
+
+### 1. Configure API Keys
+
+Create a `.env` file in your project directory or configure environment variables:
+
+```bash
+# OpenAI (recommended for general queries)
+export OPENAI_API_KEY="sk-your-openai-key"
+
+# Qwen/DashScope (recommended for code and math)
+export QWEN_API_KEY="your-qwen-key"
+export DASHSCOPE_API_KEY="your-dashscope-key"
+
+# Ollama (local processing)
+# No API key needed, ensure Ollama is running locally
+```
+
+### 2. Test Configuration
+
+```bash
+# Test backend connectivity
+claudette backends --health
+
+# Quick test query
+claudette -q "Hello, test connection"
+
+# Verify API keys
+claudette keys
 ```
 
 ## Configuration
@@ -36,22 +90,28 @@ npm run build
 Create a `.env` file in your project root:
 
 ```bash
-# OpenAI Configuration
+# OpenAI Configuration (recommended for general queries)
 OPENAI_API_KEY=sk-your-openai-api-key-here
 
-# Qwen (Alibaba Cloud) Configuration  
+# Qwen/DashScope Configuration (recommended for code/math)
 QWEN_API_KEY=sk-your-qwen-api-key-here
+DASHSCOPE_API_KEY=your-dashscope-api-key-here
 QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 QWEN_MODEL=qwen-plus
 
-# FlexCon Configuration (optional)
-CUSTOM_BACKEND_1_API_KEY=your-flexcon-api-key
-CUSTOM_BACKEND_1_API_URL=https://your-flexcon-endpoint.com
-CUSTOM_BACKEND_1_MODEL=gpt-oss:20b-gpu16-ctx3072
+# Ollama Configuration (local processing)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama2
 
-# System Configuration (optional)
-CLAUDETTE_TIMEOUT=45000
-NODE_ENV=development
+# Timeout Harmonization (v1.0.5 feature)
+CLAUDETTE_TIMEOUT_PROFILE=DEVELOPMENT_ASSISTANT
+CLAUDETTE_TIMEOUT_HEALTH_CHECK=10000
+CLAUDETTE_TIMEOUT_SIMPLE_REQUEST=40000
+CLAUDETTE_TIMEOUT_COMPLEX_REQUEST=70000
+
+# System Configuration
+NODE_ENV=production
+CLAUDETTE_CLI_MODE=true
 ```
 
 ### 2. API Key Setup

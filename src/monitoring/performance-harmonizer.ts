@@ -170,7 +170,10 @@ export class PerformanceHarmonizer {
     unifiedPerformance.on('performance_snapshot', (snapshot) => {
       // Safely destructure snapshot with fallback
       if (!snapshot || typeof snapshot !== 'object') {
-        console.warn('[PerformanceHealth] Invalid snapshot received');
+        // This is a development warning - performance monitoring data is incomplete
+        if (process.env.NODE_ENV === 'development' || process.env.CLAUDETTE_DEBUG === '1') {
+          console.warn('[PerformanceHealth] Performance monitoring: incomplete snapshot received (internal monitoring issue)');
+        }
         return;
       }
 
@@ -178,7 +181,10 @@ export class PerformanceHarmonizer {
       const metrics = snapshot.metrics;
       
       if (!component || !metrics) {
-        console.warn('[PerformanceHealth] Snapshot missing component or metrics');
+        // This is a development warning - performance monitoring data is incomplete
+        if (process.env.NODE_ENV === 'development' || process.env.CLAUDETTE_DEBUG === '1') {
+          console.warn('[PerformanceHealth] Performance monitoring: snapshot missing component or metrics data');
+        }
         return;
       }
       

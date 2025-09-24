@@ -1,10 +1,10 @@
 # Claudette API Documentation 📚
 
-> **Complete API reference for Claudette v1.0.4**
+> **Complete API reference for Claudette v1.0.5**
 > 
 > Enterprise AI middleware platform with intelligent routing, cost optimization, and monitoring capabilities.
 
-![API Version](https://img.shields.io/badge/API-v1.0.4-blue)
+![API Version](https://img.shields.io/badge/API-v1.0.5-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)
 ![Stability](https://img.shields.io/badge/stability-stable-brightgreen)
 
@@ -917,17 +917,17 @@ console.log('Performance Report:', report);
 
 ## 🚀 Migration Guide
 
-### From v1.0.2 to v1.0.3
+### From v1.0.5 to v1.0.5
 
 ```typescript
-// v1.0.2
+// v1.0.5
 const claudette = new Claudette();
 const response = await claudette.optimize(prompt, files, {
   backend: 'claude',
   maxTokens: 500  // Old parameter name
 });
 
-// v1.0.3
+// v1.0.5
 const claudette = new Claudette();
 await claudette.initialize(); // Now required
 const response = await claudette.optimize(prompt, files, {
@@ -1096,4 +1096,4 @@ Claudette is released under the MIT License. See [LICENSE](../LICENSE) for detai
 
 ---
 
-*This API documentation is for Claudette v1.0.4. For older versions, see the [changelog](../CHANGELOG.md).*
+*This API documentation is for Claudette v1.0.5. For older versions, see the [changelog](../CHANGELOG.md).*

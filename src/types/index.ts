@@ -31,9 +31,8 @@ export interface ClaudetteConfig {
 export interface BackendConfig {
   claude: BackendSettings;
   openai: BackendSettings;
-  mistral: BackendSettings;
-  ollama: BackendSettings;
   qwen: BackendSettings;
+  ollama: BackendSettings;
 }
 
 export interface BackendSettings {

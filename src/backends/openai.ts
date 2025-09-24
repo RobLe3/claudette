@@ -18,6 +18,7 @@ import {
   ClaudetteResponse, 
   BackendError 
 } from '../types/index';
+import { BACKEND_TIMEOUTS } from '../config/harmonized-timeouts';
 
 export class OpenAIBackend extends BaseBackend {
   private client: OpenAI;
@@ -72,7 +73,7 @@ export class OpenAIBackend extends BaseBackend {
     this.client = new OpenAI({
       apiKey,
       baseURL: this.config.base_url,
-      timeout: 15000  // Optimized: 15 second timeout to prevent health check conflicts
+      timeout: BACKEND_TIMEOUTS.OPENAI.connection  // Harmonized: 15s timeout for Claude Code compatibility
     });
   }
 

@@ -1,6 +1,6 @@
 # Backend System Documentation
 
-Complete documentation for Claudette v1.0.2's multi-backend system.
+Complete documentation for Claudette v1.0.5's multi-backend system.
 
 ## Overview
 
@@ -352,7 +352,7 @@ for (const [name, backend] of claudette.router.backends) {
 
 ### Custom Backend Configuration
 
-While v1.0.2 doesn't support runtime backend registration, you can configure existing backends:
+While v1.0.5 doesn't support runtime backend registration, you can configure existing backends:
 
 ```json
 // claudette.config.json

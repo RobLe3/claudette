@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Technical architecture documentation for Claudette v1.0.2.
+Technical architecture documentation for Claudette v1.0.5.
 
 ## System Overview
 
@@ -20,7 +20,7 @@ Claudette is a TypeScript-based AI middleware platform designed for intelligent 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           Application Layer                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                         Claudette Core API v1.0.2                           │
+│                         Claudette Core API v1.0.5                           │
 │                              optimize()                                       │
 ├──────────────┬──────────────┬──────────────┬──────────────┬──────────────────┤
 │   Router     │   Cache      │   Health     │  Monitoring  │   Database       │
@@ -213,7 +213,7 @@ graph TD
 
 ### Timeout Management
 
-Claudette v1.0.2 uses calibrated timeouts based on empirical testing:
+Claudette v1.0.5 uses calibrated timeouts based on empirical testing:
 
 ```typescript
 // Optimized timeout hierarchy
@@ -362,7 +362,7 @@ npm run build
 
 ## Performance Metrics
 
-### Current Benchmarks (v1.0.2)
+### Current Benchmarks (v1.0.5)
 - **Initialization**: <1000ms
 - **Router Decision**: <10ms
 - **Cache Hit**: <5ms
@@ -392,4 +392,4 @@ npm run build
 
 ---
 
-*This architecture documentation reflects the actual v1.0.2 implementation and is updated to match the current codebase.*
+*This architecture documentation reflects the actual v1.0.5 implementation and is updated to match the current codebase.*

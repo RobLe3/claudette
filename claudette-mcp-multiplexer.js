@@ -121,7 +121,7 @@ class MCPServerInstance {
         this.activeRequests = Math.max(0, this.activeRequests - 1);
         this.updateStatus();
         reject(new Error(`Request timeout after ${this.config.requestTimeout}ms`));
-      }, this.config.requestTimeout || 60000);
+      }, this.config.requestTimeout || 105000);
 
       this.pendingRequests.get(requestId).timeout = timeout;
 
@@ -250,7 +250,7 @@ class MCPServerInstance {
     }
   }
 
-  async waitForReady(timeout = 30000) {
+  async waitForReady(timeout = 25000) {  // 25s - harmonized startup timeout
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         reject(new Error(`Instance ${this.id} startup timeout`));
@@ -299,7 +299,7 @@ class MCPMultiplexer extends EventEmitter {
       minInstances: 2,
       maxInstances: os.cpus().length,
       maxConcurrentRequests: 3,
-      requestTimeout: 90000,
+      requestTimeout: 105000,  // 105s - harmonized for Claude Code (10s safety margin)
       healthCheckInterval: 30000,
       scaleUpThreshold: 0.8,
       scaleDownThreshold: 0.3,
@@ -410,7 +410,7 @@ class MCPMultiplexer extends EventEmitter {
     return availableInstances[0] || null;
   }
 
-  async waitForAvailableInstance(timeout = 30000) {
+  async waitForAvailableInstance(timeout = 25000) {  // 25s - harmonized wait timeout
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
       
@@ -515,7 +515,7 @@ class MCPMultiplexer extends EventEmitter {
           
           const response = await Promise.race([
             instance.sendRequest(healthRequest),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 5000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 10000))  // 10s health check timeout - harmonized
           ]);
           
           if (response && !response.error) {

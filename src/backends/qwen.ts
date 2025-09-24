@@ -137,7 +137,7 @@ export class QwenBackend extends BaseBackend {
         method: options.method as string,
         headers: options.headers as Record<string, string>,
         body: options.body as string,
-        timeout: 30000
+        timeout: 60000
       });
       
       // Convert connection pool response to fetch-like response

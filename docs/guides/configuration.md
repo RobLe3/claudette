@@ -1,6 +1,6 @@
 # Configuration Guide
 
-Complete guide to configuring Claudette v1.0.2 for your environment.
+Complete guide to configuring Claudette v1.0.5 for your environment.
 
 ## Environment Variables
 
@@ -52,7 +52,7 @@ CLAUDETTE_MAX_RETRIES=3                    # Max retry attempts
 Claudette uses these weights for backend selection:
 
 ```typescript
-// Default router configuration (not user-configurable in v1.0.2)
+// Default router configuration (not user-configurable in v1.0.5)
 const routerOptions = {
   cost_weight: 0.4,        // 40% weight on cost optimization
   latency_weight: 0.4,     // 40% weight on speed
@@ -63,7 +63,7 @@ const routerOptions = {
 
 ## Timeout Configuration
 
-### Current Optimized Timeouts (v1.0.2)
+### Current Optimized Timeouts (v1.0.5)
 
 These timeouts are calibrated based on real backend performance:
 

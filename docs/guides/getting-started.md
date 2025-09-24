@@ -1,4 +1,4 @@
-# Getting Started with Claudette v1.0.2
+# Getting Started with Claudette v1.0.5
 
 This guide walks you through using Claudette for the first time.
 

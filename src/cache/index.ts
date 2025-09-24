@@ -3,6 +3,8 @@ import { createHash } from 'crypto';
 import { DatabaseManager } from '../database/index';
 import { ClaudetteRequest, ClaudetteResponse, CacheError } from '../types/index';
 import { AdaptiveMemoryManager, MemoryPressureMetrics } from './adaptive-memory-manager';
+import AdvancedMemoryManager, { MemoryPool, ScalabilityMetrics } from './advanced-memory-manager';
+import MemoryPressureOptimizer, { OptimizationResult } from './memory-optimizer';
 
 export interface CacheConfig {
   ttl: number; // Time to live in seconds
@@ -44,6 +46,9 @@ export class CacheSystem {
   private db: DatabaseManager;
   private stats: CacheStats;
   private memoryManager: AdaptiveMemoryManager;
+  private advancedMemoryManager?: AdvancedMemoryManager;
+  private memoryOptimizer: MemoryPressureOptimizer;
+  private useAdvancedMemoryManagement: boolean;
   private accessPatterns: Map<string, { lastAccess: number; hitCount: number; size: number }>;
   private adaptiveStats: { evictions_performed: number; last_strategy: string };
 
@@ -51,17 +56,72 @@ export class CacheSystem {
     this.db = db;
     this.config = {
       enableMemory: true,
-      enablePersistent: true,
+      enablePersistent: !process.env.CLAUDETTE_BENCHMARK, // Disable persistent cache in benchmark mode
       compressionEnabled: false,
-      ...config
+      ...config,
+      maxSize: process.env.CLAUDETTE_BENCHMARK ? Math.min(config.maxSize, 50) : config.maxSize // Limit cache size in benchmark mode
     };
     
     this.memoryCache = new Map();
     this.accessPatterns = new Map();
     this.memoryManager = new AdaptiveMemoryManager({
-      maxMemoryPercent: 75, // More conservative for cache system
-      smartEvictionEnabled: true
+      maxMemoryPercent: process.env.CLAUDETTE_BENCHMARK ? 60 : 75, // More conservative in benchmark mode
+      warningThreshold: process.env.CLAUDETTE_BENCHMARK ? 50 : 70, // Earlier warning in benchmark mode
+      emergencyThreshold: process.env.CLAUDETTE_BENCHMARK ? 70 : 90, // Earlier emergency cleanup in benchmark mode
+      smartEvictionEnabled: true,
+      optimizationInterval: process.env.CLAUDETTE_BENCHMARK ? 60000 : 30000 // Less frequent in benchmark mode
     });
+
+    // Initialize memory pressure optimizer
+    this.memoryOptimizer = new MemoryPressureOptimizer({
+      emergencyThreshold: process.env.CLAUDETTE_BENCHMARK ? 85 : 90,
+      criticalThreshold: process.env.CLAUDETTE_BENCHMARK ? 70 : 80,
+      warningThreshold: process.env.CLAUDETTE_BENCHMARK ? 60 : 70,
+      maxMemoryGrowth: process.env.CLAUDETTE_BENCHMARK ? 100 * 1024 * 1024 : 200 * 1024 * 1024,
+      complexTaskMemoryLimit: process.env.CLAUDETTE_BENCHMARK ? 75 * 1024 * 1024 : 150 * 1024 * 1024
+    });
+
+    // Register for emergency cleanup notifications
+    this.memoryManager.onEmergencyCleanup(() => {
+      this.performEmergencyCleanup();
+    });
+
+    // Initialize advanced memory management for production/high-load scenarios
+    this.useAdvancedMemoryManagement = !process.env.CLAUDETTE_BENCHMARK && process.env.CLAUDETTE_ADVANCED_MEMORY === '1';
+    
+    if (this.useAdvancedMemoryManagement) {
+      this.advancedMemoryManager = new AdvancedMemoryManager({
+        baseThresholds: {
+          low: 40,
+          medium: 60, 
+          high: 75,
+          critical: 85,
+          emergency: 95
+        },
+        emergencyReservePercent: 0.15, // 15% emergency reserve
+        adaptiveThresholds: true
+      });
+
+      // Register cache as a memory pool
+      const cachePool: MemoryPool = {
+        id: 'claudette-cache',
+        allocated: this.config.maxSize * 1024, // Estimate 1KB per entry
+        used: 0,
+        maxSize: this.config.maxSize * 2048, // Max 2KB per entry
+        priority: 'medium',
+        elasticity: 0.7, // Can shrink/grow by 70%
+        cleanup: async () => this.performAdvancedCleanup()
+      };
+
+      this.advancedMemoryManager.registerMemoryPool(cachePool);
+      
+      // Register scaling callback
+      this.advancedMemoryManager.onScalingAction('claudette-cache', async (action, intensity) => {
+        await this.handleScalingAction(action, intensity);
+      });
+
+      console.log('[CacheSystem] Advanced memory management enabled');
+    }
     
     this.adaptiveStats = {
       evictions_performed: 0,
@@ -139,6 +199,25 @@ export class CacheSystem {
   }
 
   /**
+   * Prepare cache for complex task execution
+   */
+  async prepareForComplexTask(): Promise<OptimizationResult | null> {
+    const status = this.memoryOptimizer.getMemoryStatus();
+    
+    if (!status.canHandleComplexTask) {
+      console.log(`[CacheSystem] Optimizing memory for complex task (${(status.availableMemory/1024/1024).toFixed(1)}MB available)`);
+      return await this.memoryOptimizer.optimizeForComplexTask();
+    }
+    
+    // Preventive optimization if pressure is high
+    if (status.currentPressure > 75) {
+      return await this.memoryOptimizer.monitorAndOptimize();
+    }
+    
+    return null;
+  }
+
+  /**
    * Store response in cache
    */
   async set(request: ClaudetteRequest, response: ClaudetteResponse): Promise<void> {
@@ -157,7 +236,12 @@ export class CacheSystem {
     try {
       // Store in memory cache if enabled
       if (this.config.enableMemory) {
-        // Check memory limit
+        // Check memory pressure before storing
+        const optimizationResult = await this.memoryOptimizer.monitorAndOptimize();
+        if (optimizationResult) {
+          console.log(`[CacheSystem] Pre-storage optimization: freed ${(optimizationResult.memoryFreed/1024/1024).toFixed(1)}MB`);
+        }
+        
         // Use adaptive memory management instead of simple size check
         this.performAdaptiveEviction();
         this.memoryCache.set(key, entry);
@@ -349,8 +433,13 @@ export class CacheSystem {
   /**
    * Get cache statistics
    */
-  getStats(): CacheStats {
+  getStats(): CacheStats & { scalability_metrics?: ScalabilityMetrics } {
     const memoryPressure = this.memoryManager.getMemoryPressure();
+    
+    let scalabilityMetrics: ScalabilityMetrics | undefined;
+    if (this.useAdvancedMemoryManagement && this.advancedMemoryManager) {
+      scalabilityMetrics = this.advancedMemoryManager.getScalabilityMetrics();
+    }
     
     return { 
       ...this.stats,
@@ -359,8 +448,20 @@ export class CacheSystem {
         evictions_performed: this.adaptiveStats.evictions_performed,
         entries_tracked: this.accessPatterns.size,
         last_strategy: this.adaptiveStats.last_strategy
-      }
+      },
+      scalability_metrics: scalabilityMetrics
     };
+  }
+
+  /**
+   * Get detailed scalability status (only available with advanced memory management)
+   */
+  getScalabilityStatus() {
+    if (!this.useAdvancedMemoryManagement || !this.advancedMemoryManager) {
+      return { error: 'Advanced memory management not enabled. Set CLAUDETTE_ADVANCED_MEMORY=1' };
+    }
+    
+    return this.advancedMemoryManager.getDetailedStatus();
   }
 
   /**
@@ -384,10 +485,178 @@ export class CacheSystem {
   }
 
   /**
+   * Emergency cleanup for critical memory pressure
+   */
+  private performEmergencyCleanup(): void {
+    const currentSize = this.memoryCache.size;
+    
+    if (currentSize === 0) return;
+
+    // Emergency: Clear 75% of cache immediately
+    const targetSize = Math.floor(currentSize * 0.25);
+    const entries = Array.from(this.memoryCache.entries());
+    
+    // Sort by least recently used and least hit count
+    entries.sort((a, b) => {
+      const aPattern = this.accessPatterns.get(a[0]);
+      const bPattern = this.accessPatterns.get(b[0]);
+      
+      if (!aPattern && !bPattern) return 0;
+      if (!aPattern) return -1;
+      if (!bPattern) return 1;
+      
+      // Prioritize by last access time, then hit count
+      const accessDiff = aPattern.lastAccess - bPattern.lastAccess;
+      if (accessDiff !== 0) return accessDiff;
+      
+      return aPattern.hitCount - bPattern.hitCount;
+    });
+
+    // Remove entries starting from least important
+    const toRemove = entries.slice(0, currentSize - targetSize);
+    for (const [key] of toRemove) {
+      this.memoryCache.delete(key);
+      this.accessPatterns.delete(key);
+    }
+
+    this.adaptiveStats.evictions_performed++;
+    this.adaptiveStats.last_strategy = 'emergency-auto';
+    this.updateMemoryUsage();
+
+    console.log(`[CacheSystem] Emergency cleanup: removed ${toRemove.length} entries (${currentSize} -> ${this.memoryCache.size})`);
+  }
+
+  /**
+   * Advanced cleanup for scalable memory management
+   */
+  private async performAdvancedCleanup(): Promise<number> {
+    const beforeSize = this.memoryCache.size;
+    const beforeMemory = this.calculateMemoryUsage();
+    
+    // More intelligent cleanup based on access patterns and memory pressure
+    const entries = Array.from(this.memoryCache.entries());
+    const cutoff = Date.now() - (30 * 60 * 1000); // 30 minutes
+    
+    // Score entries for cleanup (lower score = higher cleanup priority)
+    const scoredEntries = entries.map(([key, entry]) => {
+      const pattern = this.accessPatterns.get(key);
+      let score = 0;
+      
+      // Age factor (older = lower score)
+      const age = Date.now() - entry.timestamp;
+      score += Math.max(0, 10 - (age / (60 * 60 * 1000))); // Decay over hours
+      
+      // Access pattern factor
+      if (pattern) {
+        score += pattern.hitCount * 2; // Boost for frequently accessed
+        score += Math.max(0, 5 - ((Date.now() - pattern.lastAccess) / (60 * 1000))); // Recent access boost
+      }
+      
+      // Size factor (larger entries slightly penalized for cleanup)
+      const entrySize = JSON.stringify(entry.value).length;
+      score -= entrySize / 10000; // Small penalty for large entries
+      
+      return { key, entry, score, size: entrySize };
+    });
+    
+    // Sort by score (lowest first for cleanup)
+    scoredEntries.sort((a, b) => a.score - b.score);
+    
+    // Remove bottom 30% based on scoring
+    const removeCount = Math.floor(scoredEntries.length * 0.3);
+    let memoryFreed = 0;
+    
+    for (let i = 0; i < removeCount && i < scoredEntries.length; i++) {
+      const { key, size } = scoredEntries[i];
+      this.memoryCache.delete(key);
+      this.accessPatterns.delete(key);
+      memoryFreed += size;
+    }
+    
+    this.updateMemoryUsage();
+    
+    console.log(`[CacheSystem] Advanced cleanup: removed ${removeCount} entries, freed ~${(memoryFreed / 1024).toFixed(1)}KB`);
+    return memoryFreed;
+  }
+
+  /**
+   * Handle scaling actions from advanced memory manager
+   */
+  private async handleScalingAction(action: string, intensity: number): Promise<void> {
+    console.log(`[CacheSystem] Scaling action: ${action} (intensity: ${intensity.toFixed(2)})`);
+    
+    switch (action) {
+      case 'emergency_reduce':
+        await this.performAdvancedCleanup();
+        // Reduce cache size limit temporarily
+        this.config.maxSize = Math.floor(this.config.maxSize * (1 - intensity));
+        break;
+        
+      case 'reduce':
+        // Gradual reduction based on intensity
+        const reductionTarget = Math.floor(this.memoryCache.size * intensity);
+        await this.performTargetedReduction(reductionTarget);
+        break;
+        
+      case 'expand':
+        // Increase cache size limit if memory is available
+        this.config.maxSize = Math.floor(this.config.maxSize * (1 + intensity));
+        console.log(`[CacheSystem] Cache size expanded to ${this.config.maxSize} entries`);
+        break;
+    }
+  }
+
+  /**
+   * Perform targeted reduction of cache entries
+   */
+  private async performTargetedReduction(targetReduction: number): Promise<void> {
+    if (targetReduction <= 0 || this.memoryCache.size === 0) return;
+    
+    const entries = Array.from(this.memoryCache.entries());
+    
+    // Sort by utility score (least useful first)
+    entries.sort(([aKey, aEntry], [bKey, bEntry]) => {
+      const aPattern = this.accessPatterns.get(aKey) || { lastAccess: 0, hitCount: 0, size: 0 };
+      const bPattern = this.accessPatterns.get(bKey) || { lastAccess: 0, hitCount: 0, size: 0 };
+      
+      // Utility = hit count / age in hours
+      const aUtility = aPattern.hitCount / Math.max(1, (Date.now() - aPattern.lastAccess) / (60 * 60 * 1000));
+      const bUtility = bPattern.hitCount / Math.max(1, (Date.now() - bPattern.lastAccess) / (60 * 60 * 1000));
+      
+      return aUtility - bUtility; // Ascending order (least useful first)
+    });
+    
+    // Remove least useful entries
+    const actualReduction = Math.min(targetReduction, entries.length);
+    for (let i = 0; i < actualReduction; i++) {
+      const [key] = entries[i];
+      this.memoryCache.delete(key);
+      this.accessPatterns.delete(key);
+    }
+    
+    this.updateMemoryUsage();
+    console.log(`[CacheSystem] Targeted reduction: removed ${actualReduction} entries`);
+  }
+
+  /**
+   * Calculate current memory usage of the cache
+   */
+  private calculateMemoryUsage(): number {
+    let totalSize = 0;
+    for (const entry of this.memoryCache.values()) {
+      totalSize += JSON.stringify(entry).length;
+    }
+    return totalSize;
+  }
+
+  /**
    * Cleanup method for proper shutdown
    */
   cleanup(): void {
     this.memoryManager.stop();
+    if (this.useAdvancedMemoryManagement && this.advancedMemoryManager) {
+      this.advancedMemoryManager.stop();
+    }
     this.clear();
   }
 

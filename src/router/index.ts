@@ -11,6 +11,7 @@ import {
 import { secureLogger, logBackendSelection, logCircuitBreaker } from '../utils/secure-logger';
 import { AdvancedCircuitBreaker, CircuitBreakerConfig, CircuitState } from './advanced-circuit-breaker';
 import { modelSelector } from '../intelligence/model-selector';
+import { TIMEOUT_HIERARCHY, getHarmonizedTimeout } from '../config/harmonized-timeouts';
 
 export class BackendRouter {
   private backends: Map<string, Backend> = new Map();
@@ -22,9 +23,10 @@ export class BackendRouter {
   private circuitBreakerThreshold = 5;
   private circuitBreakerResetTime = 300000; // 5 minutes
   private readonly HEALTH_CACHE_TTL = 60000; // 60 seconds cache for health checks - reduced frequency
-  private readonly HEALTH_CHECK_TIMEOUT = 5500; // 5.5 seconds - recalibrated: 4x safety margin for all backends (Qwen 1056ms p95, OpenAI 777ms p95) + 30% network variance
-  private readonly AVAILABILITY_CHECK_TIMEOUT = 8300; // 8.3 seconds - maintains 1.5x health check timeout hierarchy
-  private readonly BACKGROUND_HEALTH_CHECK_TIMEOUT = 11000; // 11 seconds - 2x health check timeout to prevent interference
+  // HARMONIZED TIMEOUTS - Claude Code Compatible
+  private readonly HEALTH_CHECK_TIMEOUT = TIMEOUT_HIERARCHY.HEALTH_CHECK_BASE; // 8s - harmonized for all backends
+  private readonly AVAILABILITY_CHECK_TIMEOUT = getHarmonizedTimeout('health_check', undefined, true); // 8s + retries
+  private readonly BACKGROUND_HEALTH_CHECK_TIMEOUT = TIMEOUT_HIERARCHY.HEALTH_CHECK_MAX; // 12s - prevents interference
   private backgroundHealthCheckInterval: NodeJS.Timeout | null = null;
   
   // Performance optimization: Circuit breaker state cache
@@ -49,13 +51,13 @@ export class BackendRouter {
     this.backends.set(backend.name, backend);
     this.failureCount.set(backend.name, 0);
     
-    // Initialize advanced circuit breaker for this backend
+    // Initialize advanced circuit breaker for this backend - HARMONIZED
     const circuitBreakerConfig: CircuitBreakerConfig = {
       failureThreshold: 5,
-      resetTimeout: 45000, // 45 seconds - increased to accommodate longer health check timeouts
+      resetTimeout: TIMEOUT_HIERARCHY.SIMPLE_REQUEST_BASE, // 30s - harmonized reset timeout
       halfOpenMaxCalls: 3,
       failureRateThreshold: 50, // 50% failure rate
-      slowCallThreshold: 5000, // 5 seconds
+      slowCallThreshold: TIMEOUT_HIERARCHY.CONNECTION_ESTABLISHMENT, // 15s - harmonized slow call threshold
       slowCallRateThreshold: 80, // 80% slow calls
       slidingWindowSize: 20
     };

@@ -93,7 +93,7 @@ export class Claudette {
     const envTimer = performanceHarmonizer.createHarmonizedTimer(
       'environment-loader', 'load_environment', TimingCategory.INITIALIZATION
     );
-    await ensureEnvironmentLoaded(false); // Show loading messages for debugging
+    await ensureEnvironmentLoaded(true); // Silent loading to prevent verbose output
     completeTimer(envTimer);
 
     // Start performance monitoring (legacy support)
@@ -102,6 +102,7 @@ export class Claudette {
     try {
       // Initialize backends based on config
       performanceMonitor.startTiming('backend-initialization');
+      performanceMonitor.startTiming('backend-health-checks');
       await this.initializeBackends();
       performanceMonitor.recordInitializationStep('backend-health-checks');
       
@@ -113,7 +114,8 @@ export class Claudette {
       }
       performanceMonitor.endTiming('database-health-check');
 
-      // Mark cache setup as complete
+      // Mark cache setup as complete - cache is initialized in constructor so duration is 0
+      performanceMonitor.startTiming('cache-setup');
       performanceMonitor.recordInitializationStep('cache-setup', 0); // Cache is initialized in constructor
 
       this.initialized = true;
@@ -246,6 +248,16 @@ export class Claudette {
           }
         }
 
+        // Prepare cache for complex tasks (if prompt suggests complexity)
+        const isComplexTask = this.isComplexTask(prompt);
+        if (isComplexTask) {
+          console.log(`[Claudette] Complex task detected, optimizing memory...`);
+          const optimizationResult = await this.cache.prepareForComplexTask();
+          if (optimizationResult) {
+            console.log(`[Claudette] Memory optimization: ${optimizationResult.strategy}, freed ${(optimizationResult.memoryFreed/1024/1024).toFixed(1)}MB`);
+          }
+        }
+
         // Check if compression/summarization is needed
         const processedRequest = await this.preprocessRequest(request);
 
@@ -373,10 +385,12 @@ export class Claudette {
           cost_per_token: 0.0001,
           model: 'gpt-4o-mini'
         },
-        mistral: {
-          enabled: false,
+        qwen: {
+          enabled: false, // Disabled by default - requires API key
           priority: 3,
-          cost_per_token: 0.0002
+          cost_per_token: 0.0001,
+          model: 'qwen-plus',
+          base_url: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
         },
         ollama: {
           enabled: false,
@@ -384,13 +398,6 @@ export class Claudette {
           cost_per_token: 0,
           base_url: 'http://localhost:11434',
           model: 'llama2'
-        },
-        qwen: {
-          enabled: false, // Disabled by default - requires API key
-          priority: 5,
-          cost_per_token: 0.0001,
-          model: 'qwen-plus',
-          base_url: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
         }
       },
       features: {
@@ -721,6 +728,31 @@ export class Claudette {
   }
 
   /**
+   * Detect if a task is complex and might require more memory
+   */
+  private isComplexTask(prompt: string): boolean {
+    if (!prompt || typeof prompt !== 'string') return false;
+    
+    const complexityIndicators = [
+      'detailed', 'comprehensive', 'thorough', 'complete', 'extensive',
+      'analysis', 'architecture', 'specification', 'design', 'framework',
+      'microservices', 'distributed', 'system', 'technical', 'implementation',
+      'documentation', 'guide', 'tutorial', 'write a', 'create a', 'develop',
+      'explain in detail', 'step by step', 'pros and cons', 'advantages and disadvantages'
+    ];
+    
+    const promptLower = prompt.toLowerCase();
+    const hasComplexityIndicators = complexityIndicators.some(indicator => 
+      promptLower.includes(indicator)
+    );
+    
+    // Also consider prompt length as complexity indicator
+    const isLongPrompt = prompt.length > 200;
+    
+    return hasComplexityIndicators || isLongPrompt;
+  }
+
+  /**
    * Safely create task description from prompt (prevents null/undefined crashes)
    */
   private createSafeTaskDescription(prompt: string): string {
@@ -760,7 +792,7 @@ export class Claudette {
         stats: routerStats,
         health: backendHealth
       },
-      version: '1.0.4'
+      version: '1.0.5'
     };
   }
 
@@ -769,6 +801,13 @@ export class Claudette {
    */
   getConfig(): ClaudetteConfig {
     return this.config;
+  }
+
+  /**
+   * Get cache system (for advanced memory management access)
+   */
+  getCache(): CacheSystem {
+    return this.cache;
   }
 
   /**

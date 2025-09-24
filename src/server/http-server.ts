@@ -308,7 +308,7 @@ export class ClaudetteHttpServer {
       const routerStats = await this.getRouterStats();
 
       const status = {
-        version: '1.0.4',
+        version: '1.0.5',
         status: 'running',
         timestamp: new Date().toISOString(),
         uptime: Date.now() - this.metrics.start_time,
@@ -352,8 +352,8 @@ export class ClaudetteHttpServer {
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Claudette AI Middleware v1.0.4</h1>
-    <p>High-performance AI middleware with intelligent backend routing</p>
+    <h1>🚀 Claudette AI Middleware v1.0.5</h1>
+    <p>Enterprise AI middleware with intelligent backend routing, cost optimization, and performance monitoring</p>
     
     <h2>Available Endpoints</h2>
     
@@ -369,7 +369,7 @@ export class ClaudetteHttpServer {
     
     <div class="endpoint">
       <strong class="method">POST</strong> <span>/api/optimize</span>
-      <p>AI optimization endpoint (requires JSON body with 'prompt' field)</p>
+      <p>AI request routing endpoint with intelligent backend selection (requires JSON body with 'prompt' field)</p>
     </div>
     
     <div class="endpoint">
@@ -378,7 +378,7 @@ export class ClaudetteHttpServer {
     </div>
     
     <p><strong class="status">Status:</strong> <span class="status">Running</span></p>
-    <p><strong>Documentation:</strong> <a href="https://docs.claudette.ai" class="link">docs.claudette.ai</a></p>
+    <p><strong>Repository:</strong> <a href="https://github.com/RobLe3/claudette" class="link">GitHub - claudette</a></p>
   </div>
 </body>
 </html>`;

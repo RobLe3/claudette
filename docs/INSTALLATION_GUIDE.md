@@ -1,4 +1,4 @@
-# Claudette v1.0.4 Cross-Platform Installation Guide
+# Claudette v1.0.5 Cross-Platform Installation Guide
 
 **Enterprise Installation System with Setup Wizard**
 

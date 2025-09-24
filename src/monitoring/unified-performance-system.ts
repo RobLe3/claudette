@@ -521,7 +521,11 @@ export class UnifiedPerformanceSystem extends EventEmitter {
         this.performanceHistory = this.performanceHistory.slice(-500);
       }
 
-      this.emit('performance_snapshot', this.performanceHistory.slice(-1)[0]);
+      // Only emit snapshot if we have data
+      const latestSnapshot = this.performanceHistory.slice(-1)[0];
+      if (latestSnapshot) {
+        this.emit('performance_snapshot', latestSnapshot);
+      }
     }, 30000); // Every 30 seconds
   }
 

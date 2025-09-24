@@ -88,6 +88,17 @@ export class PerformanceMonitor {
   }
 
   /**
+   * Safe fallback timing that handles missing start times
+   */
+  private safeFallbackTiming(name: string): number {
+    if (this.activeTimers.has(name)) {
+      return this.endTiming(name);
+    }
+    // Return 0 if no timer was started (prevents errors)
+    return 0;
+  }
+
+  /**
    * Record initialization component timing
    */
   recordInitializationStep(component: string, duration?: number): void {
@@ -100,19 +111,19 @@ export class PerformanceMonitor {
     // Record component-specific timing
     switch (component) {
       case 'platform-detection':
-        this.initMetrics.platformDetectionTime = duration || this.endTiming('platform-detection');
+        this.initMetrics.platformDetectionTime = duration !== undefined ? duration : this.safeFallbackTiming('platform-detection');
         break;
       case 'credential-manager':
-        this.initMetrics.credentialManagerTime = duration || this.endTiming('credential-manager');
+        this.initMetrics.credentialManagerTime = duration !== undefined ? duration : this.safeFallbackTiming('credential-manager');
         break;
       case 'backend-health-checks':
-        this.initMetrics.backendHealthChecksTime = duration || this.endTiming('backend-health-checks');
+        this.initMetrics.backendHealthChecksTime = duration !== undefined ? duration : this.safeFallbackTiming('backend-health-checks');
         break;
       case 'cache-setup':
-        this.initMetrics.cacheSetupTime = duration || this.endTiming('cache-setup');
+        this.initMetrics.cacheSetupTime = duration !== undefined ? duration : this.safeFallbackTiming('cache-setup');
         break;
       case 'background-tasks':
-        this.initMetrics.backgroundTasksTime = duration || this.endTiming('background-tasks');
+        this.initMetrics.backgroundTasksTime = duration !== undefined ? duration : this.safeFallbackTiming('background-tasks');
         break;
     }
   }

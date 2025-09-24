@@ -1,38 +1,63 @@
-# Claudette v1.0.2 Documentation
+# Claudette v1.0.5 Documentation
 
-**AI Middleware Platform with Intelligent Backend Routing**
+**Enterprise AI Middleware Platform with Advanced Timeout Harmonization**
 
-Claudette v1.0.2 is a TypeScript-based AI middleware platform that provides intelligent routing across multiple AI backends with cost optimization, health monitoring, and timeout management.
+Claudette v1.0.5 is a production-ready TypeScript-based AI middleware platform that provides intelligent routing across multiple AI backends with advanced timeout harmonization, Claude Code integration, MCP multiplexing, and comprehensive monitoring.
 
 ## 🎯 What Claudette Does
 
 Claudette acts as a smart middleware layer between your application and AI providers:
 
-- **Multi-Backend Support**: OpenAI, Qwen (Alibaba Cloud), and FlexCon
-- **Intelligent Routing**: Automatic backend selection based on performance and availability
+- **Multi-Backend Support**: OpenAI, Qwen (Alibaba Cloud), and Ollama (FlexCon)
+- **Intelligent Routing**: Advanced AI model selection with performance scoring
 - **Health Monitoring**: Real-time backend health checks with circuit breaker patterns
-- **Cost Tracking**: Monitor API costs across all backends in EUR
-- **Timeout Management**: Optimized timeout configuration for reliable operations
+- **Cost Tracking**: Monitor API costs across all backends in EUR with 6-decimal precision
+- **Timeout Harmonization**: Claude Code compatible timeouts (120s limit) with cascading tolerance
+- **MCP Integration**: Model Context Protocol multiplexing with load balancing
+- **Anti-Hallucination**: Built-in verification protocols for reliable AI responses
+- **Performance Monitoring**: Unified performance system with real-time metrics
 
 ## 📚 Documentation Structure
 
 ### Quick Start
 - **[Installation Guide](guides/installation.md)** - Set up Claudette in your project
-- **[Getting Started](guides/getting-started.md)** - Basic usage and configuration
+- **[Getting Started](guides/getting-started.md)** - CLI usage and basic configuration
 - **[Configuration Guide](guides/configuration.md)** - Environment setup and backend configuration
+- **[Claude Code Integration](claude-code-integration-guide.md)** - Setting up MCP integration
 
 ### API Reference  
-- **[Core API](api/core-api.md)** - Main `optimize()` function and response handling
+- **[CLI Reference](api/cli-reference.md)** - Complete command-line interface documentation
+- **[Core API](api/core-api.md)** - Programmatic API usage and functions
 - **[Backend System](api/backends.md)** - Backend configuration and management
-- **[Types Reference](api/types.md)** - TypeScript type definitions
+
+### Integration Guides
+- **[MCP Integration](mcp-integration.md)** - Claude Code MCP setup and configuration
+- **[Timeout Harmonization](timeout-harmonization.md)** - Advanced timeout management system
+- **[Claude Code Setup](claude-code-integration-guide.md)** - Complete Claude Code integration
 
 ### Technical Documentation
-- **[Architecture](technical/architecture.md)** - System design and components
-- **[Timeout System](technical/timeout-management.md)** - Timeout configuration and calibration
-- **[Contributing](technical/contributing.md)** - Development guidelines
+- **[Architecture](ARCHITECTURE.md)** - System design and timeout harmonization
+- **[Performance Reports](../FINAL_COMPREHENSIVE_VALIDATION_REPORT.md)** - System validation and metrics
+- **[Contributing](CONTRIBUTING.md)** - Development guidelines and testing
 
 ## 🚀 Quick Example
 
+### CLI Usage (Recommended)
+```bash
+# Simple query with automatic backend selection
+claudette -q "Explain quantum computing in simple terms"
+
+# Force specific backend
+claudette -b openai -q "Calculate the square root of 144"
+
+# Include files for context
+claudette -q "Review this code" ./src/main.ts
+
+# Set timeout and token limits
+claudette --timeout 30 --max-tokens 500 -q "Generate a summary"
+```
+
+### Programmatic Usage
 ```typescript
 import { optimize } from 'claudette';
 
@@ -41,20 +66,21 @@ const response = await optimize('Explain quantum computing in simple terms');
 console.log(response.content);
 console.log(`Cost: €${response.cost_eur}, Backend: ${response.backend_used}`);
 
-// Advanced usage with options
+// Advanced usage with timeout harmonization
 const response = await optimize(
   'Write a function to calculate fibonacci',
   ['./example.js'], // Optional file context
   {
-    backend: 'openai',        // Force specific backend
-    max_tokens: 500,          // Token limit
+    backend: 'qwen',           // Force specific backend
+    max_tokens: 500,           // Token limit
+    timeout_profile: 'DEVELOPMENT_ASSISTANT' // Use harmonized timeouts
     temperature: 0.7,         // Creativity level
     bypass_cache: true        // Skip caching
   }
 );
 ```
 
-## 🔧 Current Capabilities (v1.0.2)
+## 🔧 Current Capabilities (v1.0.5)
 
 ### ✅ **Implemented Features**
 - **Backend Management**: OpenAI, Qwen, FlexCon integration
@@ -99,7 +125,7 @@ const response = await optimize(
 
 ## 🔍 Project Status
 
-**Current Version**: v1.0.2  
+**Current Version**: v1.0.5  
 **Status**: Functional MVP  
 **Test Status**: Core functionality verified  
 **Production Ready**: Basic use cases only
@@ -114,7 +140,7 @@ const response = await optimize(
 
 For issues, questions, or contributions:
 - **Issues**: Report bugs or request features
-- **Documentation**: All docs reflect actual v1.0.2 capabilities
+- **Documentation**: All docs reflect actual v1.0.5 capabilities
 - **Development**: See [Contributing Guide](technical/contributing.md)
 
 ## 🗺️ Roadmap
@@ -131,4 +157,4 @@ For issues, questions, or contributions:
 
 ---
 
-*This documentation accurately reflects Claudette v1.0.2 capabilities. All features listed are implemented and tested.*
+*This documentation accurately reflects Claudette v1.0.5 capabilities. All features listed are implemented and tested.*

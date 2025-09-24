@@ -1,6 +1,6 @@
 # Core API Reference
 
-Complete API documentation for Claudette v1.0.2 core functionality.
+Complete API documentation for Claudette v1.0.5 core functionality.
 
 ## Main Function: `optimize()`
 

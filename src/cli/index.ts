@@ -8,7 +8,7 @@ import { ensureEnvironmentLoaded } from '../utils/environment-loader';
 // Initialize environment loading immediately (wrapped in async function with error handling)
 (async () => {
   try {
-    await ensureEnvironmentLoaded(false);
+    await ensureEnvironmentLoaded(true); // Silent loading to prevent verbose output
   } catch (error) {
     // Silently continue if environment loading fails in CI environments
     if (process.env.CI) {
@@ -35,7 +35,7 @@ const claudette = new Claudette();
 
 program
   .name('claudette')
-  .description('Enterprise AI middleware with intelligent routing, advanced polishing, and comprehensive monitoring')
+  .description('Enterprise AI middleware with intelligent backend routing, cost optimization, and performance monitoring')
   .version('1.0.5');
 
 // Main command - analyze/process text
@@ -537,7 +537,7 @@ apiKeyCmd
       const claudetteServices = services.filter(s => s.startsWith('claudette-'));
       
       // Filter to only show legitimate backend names, not test artifacts
-      const knownBackends = ['openai', 'claude', 'anthropic', 'google', 'gemini', 'cohere', 'ollama', 'qwen'];
+      const knownBackends = ['openai', 'claude', 'anthropic', 'ollama', 'qwen'];
       const legitimateServices = claudetteServices.filter(service => {
         const backend = service.replace('claudette-', '');
         return knownBackends.includes(backend);
@@ -632,15 +632,15 @@ apiKeyCmd
         url: 'https://console.anthropic.com/settings/keys', 
         instructions: 'Sign up at Anthropic Console, go to API Keys, and generate a new key'
       },
-      google: {
-        name: 'Google AI (Gemini)',
-        url: 'https://aistudio.google.com/app/apikey',
-        instructions: 'Go to Google AI Studio, create a project, and generate an API key'
+      qwen: {
+        name: 'Qwen (Alibaba Cloud)',
+        url: 'https://dashscope.console.aliyun.com/apiKey',
+        instructions: 'Sign up at Dashscope, go to API Key management, and create a new API key'
       },
-      mistral: {
-        name: 'Mistral AI',
-        url: 'https://console.mistral.ai/api-keys',
-        instructions: 'Create account at Mistral, go to API Keys section, and create new key'
+      ollama: {
+        name: 'Ollama (Local)',
+        url: 'https://ollama.ai/download',
+        instructions: 'Download and install Ollama locally, then start the service on localhost:11434'
       }
     };
 
@@ -655,7 +655,7 @@ apiKeyCmd
         console.log(chalk.green(`   claudette api-keys add ${backend}`));
       } else {
         console.log(chalk.yellow(`No guide available for '${backend}'`));
-        console.log(chalk.dim('Available backends: openai, claude, google, mistral'));
+        console.log(chalk.dim('Available backends: openai, claude, qwen, ollama'));
       }
     } else {
       console.log(chalk.bold('\n📚 API Key Setup Guides'));
@@ -856,11 +856,8 @@ function validateApiKeyFormat(backend: string, apiKey: string): boolean {
     openai: /^sk-[a-zA-Z0-9]{48,}$/,
     claude: /^sk-ant-[a-zA-Z0-9\-_]{95,}$/,
     anthropic: /^sk-ant-[a-zA-Z0-9\-_]{95,}$/,
-    google: /^[a-zA-Z0-9\-_]{39}$/,
-    gemini: /^[a-zA-Z0-9\-_]{39}$/,
-    mistral: /^[a-zA-Z0-9]{32}$/,
-    cohere: /^[a-zA-Z0-9\-_]{40}$/,
-    ollama: /^.+$/ // Ollama uses URLs, more flexible validation
+    qwen: /^sk-[a-zA-Z0-9]{32,}$/,
+    ollama: /^.+$/ // Ollama uses URLs or is optional, more flexible validation
   };
   
   const pattern = patterns[backend.toLowerCase()];
@@ -881,8 +878,12 @@ async function testApiKeyConnection(backend: string, apiKey: string): Promise<{ 
       case 'claude':
       case 'anthropic':
         return await testClaudeKey(apiKey);
+      case 'qwen':
+        return await testQwenKey(apiKey);
+      case 'ollama':
+        return await testOllamaConnection(apiKey);
       default:
-        // For other backends, just validate format
+        // For unknown backends, just validate format
         return { success: validateApiKeyFormat(backend, apiKey) };
     }
   } catch (error) {
@@ -898,7 +899,7 @@ async function testOpenAIKey(apiKey: string): Promise<{ success: boolean; error?
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'User-Agent': 'claudette/1.0.4'
+        'User-Agent': 'claudette/1.0.5'
       },
       signal: AbortSignal.timeout(10000)
     });
@@ -925,7 +926,7 @@ async function testClaudeKey(apiKey: string): Promise<{ success: boolean; error?
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'User-Agent': 'claudette/1.0.4'
+        'User-Agent': 'claudette/1.0.5'
       },
       body: JSON.stringify({
         model: 'claude-3-haiku-20240307',
@@ -945,6 +946,50 @@ async function testClaudeKey(apiKey: string): Promise<{ success: boolean; error?
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Connection failed' 
+    };
+  }
+}
+
+async function testQwenKey(apiKey: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models', {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'User-Agent': 'claudette/1.0.5'
+      },
+      signal: AbortSignal.timeout(10000)
+    });
+    
+    if (response.ok) {
+      return { success: true };
+    } else {
+      const error = await response.text();
+      return { success: false, error: `HTTP ${response.status}: ${error}` };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Connection failed' 
+    };
+  }
+}
+
+async function testOllamaConnection(endpoint: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const baseUrl = endpoint || 'http://localhost:11434';
+    const response = await fetch(`${baseUrl}/api/tags`, {
+      signal: AbortSignal.timeout(10000)
+    });
+    
+    if (response.ok) {
+      return { success: true };
+    } else {
+      return { success: false, error: `HTTP ${response.status}: Ollama service not accessible` };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Ollama connection failed' 
     };
   }
 }

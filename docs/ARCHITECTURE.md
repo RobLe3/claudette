@@ -1,6 +1,6 @@
 # Claudette Architecture Documentation
 
-> **Technical Architecture Overview for Claudette v1.0.4**
+> **Technical Architecture Overview for Claudette v1.0.5**
 > 
 > This document provides a comprehensive technical overview of Claudette's enterprise AI middleware architecture, design patterns, and system components including the latest infrastructure enhancements.
 
@@ -23,13 +23,15 @@ Claudette is designed as a high-performance AI middleware platform that provides
 
 ### Core Principles
 
-1. **Performance First**: Sub-second routing decisions with minimal overhead
-2. **Cost Optimization**: Intelligent backend selection based on cost, quality, and latency
-3. **Reliability**: Circuit breaker patterns and graceful degradation
-4. **Extensibility**: Plugin architecture for backends and RAG providers
-5. **Type Safety**: Full TypeScript implementation with comprehensive type definitions
+1. **Timeout Harmonization**: Claude Code compatible (120s) with cascading tolerance design
+2. **Performance First**: Sub-second routing decisions with minimal overhead
+3. **Cost Optimization**: Intelligent backend selection based on cost, quality, and latency
+4. **Reliability**: Circuit breaker patterns with 100% MCP success rate
+5. **Extensibility**: Plugin architecture for backends and MCP providers
+6. **Type Safety**: Full TypeScript implementation with comprehensive type definitions
+7. **Anti-Hallucination**: Built-in verification protocols for reliable AI responses
 
-### High-Level Architecture v2.1.6
+### High-Level Architecture v1.0.5
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐

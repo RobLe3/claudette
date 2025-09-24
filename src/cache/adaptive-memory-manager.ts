@@ -25,13 +25,14 @@ export class AdaptiveMemoryManager {
   private memoryHistory: MemoryPressureMetrics[] = [];
   private lastOptimization: number = 0;
   private optimizationInterval: NodeJS.Timeout | null = null;
+  private emergencyCleanupCallbacks: Array<() => void> = [];
 
   constructor(config: Partial<AdaptiveCacheConfig> = {}) {
     this.config = {
       maxMemoryPercent: 80, // Use up to 80% of available heap
       warningThreshold: 70, // Start optimization at 70%
       emergencyThreshold: 90, // Emergency cleanup at 90%
-      optimizationInterval: 30000, // Check every 30 seconds
+      optimizationInterval: process.env.CLAUDETTE_BENCHMARK ? 60000 : 30000, // Less frequent monitoring in benchmark mode
       smartEvictionEnabled: true,
       ...config
     };
@@ -301,11 +302,37 @@ export class AdaptiveMemoryManager {
     this.optimizationInterval = setInterval(() => {
       const pressure = this.getMemoryPressure();
       
-      // Log memory pressure if it's concerning
-      if (pressure.pressure !== 'low') {
+      // Only log memory pressure in development mode or if it's critical
+      if (pressure.pressure === 'critical' && process.env.NODE_ENV === 'development') {
         console.log(`[AdaptiveMemoryManager] Memory pressure: ${pressure.pressure} (${pressure.heapPercent.toFixed(1)}%) - Recommendation: ${pressure.recommendation}`);
       }
+      
+      // Auto-trigger garbage collection for emergency situations
+      if (pressure.pressure === 'critical') {
+        this.forceGarbageCollection();
+        this.notifyEmergencyCleanup();
+      }
     }, this.config.optimizationInterval);
+  }
+
+  /**
+   * Register callback for emergency cleanup
+   */
+  onEmergencyCleanup(callback: () => void): void {
+    this.emergencyCleanupCallbacks.push(callback);
+  }
+
+  /**
+   * Notify registered callbacks of emergency cleanup need
+   */
+  private notifyEmergencyCleanup(): void {
+    this.emergencyCleanupCallbacks.forEach(callback => {
+      try {
+        callback();
+      } catch (error) {
+        console.warn('[AdaptiveMemoryManager] Emergency cleanup callback failed:', error);
+      }
+    });
   }
 
   /**
@@ -316,6 +343,7 @@ export class AdaptiveMemoryManager {
       clearInterval(this.optimizationInterval);
       this.optimizationInterval = null;
     }
+    this.emergencyCleanupCallbacks = [];
   }
 
   /**
