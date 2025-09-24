@@ -645,7 +645,7 @@ mkdir -p plugins/my-backend-plugin
 // Implement plugin interface
 export class MyBackendPlugin implements ClaudettePlugin {
   name = 'my-backend';
-  version = '1.0.0';
+  version = '1.0.5';
   type = 'backend' as const;
   
   async initialize(config: PluginConfig): Promise<void> {

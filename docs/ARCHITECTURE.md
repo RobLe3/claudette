@@ -37,7 +37,7 @@ Claudette is designed as a high-performance AI middleware platform that provides
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           Application Layer                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                         Claudette Core API v2.1.6                           │
+│                         Claudette Core API v1.0.5                           │
 ├──────────────┬──────────────┬──────────────┬──────────────┬──────────────────┤
 │Setup Wizard  │Router System │  RAG System  │ Monitoring   │ Infrastructure   │
 │┌───────────┐ │┌───────────┐ │┌───────────┐ │┌───────────┐ │┌───────────────┐ │
@@ -568,7 +568,7 @@ interface ClaudettePlugin {
 ```typescript
 class CustomBackendPlugin implements ClaudettePlugin {
   name = 'custom-ai-provider';
-  version = '1.0.0';
+  version = '1.0.5';
   type = 'backend' as const;
   
   private backend: Backend;
@@ -588,7 +588,7 @@ class CustomBackendPlugin implements ClaudettePlugin {
 ```typescript
 class CustomRAGPlugin implements ClaudettePlugin {
   name = 'custom-rag-provider';
-  version = '1.0.0';
+  version = '1.0.5';
   type = 'rag' as const;
   
   private provider: RAGProvider;
@@ -684,7 +684,7 @@ spec:
     spec:
       containers:
       - name: claudette
-        image: claudette:2.1.5
+        image: claudette:1.0.5
         env:
         - name: NODE_ENV
           value: "production"
