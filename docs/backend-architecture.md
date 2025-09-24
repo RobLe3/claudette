@@ -1050,7 +1050,7 @@ my-claudette-plugin/
 ```json
 {
   "name": "claudette-custom-backend",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "Custom backend plugin for Claudette",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -213,7 +213,7 @@ Output:
       { "name": "ollama", "healthy": true, "latency_ms": 74 }
     ]
   },
-  "version": "1.0.2"
+  "version": "1.0.5"
 }
 ```
 

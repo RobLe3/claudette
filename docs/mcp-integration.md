@@ -34,25 +34,25 @@ MCP (Model Context Protocol) allows Claude Code to communicate with external AI 
 │  └─────────────────────┬───────────────────────────────┘   │
 └────────────────────────┼───────────────────────────────────┘
                          │
-    ┌────────────────────┼────────────────────┐
-    │        Claudette MCP Multiplexer        │
-    │     (claudette-mcp-multiplexer.js)      │
-    │                                         │
-    │  ┌─────────────┐ ┌─────────────┐      │
-    │  │ Instance 1  │ │ Instance 2  │ ...  │
-    │  │ (mcp-1)     │ │ (mcp-2)     │      │
-    │  └─────────────┘ └─────────────┘      │
-    └─────────────────────┼───────────────────┘
-                          │
-    ┌─────────────────────┼─────────────────────┐
-    │        Claudette Unified MCP Server       │
-    │    (claudette-mcp-server-unified.js)      │
-    │                                           │
-    │  ┌─────────────┐ ┌─────────────┐        │
-    │  │   OpenAI    │ │    Qwen     │ ...    │
-    │  │  Backend    │ │  Backend    │        │
-    │  └─────────────┘ └─────────────┘        │
-    └───────────────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│     Ultra-Fast Claudette MCP Server     │
+│   (claudette-mcp-server-fast.js)        │
+│  ┌─────────────────────────────────────┐│
+│  │    Advanced Memory Management       ││
+│  │   • Pressure-based scaling         ││
+│  │   • Emergency cleanup (95%+)       ││
+│  │   • Connection pooling             ││
+│  │   • Intelligent caching            ││
+│  └─────────────────────────────────────┘│
+│                    │                    │
+│  ┌─────────────────────────────────────┐│
+│  │         Backend Router              ││
+│  │  ┌─────────────┐ ┌─────────────┐   ││
+│  │  │   OpenAI    │ │    Qwen     │   ││
+│  │  │  Backend    │ │  Backend    │   ││
+│  │  └─────────────┘ └─────────────┘   ││
+│  └─────────────────────────────────────┘│
+└─────────────────────────────────────────┘
 ```
 
 ## Quick Setup
@@ -66,7 +66,7 @@ claudette --version  # Should show 1.0.5
 # Verify MCP files are present
 ls claudette-mcp-*.js
 # Should show:
-# - claudette-mcp-multiplexer.js
+# - claudette-mcp-server-fast.js
 # - claudette-mcp-server-unified.js
 ```
 
@@ -80,7 +80,7 @@ Add to your `~/.claude/settings.json`:
     "claudette": {
       "command": "node",
       "args": [
-        "/path/to/claudette/claudette-mcp-multiplexer.js"
+        "/path/to/claudette/claudette-mcp-server-fast.js"
       ],
       "description": "Claudette AI system with intelligent multiplexing and load balancing",
       "capabilities": [
@@ -90,7 +90,8 @@ Add to your `~/.claude/settings.json`:
       "timeout": 115000,
       "env": {
         "NODE_ENV": "production",
-        "MCP_CONFIG_PATH": "/path/to/claudette/mcp-multiplexer-config.json"
+        "CLAUDETTE_ADVANCED_MEMORY": "1",
+        "CLAUDETTE_MCP_MODE": "1"
       }
     }
   }
@@ -101,16 +102,16 @@ Add to your `~/.claude/settings.json`:
 
 ```bash
 # Test MCP server directly
-echo '{"jsonrpc":"2.0","id":"test","method":"tools/call","params":{"name":"claudette_version"}}' | node claudette-mcp-multiplexer.js
+echo '{"jsonrpc":"2.0","id":"test","method":"tools/call","params":{"name":"claudette_version"}}' | node claudette-mcp-server-fast.js
 
 # Should return version information
 ```
 
 ## Configuration
 
-### MCP Multiplexer Configuration
+### MCP Server Configuration
 
-Create `mcp-multiplexer-config.json`:
+Configure via environment variables:
 
 ```json
 {
@@ -315,7 +316,7 @@ export DEBUG=claudette:mcp:*
 export LOG_LEVEL=debug
 
 # Run with debug output
-node claudette-mcp-multiplexer.js
+node claudette-mcp-server-fast.js
 ```
 
 ## Timeout Harmonization Details
@@ -364,7 +365,7 @@ node --version
 chmod +x claudette-mcp-*.js
 
 # Check logs
-node claudette-mcp-multiplexer.js 2>&1 | grep ERROR
+node claudette-mcp-server-fast.js 2>&1 | grep ERROR
 ```
 
 **Claude Code Connection Timeouts**
@@ -437,7 +438,7 @@ claudette keys
 claudette -q "test MCP integration" 
 
 # Force specific backend through MCP
-echo '{"jsonrpc":"2.0","id":"test","method":"tools/call","params":{"name":"claudette_query","arguments":{"prompt":"test","backend":"qwen"}}}' | node claudette-mcp-multiplexer.js
+echo '{"jsonrpc":"2.0","id":"test","method":"tools/call","params":{"name":"claudette_query","arguments":{"prompt":"test","backend":"qwen"}}}' | node claudette-mcp-server-fast.js
 
 # Monitor real-time performance
 watch -n 5 'claudette status'
@@ -469,13 +470,13 @@ Use the following tools:
 echo "Testing Claudette MCP Integration..."
 
 # Test version
-echo '{"jsonrpc":"2.0","id":"v1","method":"tools/call","params":{"name":"claudette_version"}}' | node claudette-mcp-multiplexer.js
+echo '{"jsonrpc":"2.0","id":"v1","method":"tools/call","params":{"name":"claudette_version"}}' | node claudette-mcp-server-fast.js
 
 # Test status  
-echo '{"jsonrpc":"2.0","id":"s1","method":"tools/call","params":{"name":"claudette_status"}}' | node claudette-mcp-multiplexer.js
+echo '{"jsonrpc":"2.0","id":"s1","method":"tools/call","params":{"name":"claudette_status"}}' | node claudette-mcp-server-fast.js
 
 # Test query
-echo '{"jsonrpc":"2.0","id":"q1","method":"tools/call","params":{"name":"claudette_query","arguments":{"prompt":"Hello MCP test"}}}' | node claudette-mcp-multiplexer.js
+echo '{"jsonrpc":"2.0","id":"q1","method":"tools/call","params":{"name":"claudette_query","arguments":{"prompt":"Hello MCP test"}}}' | node claudette-mcp-server-fast.js
 
 echo "MCP integration test complete"
 ```
