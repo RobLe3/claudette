@@ -23,7 +23,7 @@ Claudette acts as a smart middleware layer between your application and AI provi
 - **[Installation Guide](guides/installation.md)** - Set up Claudette in your project
 - **[Getting Started](guides/getting-started.md)** - CLI usage and basic configuration
 - **[Configuration Guide](guides/configuration.md)** - Environment setup and backend configuration
-- **[Claude Code Integration](claude-code-integration-guide.md)** - Setting up MCP integration
+- **[Anti-Hallucination Integration](anti-hallucination-integration-guide.md)** - Anti-hallucination integration with Claude Code
 
 ### API Reference  
 - **[CLI Reference](api/cli-reference.md)** - Complete command-line interface documentation
@@ -33,7 +33,7 @@ Claudette acts as a smart middleware layer between your application and AI provi
 ### Integration Guides
 - **[MCP Integration](mcp-integration.md)** - Claude Code MCP setup and configuration
 - **[Timeout Harmonization](timeout-harmonization.md)** - Advanced timeout management system
-- **[Claude Code Setup](claude-code-integration-guide.md)** - Complete Claude Code integration
+- **[Anti-Hallucination Setup](anti-hallucination-integration-guide.md)** - Anti-hallucination integration setup
 
 ### Technical Documentation
 - **[Architecture](ARCHITECTURE.md)** - System design and timeout harmonization
