@@ -170,6 +170,18 @@ temp-*/
 test-*.js
 debug-*.js
 claude-*.js
+*-test.js
+*-test-*.js
+comprehensive-*.js
+final-verification.*
+mcp-focused-test.js
+mcp-multiplexer-monitor.js
+quick-functionality*.js
+refined-system-test.js
+sequential-test.js
+version-bump-test-suite.js
+example-claude-settings.json
+mcp-multiplexer-config.json
 
 # Test artifacts and reports (root level) - if any are created in future
 *-test-results.json
@@ -179,8 +191,27 @@ benchmark-*.json
 performance-*.json
 test-install-local-*/
 
-# Reports (case insensitive pattern)
+# Reports and documentation files (development artifacts)
 *[Rr][Ee][Pp][Oo][Rr][Tt]*.md
+*_[Rr][Ee][Pp][Oo][Rr][Tt].md  
+*_[Rr][Ee][Pp][Oo][Rr][Tt]_*.md
+[A-Z]*_REPORT*.md
+[A-Z]*_ANALYSIS*.md
+[A-Z]*_SUMMARY*.md
+[A-Z]*_COMPLETE*.md
+TIMEOUT_*.md
+VERSION_*.md
+MCP_*.md
+COMPREHENSIVE_*.md
+FINAL_*.md
+PERFORMANCE_*.md
+STORAGE_*.md
+PULL_REQUEST_*.md
+DOCUMENTATION_*.md
+CLAUDETTE_*.md
+!README.md
+!CHANGELOG.md
+!CONTRIBUTING.md
 
 # Development configuration
 .pre-commit-config.yaml
