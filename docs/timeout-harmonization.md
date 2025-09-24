@@ -156,7 +156,7 @@ const multipliers = {
     "claudette": {
       "timeout": 115000,  // 115s - perfect for 120s limit
       "command": "node",
-      "args": ["/path/to/claudette-mcp-multiplexer.js"]
+      "args": ["/path/to/claudette-mcp-server-fast.js"]
     }
   }
 }
