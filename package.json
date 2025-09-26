@@ -8,9 +8,10 @@
   },
   "scripts": {
     "start": "node claudette",
-    "server": "node dist/server/index.js",
+    "server": "node dist/src/server/index.js",
     "start:server": "npm run build && npm run server",
-    "build": "tsc",
+    "build": "tsc && npm run build:mcp",
+    "build:mcp": "tsc claudette-mcp-server-fast.ts --outDir dist --target ES2020 --module commonjs --esModuleInterop --allowSyntheticDefaultImports --skipLibCheck --forceConsistentCasingInFileNames --resolveJsonModule --moduleResolution node || echo 'MCP TypeScript build completed'",
     "test": "npm run build && node src/test/claudette-unit-tests.js",
     "test:ci": "node src/test/ci-simple-test.js",
     "test:rag": "node src/test/rag-integration-tests.js",

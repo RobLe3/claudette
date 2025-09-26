@@ -1,0 +1,268 @@
+{
+  "claudette_integrity_audit": {
+    "audit_date": "2025-09-26",
+    "version": "1.0.5",
+    "overall_status": "healthy_with_cleanup_needed",
+    "priority": "medium_high"
+  },
+  "critical_issues": {
+    "broken_rag_providers": {
+      "file": "src/rag/providers.ts", 
+      "lines": [107, 110, 113],
+      "issue": "calls undefined functions",
+      "impact": "runtime_crash",
+      "action": "fix_immediately",
+      "functions": ["createMCPProvider", "createDockerProvider", "createRemoteProvider"]
+    },
+    "commented_exports": {
+      "file": "src/index.ts",
+      "lines": "1025-1032", 
+      "issue": "essential_rag_functionality_disabled",
+      "impact": "features_unavailable",
+      "action": "restore_or_remove"
+    }
+  },
+  "dead_code_analysis": {
+    "total_lines": 4000,
+    "files_affected": 20,
+    "categories": {
+      "definitely_dead": {
+        "adaptive_backend_manager_js": {
+          "file": "src/backends/adaptive-backend-manager.js",
+          "lines": 200,
+          "reason": "javascript_duplicate_of_typescript",
+          "action": "delete_immediately",
+          "safety": "high"
+        },
+        "plugin_system": {
+          "directory": "src/plugins/",
+          "files": 6,
+          "lines": 1000,
+          "reason": "zero_usage_comprehensive_system",
+          "action": "delete_if_not_planned",
+          "safety": "medium"
+        },
+        "root_test_files": {
+          "pattern": "*test*.js, *benchmark*.js, *analysis*.js",
+          "count": 75,
+          "reason": "duplicated_test_files",
+          "action": "consolidate_into_proper_structure",
+          "safety": "high"
+        }
+      },
+      "potentially_unused": {
+        "graph_database": {
+          "file": "src/graph/ultipa-client.ts",
+          "lines": 650,
+          "reason": "no_usage_in_main_flows",
+          "action": "review_intended_use",
+          "safety": "low"
+        },
+        "advanced_cache": {
+          "file": "src/cache/advanced/multi-layer-cache.ts", 
+          "lines": 600,
+          "reason": "not_used_in_main_index",
+          "action": "verify_integration",
+          "safety": "low"
+        },
+        "analytics_components": {
+          "files": ["src/analytics/predictive-analytics.ts", "src/analytics/performance/performance-analytics.ts"],
+          "lines": 800,
+          "reason": "imported_but_not_actively_used",
+          "action": "verify_analytics_integration",
+          "safety": "low"
+        },
+        "dashboard_system": {
+          "files": ["src/dashboard/dashboard-manager.ts", "src/dashboard/real-time-visualizer.ts"],
+          "lines": 500,
+          "reason": "unclear_integration_point",
+          "action": "review_dashboard_plans",
+          "safety": "low"
+        }
+      },
+      "needs_review": {
+        "multiple_timeout_managers": {
+          "files": [
+            "src/monitoring/timeout-manager.ts",
+            "src/monitoring/dynamic-timeout-manager.js", 
+            "src/monitoring/optimized-timeout-system.ts"
+          ],
+          "issue": "three_different_implementations",
+          "action": "standardize_on_one",
+          "safety": "medium"
+        },
+        "debug_logging": {
+          "pattern": "console.debug, console.log calls",
+          "files": "multiple",
+          "action": "replace_with_proper_logging",
+          "safety": "high"
+        }
+      }
+    }
+  },
+  "dependency_analysis": {
+    "package_json_health": "good",
+    "unused_dependencies": ["axios"],
+    "missing_dependencies": [],
+    "broken_imports": 3,
+    "circular_dependencies": 0,
+    "import_export_integrity": "excellent"
+  },
+  "file_organization_issues": {
+    "duplication_problems": {
+      "test_files": {
+        "locations": ["tests/", "artifacts/additional-tests/", "src/test/", "root_level"],
+        "count": 200,
+        "action": "consolidate_to_standard_structure"
+      },
+      "documentation": {
+        "issue": "32_test_reports_plus_backup_docs",
+        "action": "archive_historical_reports"
+      },
+      "build_artifacts": {
+        "locations": ["build-artifacts/", "artifacts/build-reports/", "root_level"],
+        "action": "consolidate_build_outputs"
+      }
+    },
+    "naming_inconsistencies": {
+      "patterns": ["camelCase", "kebab-case", "UPPER_CASE"],
+      "verbose_names": "some_extremely_long_descriptive_names",
+      "action": "standardize_naming_conventions"
+    }
+  },
+  "cleanup_phases": {
+    "phase_1_critical": {
+      "timeline": "today",
+      "priority": "critical",
+      "tasks": [
+        {
+          "task": "fix_rag_provider_function_calls",
+          "file": "src/rag/providers.ts",
+          "action": "fix_or_disable_module"
+        },
+        {
+          "task": "restore_commented_exports",
+          "file": "src/index.ts", 
+          "action": "restore_or_update_documentation"
+        },
+        {
+          "task": "delete_javascript_duplicate",
+          "file": "src/backends/adaptive-backend-manager.js",
+          "action": "delete_confirmed_duplicate"
+        }
+      ]
+    },
+    "phase_2_major_cleanup": {
+      "timeline": "this_week",
+      "priority": "high",
+      "tasks": [
+        {
+          "task": "consolidate_test_files",
+          "action": "move_to_standard_structure"
+        },
+        {
+          "task": "remove_unused_dependency",
+          "package": "axios",
+          "action": "npm_uninstall"
+        },
+        {
+          "task": "archive_development_artifacts",
+          "action": "move_to_single_location"
+        },
+        {
+          "task": "audit_plugin_system",
+          "directory": "src/plugins/",
+          "action": "use_or_remove"
+        }
+      ]
+    },
+    "phase_3_optimization": {
+      "timeline": "this_month",
+      "priority": "medium",
+      "tasks": [
+        {
+          "task": "standardize_timeout_management",
+          "action": "choose_one_implementation"
+        },
+        {
+          "task": "review_advanced_features",
+          "components": ["analytics", "dashboard", "graph_db"],
+          "action": "determine_usage_intent"
+        },
+        {
+          "task": "standardize_naming",
+          "action": "apply_consistent_conventions"
+        },
+        {
+          "task": "remove_debug_logging",
+          "action": "replace_with_proper_logging"
+        }
+      ]
+    }
+  },
+  "impact_assessment": {
+    "file_reduction": {
+      "current_files": "1000+",
+      "after_cleanup": "~600",
+      "reduction_percentage": 40
+    },
+    "dead_code_removal": {
+      "lines_removed": "4000+",
+      "test_files_consolidated": "200+ → 50+"
+    },
+    "benefits": [
+      "reduced_bundle_size",
+      "improved_maintainability", 
+      "faster_development",
+      "better_performance",
+      "enhanced_security"
+    ],
+    "risks": [
+      "potential_data_loss_if_files_needed",
+      "build_system_changes_required",
+      "documentation_updates_needed"
+    ]
+  },
+  "safety_guidelines": {
+    "before_deleting": [
+      "git_commit_current_state",
+      "run_full_test_suite",
+      "check_build_process",
+      "review_git_history",
+      "create_backup_branch"
+    ],
+    "testing_after_cleanup": [
+      "unit_tests",
+      "build_process",
+      "integration_tests", 
+      "package_build",
+      "performance_tests"
+    ]
+  },
+  "immediate_action_checklist": {
+    "critical_today": [
+      "fix_broken_rag_provider_function_calls",
+      "restore_or_remove_commented_exports",
+      "delete_confirmed_duplicate_adaptive_backend_manager_js"
+    ],
+    "high_priority_this_week": [
+      "remove_unused_axios_dependency",
+      "consolidate_test_file_structure", 
+      "archive_development_artifacts",
+      "audit_plugin_system_usage"
+    ],
+    "medium_priority_this_month": [
+      "review_advanced_feature_usage",
+      "standardize_timeout_management",
+      "clean_up_naming_conventions",
+      "remove_debug_logging"
+    ]
+  },
+  "conclusion": {
+    "status": "core_architecture_solid",
+    "issues": "technical_debt_from_development",
+    "approach": "incremental_cleanup",
+    "timeline": "2_3_weeks_complete_cleanup",
+    "risk": "minimal_to_production_functionality"
+  }
+}
