@@ -118,7 +118,7 @@
     "chalk": "^4.1.2",
     "commander": "^14.0.1",
     "dotenv": "^17.2.2",
-    "lru-cache": "^11.2.1",
+    "lru-cache": "^11.2.2",
     "node-fetch": "^3.3.2",
     "openai": "^5.22.0",
     "ora": "^5.4.1",
